@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "workato-docs": {
+      "command": "uv",
+      "args": ["run", "--with", "fastmcp", "python", "${PLUGIN_ROOT}/mcp/docs-overlay/server.py"]
+    }
+  }
+}
