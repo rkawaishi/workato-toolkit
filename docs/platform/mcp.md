@@ -46,7 +46,7 @@ Endpoints in API Collections can be exposed as MCP servers:
 API Collection → MCP Server → AI Agent (Genie, Claude, ChatGPT)
 ```
 
-Details: `@docs/platform/api-platform.md`
+Details: `platform/api-platform.md` (via `workato_docs_lookup`)
 
 ## Relationship to Agent Studio
 

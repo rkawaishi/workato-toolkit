@@ -83,7 +83,7 @@ If the target service itself has a sandbox (e.g. Salesforce Sandbox vs. Producti
 |---|---|
 | Data Tables | Schema is deployed; **records are not** (each environment starts empty) |
 | Lookup Tables | Schema is deployed; rows must be seeded per environment |
-| Environment Properties | Values are workspace-scoped; set them per environment (e.g. dev URL vs. prod URL). See `@docs/platform/environment-properties.md` |
+| Environment Properties | Values are workspace-scoped; set them per environment (e.g. dev URL vs. prod URL). See `platform/environment-properties.md` (via `workato_docs_lookup`) |
 | Custom Connectors | Source code is deployed; the connector must be **released** in each workspace |
 
 ### Runtime resources
@@ -109,7 +109,7 @@ Each environment corresponds to one **Platform CLI profile** (stored in `~/.work
 | `<org>-test` | Test workspace | `workato pull` only (push is forbidden by policy) |
 | `<org>-prod` | Prod workspace | `workato pull` only (push is forbidden by policy) |
 
-See `@docs/platform/cli-profiles.md` for the full profile selection rules and the push/pull matrix.
+See `platform/cli-profiles.md` (via `workato_docs_lookup`) for the full profile selection rules and the push/pull matrix.
 
 ## Common mistakes
 
@@ -124,7 +124,7 @@ See `@docs/platform/cli-profiles.md` for the full profile selection rules and th
 ## Related
 
 - `@.claude/rules/workato-deployment-flow.md` — the inviolable rule (dev-only push, Deploy-only promotion)
-- `@docs/platform/cli-profiles.md` — profile naming and push/pull matrix
-- `@docs/platform/environment-properties.md` — per-environment configuration values
-- `@docs/patterns/workspace-management.md` — workspace layout and connection management
-- `@docs/patterns/deployment-guide.md` — per-asset deployment procedure
+- `platform/cli-profiles.md` (via `workato_docs_lookup`) — profile naming and push/pull matrix
+- `platform/environment-properties.md` (via `workato_docs_lookup`) — per-environment configuration values
+- `patterns/workspace-management.md` (via `workato_docs_lookup`) — workspace layout and connection management
+- `patterns/deployment-guide.md` (via `workato_docs_lookup`) — per-asset deployment procedure
