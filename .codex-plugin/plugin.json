@@ -2,5 +2,6 @@
   "name": "workato-toolkit",
   "version": "0.0.1",
   "description": "Workato development toolkit for AI coding agents",
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "mcpServers": "./.codex.mcp.json"
 }
