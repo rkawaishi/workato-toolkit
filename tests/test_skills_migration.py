@@ -63,3 +63,23 @@ def test_doc_consuming_skills_mention_mcp_tool():
         text = files[name].read_text(encoding="utf-8")
         assert "workato_docs_lookup" in text or "workato_docs_list" in text, \
             f"{name}: rewritten skill must reference an MCP docs tool"
+
+
+# ---- P3c T9: rules are delivered always-on, so skills reference them by name,
+#      not via @.claude/rules/ paths (which don't resolve in plugin distribution).
+_RULES_PATH_REF = re.compile(r"@\.claude/rules/")
+
+
+def test_no_claude_rules_path_refs():
+    offenders = []
+    for name, p in _skill_files().items():
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if _RULES_PATH_REF.search(line):
+                offenders.append(f"{name}/SKILL.md:{i}: {line.strip()}")
+    assert not offenders, "remaining @.claude/rules/ refs:\n" + "\n".join(offenders)
+
+
+def test_rules_referenced_by_name():
+    text = (SKILLS / "create-recipe" / "SKILL.md").read_text(encoding="utf-8")
+    assert "`workato-recipe-format`" in text
+    assert "always-on" in text

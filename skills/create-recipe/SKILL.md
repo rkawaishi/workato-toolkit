@@ -159,7 +159,7 @@ The generation procedure itself is the same either way:
 
 ### 7. Read the JSON structure reference
 
-- `@.claude/rules/workato-recipe-format.md`
+- the `workato-recipe-format` rule (always-on)
 - If logic steps are needed, call `workato_docs_list` with prefix `logic/` to find the relevant doc, then call `workato_docs_lookup` with that path.
 
 ### 8. Design the step composition (apply patterns)
@@ -183,7 +183,7 @@ For parts that don't match a pattern, consult:
 
 ### 9. Generate the files
 
-Follow `@.claude/rules/workato-project-structure.md`:
+Follow the `workato-project-structure` rule (always-on):
 - `<project>/Recipes/<snake_case_name>.recipe.json` — the recipe.
 - `<project>/Connections/<prefix>_<provider>.connection.json` — connection (only if it doesn't exist yet).
 - Make sure `zip_name` / `folder` inside the JSON match the subfolder path.

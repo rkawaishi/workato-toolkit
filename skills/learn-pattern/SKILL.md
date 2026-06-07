@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 A Workato expert records construction patterns into **`org/docs/patterns/recipe-patterns/`**.
 The goal is to document know-how the expert already has. A reference recipe can be supplied as optional source material.
 
-The write target is a single location in the org knowledge layer (the kit submodule's `docs/` is left alone). See `@.claude/rules/org-knowledge-overlay.md`.
+The write target is a single location in the org knowledge layer (the kit submodule's `docs/` is left alone). See the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 

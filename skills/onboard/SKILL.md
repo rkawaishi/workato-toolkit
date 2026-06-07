@@ -148,7 +148,7 @@ Compute "most-used built-in actions" by tallying `provider` / action keywords ac
 - **Don't reimplement**: `/onboard` never pulls, learns, syncs or catalogs by itself — it only invokes the owning skills. The single piece of state it owns is `org/onboarding-report.md`.
 - **Check off reliably**: mark a step / project `[x]` only after the invoked skill actually succeeds. On failure, record it under "Needs follow-up" and continue.
 - **Confirm before a large run**: always show the plan and project count first; recommend `--projects` for a first pass.
-- **Never touch the kit's `docs/` destructively**: learning writes go to `org/docs/` via `/learn-recipe` (see `@.claude/rules/org-knowledge-overlay.md`).
+- **Never touch the kit's `docs/` destructively**: learning writes go to `org/docs/` via `/learn-recipe` (see the `org-knowledge-overlay` rule (always-on)).
 
 ## Git management
 

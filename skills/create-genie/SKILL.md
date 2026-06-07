@@ -34,16 +34,16 @@ Supports Genie alone, MCP server alone, or both.
    - **VUA**: is Verified User Access needed (API calls using the end user's credentials)?
 
 2. Read the references:
-   - `@.claude/rules/workato-agentic-format.md`
-   - `@.claude/rules/workato-recipe-format.md`
-   - `@.claude/rules/workato-project-structure.md`
+   - the `workato-agentic-format` rule (always-on)
+   - the `workato-recipe-format` rule (always-on)
+   - the `workato-project-structure` rule (always-on)
    - Call `workato_docs_lookup` with path `connectors/_index.md`, then look up each relevant connector with `workato_docs_lookup` (path `connectors/<connector>.md`)
    - Call `workato_docs_lookup` with path `platform/agent-studio.md`
    - Call `workato_docs_lookup` with path `platform/mcp.md`
 
 3. If an existing Genie is available, reference its structure.
 
-4. Generate the Genie configuration files (following `@.claude/rules/workato-project-structure.md`):
+4. Generate the Genie configuration files (following the `workato-project-structure` rule (always-on)):
    - `<project>/Agents/<name>.agentic_genie.json` — the Genie itself.
    - For each skill:
      - `<project>/Agents/<skill_name>.agentic_skill.json` — skill definition.

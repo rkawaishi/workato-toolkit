@@ -22,7 +22,7 @@ Push local changes to the Workato remote and verify the recipes work.
 
 ### 0. Environment guard (mandatory)
 
-**Before any validation or push, confirm the push target is dev.** See `@.claude/rules/workato-deployment-flow.md` for the full rule.
+**Before any validation or push, confirm the push target is dev.** See the `workato-deployment-flow` rule (always-on) for the full rule.
 
 ```bash
 python3 scripts/workato-api.py profile show
