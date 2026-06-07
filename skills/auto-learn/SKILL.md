@@ -1,11 +1,11 @@
 ---
-description: Drive the Workato UI through Claude in Chrome and autonomously collect every operation's field info for one connector, appending the results to `docs/connectors/<provider>.md`. Prefer autonomy over completeness — record uncertain cases and skip them rather than asking the user mid-run. Requires the Claude in Chrome extension and runs only in Claude Code. Japanese prompts are also supported.
+description: Drive the Workato UI through Claude in Chrome and autonomously collect every operation's field info for one connector, appending the results to the workspace `org/docs/connectors/<provider>.md`. Prefer autonomy over completeness — record uncertain cases and skip them rather than asking the user mid-run. Requires the Claude in Chrome extension and runs only in Claude Code. Japanese prompts are also supported.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, mcp__Claude_in_Chrome__navigate, mcp__Claude_in_Chrome__find, mcp__Claude_in_Chrome__form_input, mcp__Claude_in_Chrome__javascript_tool, mcp__Claude_in_Chrome__read_page, mcp__Claude_in_Chrome__read_console_messages, mcp__Claude_in_Chrome__read_network_requests, mcp__Claude_in_Chrome__tabs_context_mcp, mcp__Claude_in_Chrome__tabs_create_mcp, mcp__Claude_in_Chrome__select_browser, mcp__Claude_in_Chrome__list_connected_browsers
 ---
 
 # /auto-learn
 
-Drive the Workato UI through Claude in Chrome and actively collect input / output fields for every operation (trigger / action) of the target connector, then append the results to `docs/connectors/<provider>.md`.
+Drive the Workato UI through Claude in Chrome and actively collect input / output fields for every operation (trigger / action) of the target connector, then append the results to the workspace `org/docs/connectors/<provider>.md`. (The kit's bundled `docs/` is read-only; read it for the skip-check via `workato_docs_lookup`, but never write there.)
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ Options:
 - `--force` — relearn even if field details already exist in docs.
 - `--triggers-only` / `--actions-only` — narrow the scope.
 - `--sandbox <json>` — test data for dynamic schemas (see below).
-- `--followups` — **no-UI mode**. Aggregate the `## Learning summary` sections of existing `docs/connectors/*.md` and print to stdout. A `<provider>` argument restricts to one connector; otherwise aggregates across all 7+ connectors. The execution flow (Phases 1–5) does not run. See "Followups mode" at the end of this file.
+- `--followups` — **no-UI mode**. Aggregate the `## Learning summary` sections of existing `org/docs/connectors/*.md` and print to stdout. A `<provider>` argument restricts to one connector; otherwise aggregates across all connectors. The execution flow (Phases 1–5) does not run. See "Followups mode" at the end of this file.
 
 When prerequisites are missing (no conventional recipe, connection not authenticated, etc.), **exit with only a failure log — do not ask the user**.
 
@@ -79,10 +79,10 @@ Keep the sandbox data **simple** (no duplicated headers, ~3 columns). Complex da
 
 ### Phase 1: Bootstrap
 
-1. Read `docs/connectors/<provider>.md`.
+1. Read the merged connector doc via `workato_docs_lookup("connectors/<provider>.md")` (bundled kit doc + `org/docs/` overlay).
 2. Enumerate op name and kind from the Triggers / Actions tables.
 3. Exclude: `__adhoc_http_action`, deprecated entries (rows annotated `[deprecated]` etc.).
-4. Unless `--force` is set, skip ops that already have a section starting with `### <op>`. Match **by op name only** (the token right after `### ` at the start of the line); ignore parenthesised suffixes such as display titles. For example, both `### delete_message (Delete message)` and `### delete_message (Action)` count as the same op and are skipped.
+4. Unless `--force` is set, skip ops that already have a section starting with `### <op>` in the merged result. Match **by op name only** (the token right after `### ` at the start of the line); ignore parenthesised suffixes such as display titles. For example, both `### delete_message (Delete message)` and `### delete_message (Action)` count as the same op and are skipped.
 5. Put the remaining ops into the processing queue.
 
 ### Phase 2: Tab preparation
@@ -153,7 +153,7 @@ Inside `processOperation`:
 
 ### Phase 4: Append to docs
 
-In `docs/connectors/<provider>.md`, append each op's result to the `## Action details` / `## Trigger details` sections:
+In the workspace `org/docs/connectors/<provider>.md` (create the directory with `mkdir -p org/docs/connectors` on first write), append each op's result to the `## Action details` / `## Trigger details` sections:
 
 ```markdown
 ### <op_name> (<Display Title>)
@@ -194,7 +194,7 @@ Append-routing rules (anything other than `'ok'` is treated as a learning-failur
 
 ### End of Phase 4: update the `## Learning summary` section (required)
 
-After appending each op's result, add a `## Learning summary` section to the **end** of `docs/connectors/<provider>.md` (below the final `## ...` section). **Replace if it already exists** — this section holds only the latest run's snapshot, and historical runs are tracked via git history.
+After appending each op's result, add a `## Learning summary` section to the **end** of `org/docs/connectors/<provider>.md` (below the final `## ...` section). **Replace if it already exists** — this section holds only the latest run's snapshot, and historical runs are tracked via git history.
 
 Format (assemble the fields from the run's results; lists separate op names with ` — `; if a set is empty, leave the line in place with `0`):
 
@@ -237,7 +237,7 @@ Copy each `> ⚠` inline note within an op section (other than `> ⚠ Partial le
 Drop the heading entirely if there is nothing to record.
 ```
 
-This section becomes **the single reference point for "give me follow-ups" requests**. `grep "^## Learning summary" docs/connectors/*.md -A 200` produces follow-ups for every connector.
+This section becomes **the single reference point for "give me follow-ups" requests**. `grep "^## Learning summary" org/docs/connectors/*.md -A 200` produces follow-ups for every connector.
 
 `--followups` mode reads only this section to aggregate (does not run Phases 1–3). See "Followups mode" at the end of this file.
 
@@ -251,7 +251,7 @@ A short stdout report (must align with the `## Learning summary` written in Phas
 - Fully learned: M op
 - Partially learned: K op  (main theme: <theme>)
 - Failed: L op  (reason: <reason>)
-- Persisted: updated `## Learning summary` in docs/connectors/<provider>.md
+- Persisted: updated `## Learning summary` in org/docs/connectors/<provider>.md
 - Items to feed back manually:
   - Duplicate labels: ...
   - Unresolved nesting depth: ...
@@ -260,7 +260,7 @@ A short stdout report (must align with the `## Learning summary` written in Phas
 
 End with the list of appended sections and a git-diff summary; let the user decide whether to commit (**do not auto-commit**).
 
-When asked later to "produce follow-ups", you can answer just by reading the `## Learning summary` blocks in `docs/connectors/*.md`. The result is deterministically reproducible in a new session.
+When asked later to "produce follow-ups", you can answer just by reading the `## Learning summary` blocks in `org/docs/connectors/*.md`. The result is deterministically reproducible in a new session.
 
 ## Concrete rules for "don't stop"
 
@@ -292,7 +292,7 @@ When asked later to "produce follow-ups", you can answer just by reading the `##
   - Update the "Learned from" line to the latest date.
   - **Union-merge** the field table (replace same-name entries with the new info).
   - Leave a **trailing annotation** for duplicate labels (e.g. `> ⚠ The same label "User" appears twice. Internal path needs manual confirmation.`).
-- New sections use the same format as [/learn-recipe](../learn-recipe/SKILL.md).
+- New sections use the same format as `/learn-recipe` (both write to the same `org/docs/connectors/<provider>.md`).
 
 ## Outstanding items (manual feedback required)
 
@@ -304,7 +304,7 @@ This skill targets "broad and shallow". The following cannot be captured by UI o
 - Mapping between internal `name` (JSON key) and display label (the UI shows only the label).
 - Field-level `parse_output` / fine constraints (e.g. maximum character length).
 
-When you notice any of these, either run `/learn-recipe` on a specific recipe or edit `docs/connectors/<provider>.md` directly.
+When you notice any of these, either run `/learn-recipe` on a specific recipe or edit `org/docs/connectors/<provider>.md` directly.
 
 ## Error-handling design
 
@@ -328,7 +328,7 @@ Non-recoverable situations — tab died, network dropped, logged out, etc. — a
 
 ## Followups mode (`--followups`)
 
-A **read-only aggregation mode** independent of the normal `/auto-learn` execution (no UI operations). It does not run Phases 1–5 at all — just reads the `## Learning summary` sections of `docs/connectors/*.md` and lists follow-ups.
+A **read-only aggregation mode** independent of the normal `/auto-learn` execution (no UI operations). It does not run Phases 1–5 at all — just reads the `## Learning summary` sections of `org/docs/connectors/*.md` and lists follow-ups.
 
 ### Invocation
 
@@ -340,8 +340,8 @@ A **read-only aggregation mode** independent of the normal `/auto-learn` executi
 ### Behaviour
 
 1. Targets:
-   - With `<provider>` → `docs/connectors/<provider>.md` only.
-   - Without → all of `docs/connectors/*.md` (exclude non-connector files like `_index.md` after content inspection).
+   - With `<provider>` → `org/docs/connectors/<provider>.md` only.
+   - Without → all of `org/docs/connectors/*.md` (exclude non-connector files like `_index.md` after content inspection).
 2. Read each file and extract the `## Learning summary` section (up to the next `## ` or EOF).
 3. Connectors without a section go into the `unknown` category as "uncollected" (left over from a past run).
 4. Print a summary table and per-category follow-ups to stdout:
@@ -378,17 +378,19 @@ When the user asks for "give me follow-ups" / "list the skipped ops" / "tell me 
 
 ## Git management
 
-The write target is `docs/connectors/<provider>.md` inside the kit (submodule) only. The skill itself does not commit (the user decides at the end). Commit inside the kit and PR back to workato-dev-kit:
+The write target is the workspace `org/docs/connectors/<provider>.md` (the plugin's bundled `docs/` is read-only). The skill itself does not commit (the user decides at the end):
 
 ```bash
-cd kit
-git add docs/connectors/<provider>.md
+cd <workspace-root>
+git add org/docs/connectors/<provider>.md
 git commit -m "auto-learn: <provider> N op (M ok / K failed)"
 ```
 
+To upstream broadly-useful spec into the kit canonical docs, open a separate PR against the `workato-toolkit` repository.
+
 ## Related skills / docs
 
-- [/sync-connectors](../sync-connectors/SKILL.md) — collect Triggers/Actions lists (the upstream of this skill).
-- [/learn-recipe](../learn-recipe/SKILL.md) — learn fields from an existing recipe (manual feedback path).
-- [docs/patterns/auto-learn-ui-operations.md](../../../docs/patterns/auto-learn-ui-operations.md) — full DOM-selector reference for UI operations.
-- [Issue #27](https://github.com/rkawaishi/workato-dev-kit/issues/27) — design motivation.
+- `/sync-connectors` — collect Triggers/Actions lists (the upstream of this skill).
+- `/learn-recipe` — learn fields from an existing recipe (manual feedback path).
+- `workato_docs_lookup("patterns/auto-learn-ui-operations.md")` — full DOM-selector reference for UI operations.
+- [Issue #27](https://github.com/rkawaishi/workato-dev-kit/issues/27) — design motivation (historical).

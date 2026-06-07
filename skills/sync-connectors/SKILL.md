@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 
 Collect connector metadata and update the documentation.
 
-- **Pre-built connectors**: fetched from the Workato API → updates the workspace `org/docs/connectors/`. (The kit's bundled `docs/connectors/` is read-only; read it for diffing via `workato_docs_lookup`, but never write there.)
+- **Pre-built connectors**: fetched from the Workato API → updates the workspace `org/docs/connectors/`. (The kit's bundled `docs/` is read-only; read it for diffing via `workato_docs_lookup`, but never write there.)
 - **Custom connectors**: parsed from `connector.rb` → updates `connectors/docs/`.
 
 ## Usage
