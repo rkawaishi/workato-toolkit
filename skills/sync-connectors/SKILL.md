@@ -1,5 +1,5 @@
 ---
-description: Collect connector metadata and update the docs. Pre-built connectors are fetched via the API and written to `docs/connectors/`; custom connectors are parsed from `connector.rb` and written to `connectors/docs/`. Japanese prompts are also supported.
+description: Collect connector metadata and update the docs. Pre-built connectors are fetched via the API and written to the workspace `org/docs/connectors/`; custom connectors are parsed from `connector.rb` and written to `connectors/docs/`. Japanese prompts are also supported.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 ---
 
@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 
 Collect connector metadata and update the documentation.
 
-- **Pre-built connectors**: fetched from the Workato API → updates `docs/connectors/`.
+- **Pre-built connectors**: fetched from the Workato API → updates the workspace `org/docs/connectors/`. (The kit's bundled `docs/connectors/` is read-only; read it for diffing via `workato_docs_lookup`, but never write there.)
 - **Custom connectors**: parsed from `connector.rb` → updates `connectors/docs/`.
 
 ## Usage
@@ -159,7 +159,7 @@ python3 scripts/workato-api.py connectors list-platform --provider <name>
 
 2. Parse the JSON and extract triggers/actions.
 
-3. Create or update `docs/connectors/<name>.md`:
+3. Read the existing merged doc with `workato_docs_lookup("connectors/<name>.md")` (kit + org overlay) to see what is already documented, then create or update the workspace file `org/docs/connectors/<name>.md` (create the directory with `mkdir -p org/docs/connectors` on first write). Write only triggers/actions not already present in the merged result:
 
 ```markdown
 # <Title> connector
@@ -178,17 +178,17 @@ Provider: `<name>`
 
 ## Field details
 
-(accumulated by /learn-recipe)
+(accumulated by /learn-recipe and /auto-learn, in this same org/docs file)
 ```
 
 ### Diff-update rules
 
-- **New file**: create when the file doesn't exist.
-- **Existing file**:
-  - Compare triggers/actions retrieved from the API with what's in the file.
-  - Add anything new.
+- **New file**: create `org/docs/connectors/<name>.md` when it doesn't exist.
+- **Existing file** (`org/docs/connectors/<name>.md`):
+  - Compare triggers/actions retrieved from the API with the merged result from `workato_docs_lookup("connectors/<name>.md")` (so kit-documented ops are not duplicated into the org file).
+  - Add only what is missing.
   - **Always preserve the frontmatter (the `---`-delimited YAML block).** Items like `connector_id` are managed by `sdk push` — never rewrite them.
-  - Preserve sections after `## Field details` (info accumulated by `/learn-recipe`).
+  - Preserve sections after `## Field details` (info accumulated by `/learn-recipe` / `/auto-learn`).
   - Annotate triggers / actions that flipped to deprecated.
 - **Canonical provider name**: the API's `name` field is the canonical provider name.
 
@@ -199,7 +199,7 @@ Provider: `<name>`
 # Fetch every pre-built connector
 python3 scripts/workato-api.py connectors list-platform
 ```
-Fetch the JSON for every connector and generate / update `docs/connectors/<name>.md` for each.
+Fetch the JSON for every connector and generate / update `org/docs/connectors/<name>.md` for each (diffing against `workato_docs_lookup` so kit-documented ops are not re-written).
 
 #### Custom connectors
 Scan every `connector.rb` under `connectors/` and generate / update `connectors/docs/<name>.md` (following the "Updating custom connectors" procedure).
@@ -207,16 +207,16 @@ Scan every `connector.rb` under `connectors/` and generate / update `connectors/
 ### `--check` behavior
 
 1. Fetch every connector's triggers / actions from the API.
-2. Compare with existing files in `docs/connectors/`.
+2. Compare with the merged docs from `workato_docs_lookup("connectors/<name>.md")` (kit + `org/docs/` overlay).
 3. Report the diff:
    - ✅ Match
    - ⚠️ API has it, docs don't (new trigger / action)
    - ❌ Docs have it, API doesn't (removed or renamed)
-   - 📄 Connector with no docs file at all
+   - 📄 Connector with no docs at all (neither kit nor org)
 
-## Updating `docs/connectors/_index.md` (pre-built only)
+## Updating `org/docs/connectors/_index.md` (pre-built only)
 
-During `--all`, also update `_index.md`:
+During `--all`, also update the workspace `org/docs/connectors/_index.md` (seed it from `workato_docs_lookup("connectors/_index.md")` if it does not yet exist):
 - Refresh the pre-built connector list precisely from the API data.
 - Use the `name` field as the provider name.
 - Do not include custom connectors here (those are managed in `connectors/docs/` because they are org-specific).
@@ -226,7 +226,7 @@ During `--all`, also update `_index.md`:
 After update, report:
 
 ### Pre-built connectors
-- The list of created / updated files (`docs/connectors/`).
+- The list of created / updated files (`org/docs/connectors/`).
 - The number of triggers / actions added.
 - Triggers / actions newly flagged deprecated.
 
@@ -237,22 +237,17 @@ After update, report:
 
 ## Git management
 
-This skill writes to **two locations**:
+This skill writes to **two workspace-repo locations** (the plugin's bundled `docs/` is read-only and is never written):
 
-- `docs/connectors/*.md` → the knowledge base inside the kit (submodule) → PR back to workato-dev-kit.
+- `org/docs/connectors/*.md` → pre-built connector knowledge in the org overlay.
 - `connectors/docs/*.md` → the workspace repository's custom-connector knowledge.
 
 Commit after running:
 
 ```bash
-# Workspace side (custom connector updates)
-git add connectors/docs/
-git commit -m "docs: update custom connector info"
-
-# Kit side (pre-built connector updates) → PR to workato-dev-kit
-cd kit
-git add docs/connectors/
-git commit -m "docs: update pre-built connector info"
+cd <workspace-root>
+git add org/docs/connectors/ connectors/docs/
+git commit -m "docs: update connector info (pre-built + custom)"
 ```
 
-Committing and pushing only one side leaves your knowledge inconsistent.
+To upstream pre-built spec into the kit canonical docs, open a separate PR against the `workato-toolkit` repository (out of scope here).
