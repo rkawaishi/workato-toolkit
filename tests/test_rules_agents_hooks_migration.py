@@ -75,3 +75,14 @@ def test_agent_md_present():
     assert text.startswith("---"), "agent md missing frontmatter"
     assert re.search(r"^name: workato-builder\s*$", text, re.MULTILINE)
     assert re.search(r"^description: ", text, re.MULTILINE)
+
+
+def test_session_start_rules_emits_context():
+    script = BIN / "session-start-rules"
+    assert script.is_file() and os.access(script, os.X_OK), "bin/session-start-rules missing/!x"
+    env = dict(os.environ, CLAUDE_PLUGIN_ROOT=str(REPO))
+    r = subprocess.run(["bash", str(script)], input="{}", capture_output=True, text=True, env=env)
+    assert r.returncode == 0, f"script failed: {r.stderr}"
+    out = json.loads(r.stdout)
+    ctx = out["hookSpecificOutput"]["additionalContext"]
+    assert "Workato Recipe JSON Format" in ctx, "rule content not injected"
