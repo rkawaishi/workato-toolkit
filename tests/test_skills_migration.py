@@ -116,15 +116,14 @@ _MCP_REQUIRED_LEARNING_SKILLS = {
 }
 
 
-def test_no_bare_kit_connector_path_in_learning_skills():
-    # No learning skill (read OR write) may name a bare kit `docs/connectors/`
-    # path — those resolve to the read-only bundled docs and must go through the
-    # MCP lookup or the workspace org/docs/ overlay instead.
-    files = _skill_files()
+def test_no_bare_kit_connector_path_in_any_skill():
+    # No skill (read OR write) may name a bare kit `docs/connectors/` path — those
+    # resolve to the read-only bundled docs and must go through the MCP lookup or
+    # the workspace org/docs/ overlay instead. Repo-wide: /create-recipe and
+    # /onboard also encode connector-knowledge writes, so guard every skill.
     offenders = []
-    for name in _MCP_REQUIRED_LEARNING_SKILLS:
-        text = files[name].read_text(encoding="utf-8")
-        for i, line in enumerate(text.splitlines(), 1):
+    for name, p in _skill_files().items():
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
             if _BARE_KIT_CONNECTOR_PATH.search(line):
                 offenders.append(f"{name}/SKILL.md:{i}: {line.strip()}")
     assert not offenders, "bare kit docs/connectors/ refs:\n" + "\n".join(offenders)

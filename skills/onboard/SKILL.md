@@ -24,7 +24,7 @@ This skill is a **thin orchestrator**. It does not pull, learn, sync or catalog 
 | Step | Skill invoked | Writes to |
 |---|---|---|
 | Pull | `/pull-project --all` (or `--projects`) | `projects/` |
-| Connectors | `/sync-connectors --all` | `docs/connectors/`, `connectors/docs/` |
+| Connectors | `/sync-connectors --all` | `org/docs/connectors/`, `connectors/docs/` |
 | Learn recipes | `/learn-recipe <project>` (per project) | `org/docs/` |
 | Patterns | `/learn-pattern` | `org/docs/patterns/recipe-patterns/` |
 | Catalog | `/catalog scan` | `projects/CATALOG.md` |
@@ -88,7 +88,7 @@ Invoke **`/pull-project --all`** — or **`/pull-project --projects "<a>","<b>"`
 
 ### 5. Step — Sync connectors
 
-Invoke **`/sync-connectors --all`** — pre-built connectors via API into `docs/connectors/`, custom connectors parsed from `connector.rb` into `connectors/docs/`. Mark the step done with counts.
+Invoke **`/sync-connectors --all`** — pre-built connectors via API into `org/docs/connectors/`, custom connectors parsed from `connector.rb` into `connectors/docs/`. Mark the step done with counts.
 
 ### 6. Step — Learn recipes (per project)
 
@@ -152,12 +152,12 @@ Compute "most-used built-in actions" by tallying `provider` / action keywords ac
 
 ## Git management
 
-Onboarding produces a lot of files (`projects/`, `org/docs/`, `docs/connectors/`, `CATALOG.md`). Commit in the workspace repository once the user has reviewed:
+Onboarding produces a lot of files (`projects/`, `org/docs/`, `connectors/docs/`, `CATALOG.md`). Commit in the workspace repository once the user has reviewed:
 
 ```bash
-git add projects/ org/ docs/ connectors/ AGENTS.md
+git add projects/ org/ connectors/ AGENTS.md
 git commit -m "onboard: bootstrap knowledge base from existing Workato assets"
 git push origin
 ```
 
-Connector docs under the kit's `docs/connectors/` are commits into the kit submodule — PR them back to workato-dev-kit separately (see `/sync-connectors`).
+All connector knowledge (pre-built and custom) is written to the workspace repo (`org/docs/connectors/` and `connectors/docs/`); the plugin's bundled `docs/` is read-only. To upstream broadly-useful spec into the kit canonical docs, open a separate PR against `workato-toolkit` (see `/sync-connectors`).

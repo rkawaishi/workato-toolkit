@@ -104,7 +104,7 @@ Use the template below.
 
 ### 8. Extract Unlearned Actions
 
-Whenever you use a trigger or action that **lacks documentation** in Workato official docs or in `docs/connectors/` / `connectors/docs/`, populate `Unlearned Actions`. These get expanded into `[learn]`-tagged tasks by `/tasks`.
+Whenever you use a trigger or action that **lacks documentation** in Workato official docs or in the connector docs (`workato_docs_lookup("connectors/<provider>.md")` / `connectors/docs/`), populate `Unlearned Actions`. These get expanded into `[learn]`-tagged tasks by `/tasks`.
 
 ### 9. Next-step guidance
 

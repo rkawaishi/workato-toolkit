@@ -61,7 +61,7 @@ If the catalog is missing, skip this and tell the user it can be generated with 
 - **If the field info is missing**: fetch the official docs with WebFetch.
   - URL pattern: `https://docs.workato.com/en/connectors/<name>/<action-name>.html`
   - Or: `https://docs.workato.com/en/connectors/<name>/actions.html`
-- Append what you fetched to `docs/connectors/<connector>.md` so the knowledge accumulates.
+- Append what you fetched to `org/docs/connectors/<connector>.md` so the knowledge accumulates (the kit's bundled `docs/` is read-only).
 - **Prohibited**: do not grep `projects/<other-project>/Recipes/` to copy fields from sample JSON. That leaks project-specific logic and naming, and it hides documentation gaps (read connector docs first via `workato_docs_lookup`; see the recipe lifecycle guide via `workato_docs_lookup("guides/lifecycle.md")`).
 - If you have to implement best-effort because there's no documentation anywhere, append `provider` / `action` to the `## Unlearned Actions` table in `projects/<project>/specs/<NNN>-<slug>/plan.md`. If possible, add a matching `[learn]` task to the same directory's `tasks.md` (or regenerate via `/tasks --update`).
 
