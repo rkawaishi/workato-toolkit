@@ -84,3 +84,49 @@ def test_rules_referenced_by_name():
     text = (SKILLS / "create-recipe" / "SKILL.md").read_text(encoding="utf-8")
     assert "`workato-recipe-format`" in text
     assert "always-on" in text
+
+
+# ---- P4: learning-WRITE redesign ----
+# Skills must never instruct writing into the plugin's bundled (read-only) kit
+# `docs/connectors/`. Allowed connector write targets are the workspace repo:
+#   org/docs/connectors/   (pre-built + org knowledge)
+#   connectors/docs/       (custom connectors)
+# A bare `docs/connectors/` (not prefixed by `org/`) is a regression.
+_BARE_KIT_CONNECTOR_PATH = re.compile(r"(?<!org/)docs/connectors/")
+
+_WRITE_REDESIGNED_SKILLS = {"sync-connectors", "auto-learn"}
+
+
+def test_sync_skills_write_to_org_docs():
+    files = _skill_files()
+    for name in _WRITE_REDESIGNED_SKILLS:
+        text = files[name].read_text(encoding="utf-8")
+        offenders = [
+            f"{name}/SKILL.md:{i}: {line.strip()}"
+            for i, line in enumerate(text.splitlines(), 1)
+            if _BARE_KIT_CONNECTOR_PATH.search(line)
+        ]
+        assert not offenders, "bare kit docs/connectors/ refs:\n" + "\n".join(offenders)
+        assert "org/docs/connectors/" in text, f"{name}: must write to org/docs/connectors/"
+
+
+# These learning skills consult the kit knowledge base and must do so via the MCP tool.
+_MCP_REQUIRED_LEARNING_SKILLS = {
+    "learn-recipe", "learn-pattern", "sync-connectors", "auto-learn",
+}
+
+
+def test_learning_skills_reference_mcp_tool():
+    files = _skill_files()
+    for name in _MCP_REQUIRED_LEARNING_SKILLS:
+        text = files[name].read_text(encoding="utf-8")
+        assert "workato_docs_lookup" in text or "workato_docs_list" in text, \
+            f"{name}: must read kit docs via the docs-overlay MCP tool"
+
+
+def test_learning_skills_have_no_submodule_language():
+    files = _skill_files()
+    for name in _MCP_REQUIRED_LEARNING_SKILLS:
+        text = files[name].read_text(encoding="utf-8")
+        assert "submodule" not in text, f"{name}: stale 'submodule' wording"
+        assert "cd kit" not in text, f"{name}: stale 'cd kit' git step"
