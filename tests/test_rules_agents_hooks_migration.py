@@ -86,3 +86,45 @@ def test_session_start_rules_emits_context():
     out = json.loads(r.stdout)
     ctx = out["hookSpecificOutput"]["additionalContext"]
     assert "Workato Recipe JSON Format" in ctx, "rule content not injected"
+
+
+HOOKS = REPO / "hooks"
+
+def _load_hooks(name):
+    return json.loads((HOOKS / name).read_text(encoding="utf-8"))
+
+def test_cc_hooks_json():
+    d = _load_hooks("hooks.json")
+    blob = json.dumps(d)
+    assert "${CLAUDE_PLUGIN_ROOT}" in blob, "CC must use ${CLAUDE_PLUGIN_ROOT}"
+    # CC blob must not use the Codex variable
+    assert "$PLUGIN_ROOT" not in blob.replace("${CLAUDE_PLUGIN_ROOT}", "")
+    h = d["hooks"]
+    assert "PreToolUse" in h and "PostToolUse" in h and "SessionStart" in h
+    assert "block-credential-read.sh" in blob
+    assert "validate-before-push.sh" in blob
+    assert "sync-docs-after-sdk-push.sh" in blob
+    assert "session-start-rules" in blob
+
+def test_codex_hooks_json():
+    d = _load_hooks("codex.hooks.json")
+    blob = json.dumps(d)
+    assert "$PLUGIN_ROOT" in blob, "Codex must use $PLUGIN_ROOT"
+    assert "${CLAUDE_PLUGIN_ROOT}" not in blob
+    assert "block-credential-read.sh" in blob
+
+def test_cursor_hooks_json():
+    d = _load_hooks("cursor.hooks.json")
+    assert d.get("version") == 1
+    h = d["hooks"]
+    assert any(k in h for k in ("postToolUse", "preToolUse"))
+    blob = json.dumps(d)
+    assert "Shell" in blob  # Cursor matcher
+    assert "${CLAUDE_PLUGIN_ROOT}" not in blob and "$PLUGIN_ROOT" not in blob
+
+def test_all_hook_paths_resolve_to_real_scripts():
+    for name in ("hooks.json", "codex.hooks.json", "cursor.hooks.json"):
+        blob = json.dumps(_load_hooks(name))
+        for script in ("block-credential-read.sh", "sync-docs-after-sdk-push.sh"):
+            if script in blob:
+                assert (BIN / script).is_file()
