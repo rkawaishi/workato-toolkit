@@ -57,3 +57,7 @@ def test_mcp_lists_connectors():
 def test_mcp_serves_a_guide():
     paths = overlay.list_docs(DOCS, None, "guides/")
     assert len(paths) >= 13
+    # also verify a listed guide is actually readable through the overlay
+    out = overlay.resolve_doc(DOCS, None, paths[0])
+    assert "NOT FOUND" not in out
+    assert "INVALID PATH" not in out
