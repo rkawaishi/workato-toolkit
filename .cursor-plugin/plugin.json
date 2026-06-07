@@ -1,5 +1,7 @@
 {
   "name": "workato-toolkit",
   "description": "Workato development toolkit for AI coding agents",
-  "skills": "skills/"
+  "skills": "skills/",
+  "rules": "rules/",
+  "hooks": "hooks/cursor.hooks.json"
 }

@@ -52,6 +52,23 @@ def test_codex_marketplace():
     assert entry["category"]
 
 
+def test_codex_manifest_declares_agents_hooks():
+    p = load_json(".codex-plugin/plugin.json")
+    assert p.get("agents") == "./agents/"
+    assert p.get("hooks") == "./hooks/codex.hooks.json"
+
+
+def test_cursor_manifest_declares_rules_hooks():
+    p = load_json(".cursor-plugin/plugin.json")
+    assert p.get("rules") == "rules/"
+    assert p.get("hooks") == "hooks/cursor.hooks.json"
+
+
+def test_cc_manifest_declares_hooks():
+    p = load_json(".claude-plugin/plugin.json")
+    assert p.get("hooks") == "./hooks/hooks.json"
+
+
 def test_sample_skill_present():
     skill = ROOT / "skills" / "ping" / "SKILL.md"
     assert skill.exists()
