@@ -37,14 +37,15 @@ follow it; do not improvise your own.
 
 | Asset type | Format rules | Generation procedure (SKILL.md) | Files produced |
 |---|---|---|---|
-| `recipe` | `.claude/rules/workato-recipe-format.md` | `create-recipe` Steps 7–9 + "Generation rules" | `*.recipe.json`, `*.connection.json` |
-| `workflow-app` | `.claude/rules/workato-page-components.md`, `.claude/rules/workato-recipe-format.md` | `create-workflow-app` Phase 2 | `*.workato_db_table.json`, `*.lcap_page.json`, `*.lcap_app.json` |
-| `genie` | `.claude/rules/workato-agentic-format.md` | `create-genie` generation sections | `*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json`, skill recipes |
-| `connector` | `.claude/rules/workato-connector-sdk.md` | `create-connector` "Rules for generating connector.rb" | `connector.rb` |
+| `recipe` | `workato-recipe-format` rule (always-on) | `create-recipe` Steps 7–9 + "Generation rules" | `*.recipe.json`, `*.connection.json` |
+| `workflow-app` | `workato-page-components` rule (always-on), `workato-recipe-format` rule (always-on) | `create-workflow-app` Phase 2 | `*.workato_db_table.json`, `*.lcap_page.json`, `*.lcap_app.json` |
+| `genie` | `workato-agentic-format` rule (always-on) | `create-genie` generation sections | `*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json`, skill recipes |
+| `connector` | `workato-connector-sdk` rule (always-on) | `create-connector` "Rules for generating connector.rb" | `connector.rb` |
 
-Always also read the connector knowledge for every provider used:
-`docs/connectors/<provider>.md` + `org/docs/connectors/<provider>.md` (org
-overrides win); custom connectors → `connectors/docs/<name>.md`. Get every
+Always also read the connector knowledge for every provider used via the
+docs-overlay MCP: `workato_docs_lookup("connectors/<provider>.md")` (org
+overrides are merged in automatically); custom connectors →
+`connectors/docs/<name>.md`. Get every
 datapill `path` exactly right from the Output fields. If an action or field is
 genuinely undocumented, implement best-effort and record it (append to the
 project `plan.md`'s `## Unlearned Actions` table when one exists) — never
@@ -85,7 +86,7 @@ workato-builder: <asset type> — <name>
 - Never paste generated JSON / Ruby into your final message — write it to disk
   and summarize.
 - Do not grep other projects' files to copy field shapes — use the connector
-  docs (this mirrors the recipe lifecycle rule in `CLAUDE.md`).
+  docs (this mirrors the recipe lifecycle rule, always-on).
 - If you cannot produce a valid file from the given design, return the blocker
   rather than writing a broken file.
 '''

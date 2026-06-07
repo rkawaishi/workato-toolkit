@@ -43,7 +43,7 @@ Supports Genie alone, MCP server alone, or both.
 
 3. If an existing Genie is available, reference its structure.
 
-4. Generate the Genie configuration files (following the `workato-project-structure` rule (always-on)):
+4. Generate the Genie configuration files (following the `workato-project-structure` rule, always-on):
    - `<project>/Agents/<name>.agentic_genie.json` — the Genie itself.
    - For each skill:
      - `<project>/Agents/<skill_name>.agentic_skill.json` — skill definition.

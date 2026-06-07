@@ -128,3 +128,30 @@ def test_all_hook_paths_resolve_to_real_scripts():
         for script in ("block-credential-read.sh", "sync-docs-after-sdk-push.sh"):
             if script in blob:
                 assert (BIN / script).is_file()
+
+
+def test_per_editor_hook_script_set():
+    """Lock the intended per-editor hook wiring so an accidental drop is caught."""
+    expected = {
+        "hooks.json": {
+            "validate-before-push.sh", "block-credential-read.sh",
+            "sync-docs-after-sdk-push.sh", "session-start-rules",
+        },
+        "codex.hooks.json": {"block-credential-read.sh", "session-start-rules"},
+        "cursor.hooks.json": {"block-credential-read.sh", "sync-docs-after-sdk-push.sh"},
+    }
+    for name, want in expected.items():
+        blob = json.dumps(_load_hooks(name))
+        got = {s for s in (
+            "validate-before-push.sh", "block-credential-read.sh",
+            "sync-docs-after-sdk-push.sh", "session-start-rules",
+        ) if s in blob}
+        assert got == want, f"{name}: hook set {got} != expected {want}"
+
+
+def test_agent_has_no_stale_rule_paths():
+    """Agent md/toml must not reference @.claude/rules or .claude/rules paths
+    (rules are always-on; paths don't resolve under plugin distribution)."""
+    for f in ("workato-builder.md", "workato-builder.toml"):
+        text = (AGENTS / f).read_text(encoding="utf-8")
+        assert ".claude/rules/" not in text, f"agents/{f} has stale .claude/rules path"

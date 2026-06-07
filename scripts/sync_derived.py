@@ -208,6 +208,14 @@ def sync_agent_toml() -> None:
         if slash is not None:
             desc = slash.sub(r"$\1", desc)
             body_trimmed = slash.sub(r"$\1", body_trimmed)
+        # developer_instructions is a TOML literal (single-quote) multiline
+        # string, which cannot contain a ''' sequence. No current agent body
+        # does, but fail loudly rather than emit malformed TOML if one ever does.
+        if "'''" in body_trimmed:
+            raise ValueError(
+                f"{src.name}: body contains ''' which breaks the TOML literal "
+                "string; switch to a basic (\"\"\") string with escaping."
+            )
         out = (
             f"name = {_toml_str(name)}\n"
             f"description = {_toml_str(desc)}\n"
