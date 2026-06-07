@@ -1,0 +1,94 @@
+---
+description: Claude Code autonomy rule: do not ask the user for what the CLI/API can do
+globs: "projects/**,connectors/**,.workatoenv"
+alwaysApply: false
+---
+
+# Claude Code autonomy rule: do not ask the user for what the CLI/API can do
+
+## Principle
+
+Before asking the user to "do X in the Workato UI", always check the steps below.
+Asking the user to do something the CLI or API can do for you is a waste of their time and undermines the value of automation.
+
+## The 4 checks to run before asking the user
+
+Go through them in order. Stop at the first one that applies. Only ask the user if none does.
+
+1. **`workato <command> --help`** to see every option.
+   - Example: `workato init --help` reveals `--project-name`, which can create a new project non-interactively.
+2. **`workato <command> <subcommand> --help`** for sub-options.
+   - Example: `workato connections create --help` may show `--input '{"...": "..."}'` for passing credentials as JSON.
+3. **`python3 scripts/workato-api.py --help`** for the API helper.
+   - It complements the Platform CLI for API operations the CLI doesn't expose (jobs, recipes list as JSON, sdk push, etc.).
+4. **Call the API through a custom connector.**
+   - If steps 1–3 don't cover it, consider hitting the Workato Platform API directly via `__adhoc_http_action`.
+
+## Operations that the CLI / API covers (don't ask the user)
+
+| Goal | Command |
+|---|---|
+| Create a new project | `workato init --project-name <name> --non-interactive --profile <profile>` |
+| Switch to an existing project | `workato projects use "<name>"` |
+| List projects | `workato projects list` |
+| Workspace info | `workato workspace` |
+| Pull a project | `workato pull` |
+| Push a project | `workato push` (`--restart-recipes` / `--delete` available) |
+| List assets (DT, custom connectors, properties, etc.) | `workato assets [--folder-id <id>]` |
+| List recipes | `workato recipes list` or `python3 scripts/workato-api.py recipes list` |
+| Start / stop a recipe | `workato recipes start --id <id>` / `workato recipes start --all` |
+| Swap a recipe's connection | `workato recipes update-connection` |
+| Validate recipe JSON | `workato recipes validate <file>` |
+| Create a connection (when auth params can be JSON-ified) | `workato connections create --provider <p> --name <n> --input '<json>'` |
+| Create a shell connection (auth-less placeholder) | `workato connections create --provider <p> --name <n> --shell-connection` |
+| List connections | `workato connections list` |
+| Get connection pick-list | `workato connections pick-list` |
+| Show required parameters for a connector | `workato connectors parameters --provider <p>` |
+| Create a data table | `workato data-tables create --name <n> --schema-json '<json>'` |
+| List data tables | `workato data-tables list` |
+| Manipulate properties | `workato properties list` / `workato properties upsert` |
+| List / show jobs | `python3 scripts/workato-api.py jobs list/get` |
+| Look up pre-built connector info | `python3 scripts/workato-api.py connectors list-platform` |
+| List custom connectors | `python3 scripts/workato-api.py connectors list-custom` |
+| Push a custom connector (recommended) | `python3 scripts/workato-api.py sdk push --connector <path> [--connector-id <id>]` |
+| Manage OAuth profiles | `workato oauth-profiles ...` |
+| Manage API clients | `workato api-clients ...` |
+| Create an API collection from OpenAPI | `workato api-collections create` |
+| AI-friendly CLI doc search | `workato guide search/topics/content` |
+
+## Operations the CLI cannot do (= it is OK to ask the user)
+
+Web UI is required for the following. Update this list whenever something moves into CLI/API territory.
+
+- **OAuth connection auth flow** (browser redirect is required).
+  - You can still obtain the URL with `workato connections get-oauth-url` and ask the user to visit it.
+- **Workflow App page WYSIWYG editing** (preview confirmation).
+  - JSON push works; final visual confirmation needs the UI.
+- **Interactive test-run of a connection** (for some providers).
+- **Activating a Workflow App.**
+- **Cross-environment deployment approvals** (release manager approval).
+
+## Anti-patterns
+
+❌ "Please create a new project in the Workato UI and tell me the project_id."
+✅ Run `workato init --project-name <name> --non-interactive --profile <profile>`.
+
+❌ "Please start the recipe in the UI."
+✅ Run `workato recipes start --id <id>`.
+
+❌ "Please update and release the custom connector in the UI."
+✅ Run `python3 scripts/workato-api.py sdk push --connector <path> --connector-id <id>`.
+
+❌ "Please create the data table in the UI."
+✅ Run `workato data-tables create --name <n> --schema-json '<json>'`.
+
+## Helper: use `workato guide`
+
+The CLI itself ships an AI-friendly documentation search. When you're not sure about an operation, consult it around your `--help` invocations:
+
+```bash
+workato guide topics                  # list all topics
+workato guide search <query>          # full-text search
+workato guide content <topic>         # topic body
+workato guide structure <topic>       # related topics
+```
