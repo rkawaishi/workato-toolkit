@@ -53,7 +53,7 @@ Format:
 
 ### 2. New providers / actions
 
-When you find an unknown `provider`/`name` combination in a recipe (i.e. an action that doesn't appear in the kit's `docs/connectors/<provider>.md`).
+When you find an unknown `provider`/`name` combination in a recipe (i.e. an action that doesn't appear in `workato_docs_lookup("connectors/<provider>.md")`).
 
 **Destination**:
 - Pre-built connectors → the trigger / action list table in `org/docs/connectors/<provider>.md`.

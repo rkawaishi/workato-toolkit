@@ -116,6 +116,20 @@ _MCP_REQUIRED_LEARNING_SKILLS = {
 }
 
 
+def test_no_bare_kit_connector_path_in_learning_skills():
+    # No learning skill (read OR write) may name a bare kit `docs/connectors/`
+    # path — those resolve to the read-only bundled docs and must go through the
+    # MCP lookup or the workspace org/docs/ overlay instead.
+    files = _skill_files()
+    offenders = []
+    for name in _MCP_REQUIRED_LEARNING_SKILLS:
+        text = files[name].read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), 1):
+            if _BARE_KIT_CONNECTOR_PATH.search(line):
+                offenders.append(f"{name}/SKILL.md:{i}: {line.strip()}")
+    assert not offenders, "bare kit docs/connectors/ refs:\n" + "\n".join(offenders)
+
+
 def test_learning_skills_reference_mcp_tool():
     files = _skill_files()
     for name in _MCP_REQUIRED_LEARNING_SKILLS:
