@@ -22,7 +22,7 @@ The `<org>` prefix lets one developer hold profiles for multiple Workato tenants
 
 ## Push / pull matrix
 
-This is the rule for AI agents and human developers alike. **Push is dev-only.** Promotion to test/prod must go through the Deploy feature (see `platform/environments.md` via `workato_docs_lookup`).
+This is the rule for AI agents and human developers alike. **Push is dev-only.** Promotion to test/prod must go through the Deploy feature (see `platform/environments.md` (via `workato_docs_lookup`)).
 
 | Profile | `workato pull` | `workato push` | `workato init` | Notes |
 |---|---|---|---|---|

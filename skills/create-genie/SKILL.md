@@ -37,7 +37,7 @@ Supports Genie alone, MCP server alone, or both.
    - `@.claude/rules/workato-agentic-format.md`
    - `@.claude/rules/workato-recipe-format.md`
    - `@.claude/rules/workato-project-structure.md`
-   - Call `workato_docs_lookup` with path `connectors/_index.md` + relevant connector knowledge (look each up with `workato_docs_lookup`)
+   - Call `workato_docs_lookup` with path `connectors/_index.md`, then look up each relevant connector with `workato_docs_lookup` (path `connectors/<connector>.md`)
    - Call `workato_docs_lookup` with path `platform/agent-studio.md`
    - Call `workato_docs_lookup` with path `platform/mcp.md`
 

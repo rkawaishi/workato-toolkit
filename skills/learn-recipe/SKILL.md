@@ -18,7 +18,7 @@ All writes target `org/docs/<relative-path>`; the kit's `docs/` is left alone. S
 
 ## What we learn and where it goes
 
-Every write target is `org/docs/<relative-path>`. First call `workato_docs_lookup` with the `<relative-path>` (it returns the kit doc merged with any existing org overlay) and **skip** anything already documented there (only write differences, corrections, and org-specific additions).
+Every write target is `org/docs/<relative-path>`. First call `workato_docs_lookup` with path `<relative-path>` (it returns the kit doc merged with any existing org overlay) and **skip** anything already documented there (only write differences, corrections, and org-specific additions).
 
 ### 1. Field info (most important)
 
@@ -95,7 +95,7 @@ Anything that doesn't match the categories above.
    c. Record any new structural patterns.
 4. If the destination directory under `org/docs/<...>` doesn't exist, create it with `mkdir -p`.
 5. Read the destination file and check for duplicates.
-6. Call `workato_docs_lookup` with the `<relative-path>` too; if the info is already there, **do not write it**.
+6. Call `workato_docs_lookup` with path `<relative-path>` too; if the info is already there, **do not write it**.
 7. Append only the new findings.
 
 ## Duplicate check

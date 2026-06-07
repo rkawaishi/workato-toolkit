@@ -96,7 +96,7 @@ Map each User Story in `spec.md` into Workato building blocks.
 
 ### 6. Design decisions for the Workato API
 
-If the design includes anything that talks to the Workato API (CLI/MCP, API Platform, OEM integration, etc.), always read the comparison table and decision flow by calling `workato_docs_lookup` with path `platform/workato-api-systems.md` (to avoid confusing the four "API Client" systems and having to redesign).
+If the design includes anything that talks to the Workato API (CLI/MCP, API Platform, OEM integration, etc.), always read the comparison table and decision flow: call `workato_docs_lookup` with path `platform/workato-api-systems.md` (to avoid confusing the four "API Client" systems and having to redesign).
 
 ### 7. Write plan.md
 

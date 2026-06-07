@@ -43,4 +43,4 @@ Intermediaries that sit between clients and internal APIs. Safely expose legacy 
 ## Relationship to MCP
 
 Endpoints in API Collections can also be exposed as MCP servers.
-See the `platform/mcp.md` doc (look it up via `workato_docs_lookup`) for details.
+See `platform/mcp.md` (via `workato_docs_lookup`) for details.

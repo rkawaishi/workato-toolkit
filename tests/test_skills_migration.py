@@ -53,6 +53,8 @@ def test_no_plain_docs_read_refs_in_learn_recipe():
     assert "consult both `docs/connectors/" not in text, "learn-recipe L93 read not converted"
     assert "Read the kit's `docs/" not in text, "learn-recipe L21 read not converted"
     assert "Read the kit-side `docs/" not in text, "learn-recipe L98 read not converted"
+    # positive guard: the 3 converted reads must invoke the MCP lookup tool
+    assert text.count("workato_docs_lookup") >= 3, "learn-recipe should call workato_docs_lookup for its 3 converted reads"
 
 
 def test_doc_consuming_skills_mention_mcp_tool():

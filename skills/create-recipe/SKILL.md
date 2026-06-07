@@ -160,7 +160,7 @@ The generation procedure itself is the same either way:
 ### 7. Read the JSON structure reference
 
 - `@.claude/rules/workato-recipe-format.md`
-- If logic steps are needed, call `workato_docs_list` with prefix `logic/` to find the relevant doc, then `workato_docs_lookup` it.
+- If logic steps are needed, call `workato_docs_list` with prefix `logic/` to find the relevant doc, then call `workato_docs_lookup` with that path.
 
 ### 8. Design the step composition (apply patterns)
 
@@ -177,7 +177,7 @@ Use the interview results to design the step composition. As you do, look for pa
 
 For parts that don't match a pattern, consult:
 - Call `workato_docs_lookup` with path `logic/data-pills.md` for datapill notation.
-- The relevant `logic/` doc (use `workato_docs_list` prefix `logic/`, then `workato_docs_lookup`) for the syntax of any logic step.
+- The relevant `logic/` doc (call `workato_docs_list` with prefix `logic/` to find it, then call `workato_docs_lookup` with that path) for the syntax of any logic step.
 - Call `workato_docs_lookup` with path `patterns/deployment-guide.md` for deploy-time caveats.
 - Existing recipes in the same project, when applicable.
 
