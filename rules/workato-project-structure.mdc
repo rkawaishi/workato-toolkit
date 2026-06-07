@@ -1,5 +1,5 @@
 ---
-description: Workato project directory structure
+description: "Workato project directory structure"
 globs: "projects/**"
 alwaysApply: false
 ---

@@ -1,5 +1,5 @@
 ---
-description: Workato CLI Tools
+description: "Workato CLI Tools"
 globs: ".workatoenv,projects/**,connectors/**"
 alwaysApply: false
 ---

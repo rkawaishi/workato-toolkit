@@ -1,5 +1,5 @@
 ---
-description: Claude Code autonomy rule: do not ask the user for what the CLI/API can do
+description: "Claude Code autonomy rule: do not ask the user for what the CLI/API can do"
 globs: "projects/**,connectors/**,.workatoenv"
 alwaysApply: false
 ---

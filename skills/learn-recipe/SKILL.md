@@ -116,7 +116,7 @@ After analysis, report:
 
 ## Reconciling Unlearned Actions
 
-When run against a project, scan every feature's `plan.md` and `tasks.md` under `projects/<project-name>/specs/` and reconcile entries that correspond to the `provider` / `action` you just learned (see "Recipe implementation lifecycle" in `@.claude/CLAUDE.md`).
+When run against a project, scan every feature's `plan.md` and `tasks.md` under `projects/<project-name>/specs/` and reconcile entries that correspond to the `provider` / `action` you just learned (see the recipe lifecycle guide via `workato_docs_lookup("guides/lifecycle.md")`).
 
 ### `## Unlearned Actions` table in plan.md
 

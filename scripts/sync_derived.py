@@ -16,6 +16,7 @@ CI (sync-check.yml) runs this then `git diff --exit-code` to detect drift.
 """
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -151,9 +152,12 @@ def sync_rules_mdc() -> None:
             continue
         globs = ",".join(extract_paths(fm))
         body_trimmed = trim_trailing_newlines(body)
+        # json.dumps yields a valid double-quoted YAML scalar — required when the
+        # heading (description) contains a colon (e.g. "...rule: do not ask..."),
+        # which is invalid as a bare YAML value and would make Cursor drop the rule.
         out = (
             "---\n"
-            f"description: {desc}\n"
+            f"description: {json.dumps(desc, ensure_ascii=False)}\n"
             f'globs: "{globs}"\n'
             "alwaysApply: false\n"
             "---\n"
@@ -174,7 +178,7 @@ AGGREGATE_DESC = (
 def sync_aggregate_mdc() -> None:
     parts = [
         "---",
-        f"description: {AGGREGATE_DESC}",
+        f"description: {json.dumps(AGGREGATE_DESC, ensure_ascii=False)}",
         'globs: ""',
         "alwaysApply: true",
         "---",

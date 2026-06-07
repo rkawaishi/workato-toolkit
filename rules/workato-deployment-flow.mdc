@@ -1,5 +1,5 @@
 ---
-description: Workato deployment flow (inviolable)
+description: "Workato deployment flow (inviolable)"
 globs: "projects/**,.workatoenv"
 alwaysApply: false
 ---

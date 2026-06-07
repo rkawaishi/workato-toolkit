@@ -1,5 +1,5 @@
 ---
-description: Workato Recipe JSON Format
+description: "Workato Recipe JSON Format"
 globs: "**/*.recipe.json"
 alwaysApply: false
 ---

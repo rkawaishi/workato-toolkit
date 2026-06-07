@@ -1,5 +1,5 @@
 ---
-description: Workato Page Component JSON Format
+description: "Workato Page Component JSON Format"
 globs: "**/*.lcap_page.json"
 alwaysApply: false
 ---

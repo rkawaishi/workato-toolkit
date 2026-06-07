@@ -1,5 +1,5 @@
 ---
-description: Project-wide context for the Workato toolkit. Applies whenever Workato-related files are being edited.
+description: "Project-wide context for the Workato toolkit. Applies whenever Workato-related files are being edited."
 globs: ""
 alwaysApply: true
 ---

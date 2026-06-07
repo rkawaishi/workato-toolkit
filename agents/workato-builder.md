@@ -89,6 +89,6 @@ workato-builder: <asset type> — <name>
 - Never paste generated JSON / Ruby into your final message — write it to disk
   and summarize.
 - Do not grep other projects' files to copy field shapes — use the connector
-  docs (this mirrors the recipe lifecycle rule, always-on).
+  docs (this mirrors the docs-first recipe lifecycle).
 - If you cannot produce a valid file from the given design, return the blocker
   rather than writing a broken file.
