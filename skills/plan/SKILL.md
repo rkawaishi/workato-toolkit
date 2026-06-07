@@ -41,7 +41,7 @@ Assumes `/clarify` has cleared every Open Question. If any remain unresolved, ab
 Read `.resource-providers.yml` and, for the external services mentioned in the spec's `External Touchpoints`, pre-fetch their resource info.
 
 1. Skip if `.resource-providers.yml` doesn't exist (record "verify after deploy" in plan.md's `Open Issues`).
-2. For each defined provider, follow `@docs/platform/resource-providers.md` to detect and run the relevant tool.
+2. For each defined provider, follow the resource-providers doc (call `workato_docs_lookup` with path `platform/resource-providers.md`) to detect and run the relevant tool.
 3. Examples of what to capture:
    - Jira project issue types and custom fields → reflect in Data Table field design.
    - Slack channel list → concretize the notification destination.
@@ -63,9 +63,7 @@ If the catalog is missing, note "Can be generated with `/catalog scan`" in plan.
 
 Identify **construction patterns** that match the user experience:
 
-- `@docs/patterns/recipe-patterns/_index.md` (kit canonical)
-- `@org/docs/patterns/recipe-patterns/_index.md` (org-side, if present)
-- `@projects/docs/patterns/` (legacy, read-only for backwards compatibility)
+- Call `workato_docs_lookup` with path `patterns/recipe-patterns/_index.md` (returns kit patterns merged with any org overlay — org wins on conflict)
 
 The org version wins on conflicts. Bring the matching pattern's diagram, step composition, and known caveats into the plan.
 
@@ -98,7 +96,7 @@ Map each User Story in `spec.md` into Workato building blocks.
 
 ### 6. Design decisions for the Workato API
 
-If the design includes anything that talks to the Workato API (CLI/MCP, API Platform, OEM integration, etc.), always read the comparison table and decision flow in `@docs/platform/workato-api-systems.md` (to avoid confusing the four "API Client" systems and having to redesign).
+If the design includes anything that talks to the Workato API (CLI/MCP, API Platform, OEM integration, etc.), always read the comparison table and decision flow by calling `workato_docs_lookup` with path `platform/workato-api-systems.md` (to avoid confusing the four "API Client" systems and having to redesign).
 
 ### 7. Write plan.md
 

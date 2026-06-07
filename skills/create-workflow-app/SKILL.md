@@ -17,8 +17,8 @@ Build a Workato Workflow App. The only UI action required is enabling the Workfl
 
 ## Background reading
 
-- `@docs/platform/workflow-apps.md` — construction patterns, providers, actions
-- `@docs/patterns/deployment-guide.md` — deployment steps and common errors
+- Call `workato_docs_lookup` with path `platform/workflow-apps.md` — construction patterns, providers, actions
+- Call `workato_docs_lookup` with path `patterns/deployment-guide.md` — deployment steps and common errors
 - `@.claude/rules/workato-agentic-format.md` — JSON structure for lcap_app / workato_db_table / lcap_page
 
 ## Phase 0: pull context from plan.md
@@ -206,7 +206,7 @@ Recipe Function:
 
 ## Phase 3: deploy and verify
 
-Follow "Workflow App deployment flow" in `@docs/patterns/deployment-guide.md` and walk through the stages:
+Follow the "Workflow App deployment flow" section (call `workato_docs_lookup` with path `patterns/deployment-guide.md`) and walk through the stages:
 
 1. **Push**: `workato push` to push every asset.
 2. **Connection auth first** (right after push, before recipe review):

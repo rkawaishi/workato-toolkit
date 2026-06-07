@@ -37,9 +37,9 @@ Supports Genie alone, MCP server alone, or both.
    - `@.claude/rules/workato-agentic-format.md`
    - `@.claude/rules/workato-recipe-format.md`
    - `@.claude/rules/workato-project-structure.md`
-   - `@docs/connectors/_index.md` + relevant connector knowledge
-   - `@docs/platform/agent-studio.md`
-   - `@docs/platform/mcp.md`
+   - Call `workato_docs_lookup` with path `connectors/_index.md` + relevant connector knowledge (look each up with `workato_docs_lookup`)
+   - Call `workato_docs_lookup` with path `platform/agent-studio.md`
+   - Call `workato_docs_lookup` with path `platform/mcp.md`
 
 3. If an existing Genie is available, reference its structure.
 
@@ -202,7 +202,7 @@ After generation, display:
 - A summary of each skill's `trigger_description`.
 - For MCP: a summary of the MCP server's `tools[]`.
 
-Follow `@docs/patterns/deployment-guide.md` and walk through the deploy:
+Follow the deployment guide (call `workato_docs_lookup` with path `patterns/deployment-guide.md`) and walk through the deploy:
 1. Push connections first → guide UI auth (for new connections).
 2. Push every other asset.
 3. Guide the user through the field-mapping review of skill recipes in the UI.
