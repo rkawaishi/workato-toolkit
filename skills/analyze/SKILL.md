@@ -68,7 +68,7 @@ Verify that **every New Component in plan is tasked**:
 
 ### D. Deployment-guide compliance
 
-Confirm `@docs/patterns/deployment-guide.md`'s flow is embedded in tasks:
+Confirm the deployment flow (call `workato_docs_lookup` with path `patterns/deployment-guide.md`) is embedded in tasks:
 
 - [ ] `[validate]` precedes `[push]`.
 - [ ] `[push]` exists.

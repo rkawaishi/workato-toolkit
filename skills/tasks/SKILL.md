@@ -102,7 +102,7 @@ If `plan.md`'s `## Unlearned Actions` table has rows, expand them into `[learn]`
 
 ### 5. Incorporate the deployment guide
 
-Follow `@docs/patterns/deployment-guide.md`'s "recipe deployment flow" and always include these tasks:
+Follow the "recipe deployment flow" (call `workato_docs_lookup` with path `patterns/deployment-guide.md`) and always include these tasks:
 
 1. `[validate]` — pre-push validation
 2. `[push]` — deploy to Workato

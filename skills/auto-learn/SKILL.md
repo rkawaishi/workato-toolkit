@@ -20,7 +20,7 @@ This skill is designed for **autonomy first, breadth second**. The goal is to **
 1. **No interaction**: a single invocation tries every op of the target connector. Do not ask the user mid-run. With no basis for a decision, **defaults → skip + log**.
 2. **Fail-soft**: wrap each op in try / catch and keep going on failure. One op's failure does not abort the run.
 3. **Record-driven**: append what you got, mark what you didn't as "learning failure / partial learning". Report at the end.
-4. **UI only**: no new fetch / XHR against internal APIs (reverse engineering is strictly forbidden). Only **passive observation** of responses triggered by UI actions is allowed. See `@docs/patterns/auto-learn-ui-operations.md`.
+4. **UI only**: no new fetch / XHR against internal APIs (reverse engineering is strictly forbidden). Only **passive observation** of responses triggered by UI actions is allowed. See the auto-learn UI operations doc (call `workato_docs_lookup` with path `patterns/auto-learn-ui-operations.md`).
 
 ## Usage
 

@@ -24,8 +24,8 @@ Interactively generate a Workato Connector SDK custom-connector project.
    - **Required triggers**: what events to detect (polling / webhook).
 
 2. Read the references:
-   - `@docs/connector-sdk/overview.md` — SDK overview and setup pitfalls.
-   - `@docs/connector-sdk/connector-rb.md` — connector.rb reference (HTTP method return types, `base_uri` conventions, normalization helper templates).
+   - Call `workato_docs_lookup` with path `connector-sdk/overview.md` — SDK overview and setup pitfalls.
+   - Call `workato_docs_lookup` with path `connector-sdk/connector-rb.md` — connector.rb reference (HTTP method return types, `base_uri` conventions, normalization helper templates).
    - `@.claude/rules/workato-connector-sdk.md` — format rules.
 
 3. If the API docs are provided:
