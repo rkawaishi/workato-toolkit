@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "Shell",
+        "command": "./bin/block-credential-read.sh",
+        "type": "command"
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "Shell",
+        "command": "./bin/sync-docs-after-sdk-push.sh",
+        "type": "command"
+      }
+    ]
+  }
+}

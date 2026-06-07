@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 Analyze recipe JSON and append every finding directly into the **organization knowledge layer `org/docs/`**.
 We don't accumulate findings in an intermediate file — we grow each doc directly.
 
-All writes target `org/docs/<relative-path>`; the kit's `docs/` is left alone. See `@.claude/rules/org-knowledge-overlay.md`.
+All writes target `org/docs/<relative-path>`; the kit's `docs/` is left alone. See the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 
@@ -116,7 +116,7 @@ After analysis, report:
 
 ## Reconciling Unlearned Actions
 
-When run against a project, scan every feature's `plan.md` and `tasks.md` under `projects/<project-name>/specs/` and reconcile entries that correspond to the `provider` / `action` you just learned (see "Recipe implementation lifecycle" in `@.claude/CLAUDE.md`).
+When run against a project, scan every feature's `plan.md` and `tasks.md` under `projects/<project-name>/specs/` and reconcile entries that correspond to the `provider` / `action` you just learned (see the recipe lifecycle guide via `workato_docs_lookup("guides/lifecycle.md")`).
 
 ### `## Unlearned Actions` table in plan.md
 

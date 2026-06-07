@@ -19,7 +19,7 @@ Build a Workato Workflow App. The only UI action required is enabling the Workfl
 
 - Call `workato_docs_lookup` with path `platform/workflow-apps.md` — construction patterns, providers, actions
 - Call `workato_docs_lookup` with path `patterns/deployment-guide.md` — deployment steps and common errors
-- `@.claude/rules/workato-agentic-format.md` — JSON structure for lcap_app / workato_db_table / lcap_page
+- the `workato-agentic-format` rule (always-on) — JSON structure for lcap_app / workato_db_table / lcap_page
 
 ## Phase 0: pull context from plan.md
 
@@ -72,7 +72,7 @@ Let me know once you're done.
 
 ## Phase 2: generate every component as JSON, then push
 
-File layout follows `@.claude/rules/workato-project-structure.md`.
+File layout follows the `workato-project-structure` rule (always-on).
 
 > **Dispatch the generation.** Phase 2 produces large JSON (Data Tables, pages, the app definition). Hand it to the **`workato-builder` subagent** (asset type `workflow-app`) — every supported editor ships it; invoke it through your editor's subagent mechanism. Pass the design fixed in Phase 1, this Phase 2 procedure's targets, and the file paths. The subagent generates + validates + writes the files and returns a short summary, keeping the JSON out of the main context. Recipes (section 4 below) are delegated separately. (Only if your editor has no subagent support, perform Phase 2 inline.)
 

@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "$PLUGIN_ROOT/bin/block-credential-read.sh" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "$PLUGIN_ROOT/bin/session-start-rules" }
+        ]
+      }
+    ]
+  }
+}

@@ -62,7 +62,7 @@ If the catalog is missing, skip this and tell the user it can be generated with 
   - URL pattern: `https://docs.workato.com/en/connectors/<name>/<action-name>.html`
   - Or: `https://docs.workato.com/en/connectors/<name>/actions.html`
 - Append what you fetched to `docs/connectors/<connector>.md` so the knowledge accumulates.
-- **Prohibited**: do not grep `projects/<other-project>/Recipes/` to copy fields from sample JSON. That leaks project-specific logic and naming, and it hides documentation gaps (see "Recipe implementation lifecycle" in `@.claude/CLAUDE.md`).
+- **Prohibited**: do not grep `projects/<other-project>/Recipes/` to copy fields from sample JSON. That leaks project-specific logic and naming, and it hides documentation gaps (read connector docs first via `workato_docs_lookup`; see the recipe lifecycle guide via `workato_docs_lookup("guides/lifecycle.md")`).
 - If you have to implement best-effort because there's no documentation anywhere, append `provider` / `action` to the `## Unlearned Actions` table in `projects/<project>/specs/<NNN>-<slug>/plan.md`. If possible, add a matching `[learn]` task to the same directory's `tasks.md` (or regenerate via `/tasks --update`).
 
 ### 5. Auto-fetch resource info
@@ -159,7 +159,7 @@ The generation procedure itself is the same either way:
 
 ### 7. Read the JSON structure reference
 
-- `@.claude/rules/workato-recipe-format.md`
+- the `workato-recipe-format` rule (always-on)
 - If logic steps are needed, call `workato_docs_list` with prefix `logic/` to find the relevant doc, then call `workato_docs_lookup` with that path.
 
 ### 8. Design the step composition (apply patterns)
@@ -183,7 +183,7 @@ For parts that don't match a pattern, consult:
 
 ### 9. Generate the files
 
-Follow `@.claude/rules/workato-project-structure.md`:
+Follow the `workato-project-structure` rule (always-on):
 - `<project>/Recipes/<snake_case_name>.recipe.json` — the recipe.
 - `<project>/Connections/<prefix>_<provider>.connection.json` — connection (only if it doesn't exist yet).
 - Make sure `zip_name` / `folder` inside the JSON match the subfolder path.

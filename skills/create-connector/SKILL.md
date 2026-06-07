@@ -26,7 +26,7 @@ Interactively generate a Workato Connector SDK custom-connector project.
 2. Read the references:
    - Call `workato_docs_lookup` with path `connector-sdk/overview.md` — SDK overview and setup pitfalls.
    - Call `workato_docs_lookup` with path `connector-sdk/connector-rb.md` — connector.rb reference (HTTP method return types, `base_uri` conventions, normalization helper templates).
-   - `@.claude/rules/workato-connector-sdk.md` — format rules.
+   - the `workato-connector-sdk` rule (always-on) — format rules.
 
 3. If the API docs are provided:
    - Use WebFetch to learn the auth method, endpoints, and request/response shapes.

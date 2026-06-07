@@ -3,5 +3,7 @@
   "version": "0.0.1",
   "description": "Workato development toolkit for AI coding agents",
   "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/codex.hooks.json",
   "mcpServers": "./.codex.mcp.json"
 }

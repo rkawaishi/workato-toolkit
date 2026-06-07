@@ -1,0 +1,97 @@
+---
+description: "Workato project directory structure"
+globs: "projects/**"
+alwaysApply: false
+---
+
+# Workato project directory structure
+
+## Recommended layout
+
+Organize a project's assets into per-kind subfolders.
+
+```
+projects/<project-name>/
+├── .workatoenv                        # project config (auto-generated)
+├── <app-name>.lcap_app.json           # Workflow App definition (root)
+├── <app-name>.lcap_app.png            # Workflow App icon (root)
+├── Recipes/                           # recipes
+│   ├── <name>.recipe.json
+│   └── fnc_<name>.recipe.json         # Recipe Function
+├── Pages/                             # Workflow App pages
+│   ├── <name>.lcap_page.json
+│   └── <name>.lcap_page.zip
+├── Connections/                        # connections
+│   └── <prefix>_<provider>.connection.json
+├── Data Tables/                        # Data Table schemas
+│   └── <name>.workato_db_table.json
+├── Insights/                           # Insights queries
+│   └── <name>.insights_query.json
+├── Agents/                             # Genie / MCP Server / Skills
+│   ├── <name>.agentic_genie.json
+│   ├── <name>.agentic_genie.png
+│   ├── <name>.agentic_skill.json
+│   └── <name>.mcp_server.json
+```
+
+## Files that belong at the project root
+
+Keep these at the project root:
+- `.workatoenv` — Platform CLI configuration
+- `*.lcap_app.json` / `*.lcap_app.png` — Workflow App definition and icon
+
+## Mapping folder names to Workato
+
+The local folder structure is reflected on Workato by `workato push`.
+The `zip_name` and `folder` fields inside each JSON must include the folder path:
+
+```json
+{
+  "zip_name": "Recipes/my_recipe.recipe.json",
+  "name": "My recipe",
+  "folder": "Recipes"
+}
+```
+
+For files at the project root, leave `folder: ""`.
+
+## Applying this to new projects
+
+When `/create-recipe`, `/create-workflow-app`, or `/create-genie` generates new files, follow this layout and put each artifact in the right subfolder.
+
+## Reorganizing existing projects
+
+Treat the result of `workato pull` as the source of truth. The safe path is to reorganize folders in the Workato UI first, then pull. If you move files locally instead, update every `zip_name` and `folder` reference.
+
+## Exception for tiny projects
+
+Projects with very few files (one or two recipes + a connection) can stay flat. Don't force subfolders when there's nothing to organize.
+
+## Shared assets (when multiple projects share things)
+
+Patterns for sharing connections and Recipe Functions across projects.
+**Decide based on the nature and purpose of the asset, not its usage count.**
+
+### Keep per-project when
+
+- **Agent connections** — they deserve dedicated permissions and scopes. Sharing with other recipes risks unintentional privilege expansion.
+- **Flow-specific logic** — anything meaningful only in this project's context.
+- **Different scopes or auth requirements** — same service, different purposes → separate connections.
+
+### Share when
+
+- **Cross-org common logic** — manager lookup, department lookup, anything that should return the same answer everywhere.
+- **Infrastructure-style connections** — the org's single Slack workspace, the shared Jira project, etc.
+
+### Pattern for sharing
+
+Place the asset in a `Shared` project and reference it via `folder`:
+
+```json
+{ "zip_name": "Shared/Connections/shared_jira.connection.json", "folder": "Shared" }
+```
+
+### Details
+
+- Naming conventions, Recipe Function interface design, and caveats are in `@docs/patterns/shared-assets.md`.
+- Workspace layout, asset naming, and connection management are in `@docs/patterns/workspace-management.md`.
