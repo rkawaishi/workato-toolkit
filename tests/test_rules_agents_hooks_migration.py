@@ -25,3 +25,13 @@ def test_rules_nonempty_with_heading():
         text = (RULES / f"{stem}.md").read_text(encoding="utf-8")
         assert len(text) > 200, f"{stem}.md too short"
         assert re.search(r"^# .+", text, re.MULTILINE), f"{stem}.md has no top heading"
+
+AGENTS = REPO / "agents"
+
+def test_agent_md_present():
+    md = AGENTS / "workato-builder.md"
+    assert md.is_file(), "agents/workato-builder.md missing"
+    text = md.read_text(encoding="utf-8")
+    assert text.startswith("---"), "agent md missing frontmatter"
+    assert re.search(r"^name: workato-builder\s*$", text, re.MULTILINE)
+    assert re.search(r"^description: ", text, re.MULTILINE)
