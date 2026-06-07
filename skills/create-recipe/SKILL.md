@@ -52,8 +52,8 @@ If the catalog is missing, skip this and tell the user it can be generated with 
 
 ### 3. Check the connector knowledge
 
-- Use `@docs/connectors/_index.md` to identify the connector you'll use.
-- Read `@docs/connectors/<connector>.md` for available triggers/actions and field info.
+- Call `workato_docs_lookup` with path `connectors/_index.md` to identify the connector you'll use.
+- Call `workato_docs_lookup` with path `connectors/<connector>.md` for available triggers/actions and field info (it returns kit + any org overlay).
 
 ### 4. Verify field details
 
@@ -71,9 +71,9 @@ For each provider used by the recipe, pull resource information through an MCP s
 
 #### Procedure
 
-1. **Load the environment config**: read `.resource-providers.yml`. If it doesn't exist, either walk the user through the initial setup or skip to Step 6 (see "Initial setup" in `@docs/platform/resource-providers.md`).
+1. **Load the environment config**: read `.resource-providers.yml`. If it doesn't exist, either walk the user through the initial setup or skip to Step 6 (see "Initial setup" — call `workato_docs_lookup` with path `platform/resource-providers.md`).
 2. **Match providers**: check whether the providers chosen in Step 1 are defined in `.resource-providers.yml`.
-3. **Detect and run tools**: for each defined provider, detect and run the tool following "How skills use this" in `@docs/platform/resource-providers.md`.
+3. **Detect and run tools**: for each defined provider, detect and run the tool following "How skills use this" — call `workato_docs_lookup` with path `platform/resource-providers.md`.
 4. **Present choices**: surface the retrieved info to the user as multiple-choice.
    ```
    Fetched the Jira project list:
@@ -160,16 +160,14 @@ The generation procedure itself is the same either way:
 ### 7. Read the JSON structure reference
 
 - `@.claude/rules/workato-recipe-format.md`
-- If logic steps are needed, read the relevant file under `@docs/logic/`.
+- If logic steps are needed, call `workato_docs_list` with prefix `logic/` to find the relevant doc, then `workato_docs_lookup` it.
 
 ### 8. Design the step composition (apply patterns)
 
 Use the interview results to design the step composition. As you do, look for patterns in the catalog that apply.
 
 1. Read the pattern catalog (kit and org sides; org wins on conflicts):
-   - `@docs/patterns/recipe-patterns/_index.md` — kit canonical patterns
-   - `@org/docs/patterns/recipe-patterns/_index.md` — org-recorded patterns (if present)
-   - `@projects/docs/patterns/` — legacy patterns (read-only for backwards compatibility)
+   - Call `workato_docs_lookup` with path `patterns/recipe-patterns/_index.md` — returns the kit patterns merged with any org overlay (org wins on conflict).
 2. Decompose the interview's requirements and find a pattern for each piece:
    - e.g. "fetch everything from an API and sync into a DB" → **pagination loop** + **data sync**
    - e.g. "submit → approve → create Jira" → **approval workflow**
@@ -178,9 +176,9 @@ Use the interview results to design the step composition. As you do, look for pa
 4. When combining multiple patterns, decide the order in which they appear in the recipe.
 
 For parts that don't match a pattern, consult:
-- `@docs/logic/data-pills.md` for datapill notation.
-- The relevant file under `@docs/logic/` for the syntax of any logic step.
-- `@docs/patterns/deployment-guide.md` for deploy-time caveats.
+- Call `workato_docs_lookup` with path `logic/data-pills.md` for datapill notation.
+- The relevant `logic/` doc (use `workato_docs_list` prefix `logic/`, then `workato_docs_lookup`) for the syntax of any logic step.
+- Call `workato_docs_lookup` with path `patterns/deployment-guide.md` for deploy-time caveats.
 - Existing recipes in the same project, when applicable.
 
 ### 9. Generate the files
@@ -228,7 +226,7 @@ After generation, display:
 - A summary of the values you filled in from the interview.
 - Any fields you left empty for C (connection-dependent), explicitly called out.
 
-Then, following "Recipe deployment flow" in `@docs/patterns/deployment-guide.md`, walk through the deploy in stages:
+Then, following "Recipe deployment flow" (call `workato_docs_lookup` with path `patterns/deployment-guide.md`), walk through the deploy in stages:
 
 1. **Push**: `workato push` to push every asset.
 2. **After push, share the project URL**: build it from `.workatoenv`'s `folder_id` + the region.
