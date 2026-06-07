@@ -38,14 +38,14 @@ Workbot triggers / actions are used in recipes:
 - **Action**: Post messages, render Block Kit, handle button interactions
 
 Full list of triggers / actions:
-- Slack: `@docs/connectors/workbot-for-slack.md`
-- Teams: `@docs/connectors/workbot-for-teams.md`
+- Slack: `connectors/workbot-for-slack.md` (via `workato_docs_lookup`)
+- Teams: `connectors/workbot-for-teams.md` (via `workato_docs_lookup`)
 
 ## Custom OAuth Profile
 
 When events not covered by the standard connector (`reaction_added`, etc.) or extra scopes (`channels.history`, etc.) are required, configure a Custom OAuth Profile to obtain additional Slack / Teams scopes.
 
-Details: see the "slack vs slack_bot" section of `@docs/learned-patterns.md`
+Details: see the "slack vs slack_bot" section of `learned-patterns.md` (via `workato_docs_lookup`)
 
 ## Notes
 

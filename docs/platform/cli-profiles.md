@@ -22,7 +22,7 @@ The `<org>` prefix lets one developer hold profiles for multiple Workato tenants
 
 ## Push / pull matrix
 
-This is the rule for AI agents and human developers alike. **Push is dev-only.** Promotion to test/prod must go through the Deploy feature (see `@docs/platform/environments.md`).
+This is the rule for AI agents and human developers alike. **Push is dev-only.** Promotion to test/prod must go through the Deploy feature (see `platform/environments.md` (via `workato_docs_lookup`)).
 
 | Profile | `workato pull` | `workato push` | `workato init` | Notes |
 |---|---|---|---|---|
@@ -91,7 +91,7 @@ Never commit anything from `~/.workato/` (it holds the credential index). `.work
 
 ## Related
 
-- `@docs/platform/environments.md` — the three-tier environment model and Deploy feature
+- `platform/environments.md` (via `workato_docs_lookup`) — the three-tier environment model and Deploy feature
 - `@.claude/rules/workato-deployment-flow.md` — the inviolable push-target rule
 - `@.claude/rules/workato-cli.md` — Platform CLI reference
 - `@.claude/rules/workato-cli-autonomy.md` — when to use the CLI vs. ask the user

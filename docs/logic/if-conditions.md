@@ -62,7 +62,7 @@ Unary operators (`is_true`, `is_not_true`, `present`, `blank`) still require `rh
 - `starts_with` / `ends_with` raise a trigger error when comparing non-string types directly (datapills are auto-converted)
 - Multiple conditions are combined with the top-level `input.operand` field set to `"and"` or `"or"`
 - Conditions are used in three places: IF branches, While loops, and trigger filters
-- Trigger `filter` uses the same condition structure (see `@docs/logic/triggers.md`)
+- Trigger `filter` uses the same condition structure (see `logic/triggers.md` via `workato_docs_lookup`)
 
 ---
 
