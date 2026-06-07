@@ -1,0 +1,11 @@
+{
+  "name": "workato-toolkit",
+  "owner": { "name": "rkawaishi", "url": "https://github.com/rkawaishi/workato-toolkit" },
+  "plugins": [
+    {
+      "name": "workato-toolkit",
+      "source": "./",
+      "description": "Workato development toolkit for AI coding agents"
+    }
+  ]
+}
