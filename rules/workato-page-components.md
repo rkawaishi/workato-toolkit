@@ -1,0 +1,216 @@
+---
+paths:
+  - "**/*.lcap_page.json"
+---
+
+# Workato Page Component JSON Format
+
+## Top-level structure
+
+```json
+{
+  "name": "Page name",
+  "path": "url-slug",
+  "content": {
+    "type": "common",
+    "maxWidth": "fixed",
+    "background": { "style": "pattern", "pattern": "light-2" },
+    "variables": [],
+    "handlers": { "pageLoad": null },
+    "layout": [ /* nested component tree */ ]
+  }
+}
+```
+
+## `layout` structure
+
+`layout` is an array of rows. Each row consists of a row number (1-based) followed by `[component, colSpan]` pairs:
+
+```json
+"layout": [
+  1,                          // row number
+  [{ /* component */ }, 0],   // [component, colSpan (usually 0)]
+  [{ /* component */ }, 0]
+]
+```
+
+A `container` may have its own nested `layout`.
+
+## Shared component properties
+
+| Property | Description |
+|---|---|
+| `type` | Component kind |
+| `id` | **8-digit hex** unique ID (e.g. `"cb33ba2c"`) |
+| `name` | Component name (for the builder) |
+| `x` | Grid starting position (0–11; 12-column layout) |
+| `width` | Grid width (1–12) |
+| `visible` | `true` / `false` / conditional expression |
+
+Additional properties for input components:
+
+| Property | Description |
+|---|---|
+| `dataSource` | **Save destination** (see below). NOT the source of option values. |
+| `editable` | `true` / `false` / conditional expression |
+| `validations.required.condition` | `true` / `false` / conditional expression |
+| `label` | User-facing label |
+| `hint` | Input hint |
+| `placeholder` | Placeholder text |
+
+## dataSource (important)
+
+`dataSource` specifies the **Data Table column the value is written to**, not the source of option values.
+
+```json
+"dataSource": {
+  "id": "Employee name",   // Data Table field title (NOT its UUID)
+  "type": "short-text"     // field type
+}
+```
+
+`dataSource: null` → the value is not persisted on submit.
+
+## Component `type` mapping
+
+| Purpose | `type` | `style` | Data Table field type |
+|---|---|---|---|
+| Short text | `"input"` | `"short-text"` | `short-text` |
+| Long text | `"input"` | `"long-text"` | `long-text` |
+| Number | `"input"` | `"number"` | `number` |
+| Email | `"input"` | `"email"` | `short-text` |
+| Phone | `"input"` | `"phone"` | `short-text` |
+| URL | `"input"` | `"url"` | `short-text` |
+| Date | **`"date"`** | `"date"` | `date` |
+| Date-time | **`"date"`** | `"date-time"` | `date-time` |
+| Dropdown (single) | **`"dropdown"`** | not used | `short-text` |
+| Dropdown (multi) | **`"dropdown"`** + `multiValue: true` | not used | `short-text` |
+| Checkbox | **`"checkbox"`** | not used | `boolean` |
+| File | **`"file"`** | not used | `file` |
+
+> **CRITICAL: dates must use `"type": "date"`. Using `"type": "input"` + `"style": "date"` breaks the page editor with an infinite loading state.**
+
+## input component
+
+```json
+{
+  "type": "input",
+  "id": "cb33ba2c",
+  "name": "Employee name",
+  "x": 0, "width": 6,
+  "visible": true,
+  "dataSource": { "id": "Employee name", "type": "short-text" },
+  "editable": true,
+  "validations": { "required": { "condition": true } },
+  "label": "Employee name",
+  "hint": "",
+  "placeholder": "",
+  "style": "short-text"
+}
+```
+
+For `"long-text"`, add `"textareaHeight": 72`.
+
+## date component
+
+```json
+{
+  "type": "date",
+  "id": "28d047c9",
+  "name": "Start date",
+  "x": 0, "width": 6,
+  "visible": true,
+  "dataSource": { "id": "Start date", "type": "date" },
+  "editable": true,
+  "validations": { "required": { "condition": true } },
+  "handlers": { "change": null },
+  "label": "Start date",
+  "hint": "",
+  "style": "date"
+}
+```
+
+## dropdown component
+
+```json
+{
+  "type": "dropdown",
+  "id": "abca2e40",
+  "name": "PC type",
+  "x": 0, "width": 6,
+  "visible": true,
+  "dataSource": { "id": "PC type", "type": "short-text" },
+  "editable": true,
+  "validations": { "required": { "condition": true } },
+  "handlers": { "change": null },
+  "label": "PC type",
+  "hint": "",
+  "placeholder": "",
+  "options": [
+    { "title": "Windows", "value": "Windows" },
+    { "title": "Mac", "value": "Mac" }
+  ],
+  "appFunctionOptions": null,
+  "dataSourceOptions": null,
+  "labelDataSource": null,
+  "multiValue": false
+}
+```
+
+| Property | Description |
+|---|---|
+| `options` | Static option list (`title` = display, `value` = saved value) |
+| `appFunctionOptions` | Options returned dynamically by a recipe (`app_function_load_dropdown_request` trigger) |
+| `dataSourceOptions` | Use another Data Table column as the source of options |
+| `multiValue` | `true` for multi-select (max 20 entries) |
+| `labelDataSource` | Data source for labels (usually `null`) |
+
+## button component
+
+```json
+{
+  "type": "button",
+  "id": "f433af82",
+  "name": "Submit",
+  "x": 0, "width": 12,
+  "visible": true,
+  "handlers": {
+    "click": {
+      "type": "save-data",
+      "navigateTo": { "target": "default", "url": "" }
+    }
+  },
+  "label": "Submit",
+  "style": "filled",
+  "enabled": true
+}
+```
+
+`style`: `"filled"` (primary) / `"outline"` (secondary).
+
+### click handler types
+
+| `type` | Use |
+|---|---|
+| `"save-data"` | Save data to a Data Table (submit form) |
+| `"complete-task"` | Complete a task (approve / reject) |
+| `"open-url"` | Open a URL |
+| `"run-recipe"` | Run a recipe |
+| `"reset-reload"` | Reset / reload components |
+
+## Display components
+
+| `type` | Use | Key properties |
+|---|---|---|
+| `"container"` | Layout container | `layout`, `backgroundColor`, `borderColor`, `padding` (large/medium/small/none) |
+| `"text"` | Text (supports Markdown) | `text`, `alignment`, `color` |
+| `"divider"` | Divider line | `backgroundColor` |
+| `"image"` | Image | A preset like `"illustration-N"` or a URL |
+
+## Conditional properties
+
+`visible`, `editable`, and `validations.required.condition` accept conditional expressions:
+
+- Same syntax as a recipe's IF condition (AND / OR chaining allowed).
+- Available data: App user info, request metadata, other component values, workflow stage.
+- For the JSON shape of complex conditions, configure them in the UI and pull to inspect.
