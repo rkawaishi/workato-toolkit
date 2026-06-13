@@ -54,7 +54,7 @@ A server compliant with the Model Context Protocol (MCP). It lets external AI mo
 - **tools[]**: list of tools to expose (description, VUA requirement)
 - **references**: mapping of references to skill definitions
 
-For JSON formatting rules, see `.claude/rules/workato-agentic-format.md` (Cursor: `.cursor/rules/workato-agentic-format.mdc`).
+For JSON formatting rules, see the `workato-agentic-format` rule (always-on).
 
 ## Build steps
 

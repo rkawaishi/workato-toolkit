@@ -2,7 +2,7 @@
 
 A consolidated reference for **when, by whom, and for what purpose** each skill is invoked, and each docs file is read or written.
 
-The "knowledge lookup priority" in `@.claude/CLAUDE.md` defines the **reading order**, while this document presents the bigger picture including **write timing and responsibilities**. Use it as a map for "remembering the skill you should actually run before falling back to grep."
+The "knowledge lookup priority" in the always-on rules defines the **reading order**, while this document presents the bigger picture including **write timing and responsibilities**. Use it as a map for "remembering the skill you should actually run before falling back to grep."
 
 ## Overall flow
 
@@ -84,16 +84,16 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | Skill | When to invoke | Reads | Writes |
 |---|---|---|---|
 | `/implement <project>/<NNN>-<slug>` | After tasks.md is finalized | `tasks.md`, `plan.md`, `spec.md` (reference only) | `tasks.md` (check-off and FAILED marks) |
-| `/create-recipe <project>/<NNN>-<slug>` | Invoked from `/implement` via [recipe]/[function]/[handler] tasks | `plan.md`, `docs/connectors/<provider>.md`, `connectors/docs/<name>.md`, `docs/logic/`, `docs/patterns/recipe-patterns/`, `org/docs/patterns/recipe-patterns/`, `projects/docs/patterns/` (legacy), `projects/CATALOG.md`, `.claude/rules/workato-recipe-format.md` | `projects/<name>/Recipes/*.recipe.json`, `*.connection.json`; if needed, append to plan.md's Unlearned Actions and tasks.md's `[learn]` tasks |
-| `/create-workflow-app <project>/<NNN>-<slug>` | Invoked from `/implement` via [page]/[data-table] tasks | `plan.md`, `docs/platform/workflow-apps.md`, `docs/patterns/deployment-guide.md`, `.claude/rules/workato-agentic-format.md` | `projects/<name>/Data Tables/*.data_table.json`, `Pages/*.page.json`, `lcap_app.json`, `Recipes/*.recipe.json` |
-| `/create-genie` | When creating a new AI agent / MCP server (optional `[mcp]` tasks) | `plan.md` (optional), `docs/platform/agent-studio.md`, `docs/platform/mcp.md`, `.claude/rules/workato-agentic-format.md` | `projects/<name>/Agents/*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json` |
-| `/create-connector <api-name>` | Invoked via a `[connector]` task. Connectors are shared assets and are not tied to a project; the caller's `plan.md` Connections information is passed as arguments | `docs/connector-sdk/connector-rb.md`, `docs/connector-sdk/overview.md`, `.claude/rules/workato-connector-sdk.md`, API documentation (WebFetch) | `connectors/<name>/connector.rb`, `settings.yaml`, `Gemfile` |
+| `/create-recipe <project>/<NNN>-<slug>` | Invoked from `/implement` via [recipe]/[function]/[handler] tasks | `plan.md`, `docs/connectors/<provider>.md`, `connectors/docs/<name>.md`, `docs/logic/`, `docs/patterns/recipe-patterns/`, `org/docs/patterns/recipe-patterns/`, `projects/docs/patterns/` (legacy), `projects/CATALOG.md`, the `workato-recipe-format` rule (always-on) | `projects/<name>/Recipes/*.recipe.json`, `*.connection.json`; if needed, append to plan.md's Unlearned Actions and tasks.md's `[learn]` tasks |
+| `/create-workflow-app <project>/<NNN>-<slug>` | Invoked from `/implement` via [page]/[data-table] tasks | `plan.md`, `docs/platform/workflow-apps.md`, `docs/patterns/deployment-guide.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Data Tables/*.data_table.json`, `Pages/*.page.json`, `lcap_app.json`, `Recipes/*.recipe.json` |
+| `/create-genie` | When creating a new AI agent / MCP server (optional `[mcp]` tasks) | `plan.md` (optional), `docs/platform/agent-studio.md`, `docs/platform/mcp.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Agents/*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json` |
+| `/create-connector <api-name>` | Invoked via a `[connector]` task. Connectors are shared assets and are not tied to a project; the caller's `plan.md` Connections information is passed as arguments | `docs/connector-sdk/connector-rb.md`, `docs/connector-sdk/overview.md`, the `workato-connector-sdk` rule (always-on), API documentation (WebFetch) | `connectors/<name>/connector.rb`, `settings.yaml`, `Gemfile` |
 
 ### Validation and sync phases
 
 | Skill | When to invoke | Reads | Writes |
 |---|---|---|---|
-| `/validate-recipe` | Before push, after editing JSON | The project's JSON files, `.claude/rules/` | None (validation report only) |
+| `/validate-recipe` | Before push, after editing JSON | The project's JSON files, the always-on rules | None (validation report only) |
 | `/push-project` | Before deploy | The project's assets | Workato remote (does not modify local) |
 | `/pull-project` | After UI adjustments, at handover time | Workato remote | Assets under `projects/<name>/` (overwritten) |
 
@@ -108,9 +108,9 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 
 A list of "who writes and who reads" for each docs directory.
 
-### Framework side (`workato-dev-kit` repo)
+### Framework side (the `workato-toolkit` plugin)
 
-The kit canonical `docs/` is **written only by kit maintainers and the sync skills**; user learning results accumulate on the `org/docs/` side (see `@.claude/rules/org-knowledge-overlay.md`).
+The kit canonical `docs/` is **written only by kit maintainers and the sync skills**; user learning results accumulate on the `org/docs/` side (see the `org-knowledge-overlay` rule (always-on)).
 
 | Path | Writer | Reader | Contents |
 |---|---|---|---|
@@ -122,7 +122,7 @@ The kit canonical `docs/` is **written only by kit maintainers and the sync skil
 | `docs/patterns/deployment-guide.md` | Manual | `/push-project`, `/create-workflow-app` | Deployment procedures, common errors |
 | `docs/patterns/shared-assets.md` | Manual | `/create-recipe`, `/catalog`, `/plan` | Shared asset design policy |
 | `docs/patterns/workspace-management.md` | Manual | `/plan`, `/catalog` | Workspace structure and naming conventions |
-| `.claude/rules/` | Manual | All skills | JSON format, per-path rules |
+| Always-on rules | Manual | All skills | JSON format, per-path rules |
 | `docs/learned-patterns.md` | Manual (kit maintainers' temporary buffer) | Manual (triage work) | Kit canonical buffer. Users use `org/docs/learned-patterns.md` |
 
 ### Organization side (`connectors/`, `projects/`, `org/`)

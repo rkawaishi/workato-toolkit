@@ -1,6 +1,6 @@
 {
   "name": "workato-toolkit",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Workato development toolkit for AI coding agents",
   "skills": "./skills/",
   "agents": "./agents/",

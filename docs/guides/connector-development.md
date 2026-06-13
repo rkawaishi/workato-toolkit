@@ -110,7 +110,7 @@ When you specify the API documentation URL, WebFetch retrieves the spec and the 
 }
 ```
 
-For the detailed DSL reference, see `docs/connector-sdk/connector-rb.md`. Format rules are defined in `.claude/rules/workato-connector-sdk.md` (Cursor: `.cursor/rules/workato-connector-sdk.mdc`).
+For the detailed DSL reference, see `docs/connector-sdk/connector-rb.md`. Format rules are defined in the `workato-connector-sdk` rule (always-on).
 
 ### 3. Local testing
 

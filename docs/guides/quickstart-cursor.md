@@ -1,6 +1,6 @@
 # Quick Start Guide (Cursor)
 
-This guide walks through setting up Workato Dev Kit with Cursor and creating your first Recipe.
+This guide walks through setting up the workato-toolkit with Cursor and creating your first Recipe.
 
 ## 1. Check prerequisites
 
@@ -17,29 +17,24 @@ You will need:
 # Create your organization's workspace repository
 mkdir my-org-workato && cd my-org-workato
 git init
-
-# Add workato-dev-kit as a submodule
-git submodule add https://github.com/rkawaishi/workato-dev-kit.git kit
-
-# Run the setup script (copies Cursor files, generates config)
-bash kit/setup.sh
-
-# Initial commit
-git add -A && git commit -m "Initial setup with workato-dev-kit"
+git commit --allow-empty -m "Initialize my-org-workato workspace"
 ```
 
-Structure after setup:
+Then install the toolkit as a Cursor plugin (one time, at the editor level):
+
+```
+# Cursor → Settings → Plugins → Add marketplace
+#   source: rkawaishi/workato-toolkit
+# then install "workato-toolkit"
+```
+
+Cursor loads the plugin's skills and `.mdc` rules directly from the installed plugin — there is nothing to copy or re-sync, and no `kit/` directory in your workspace. Your repo holds only your own assets:
 
 ```
 my-org-workato/                 ← working root
-├── .claude/                    ← symlinked from kit (you can add your own rules/skills)
-├── .cursor/                    ← copied from kit (real files because symlinks are unreliable)
-│   └── .kit-manifest           # tracks kit-managed files (gitignored)
-├── docs/ → kit/docs/           ← symlink
-├── guides/ → kit/guides/       ← symlink
-├── kit/                        ← git submodule (read-only)
 ├── projects/                   ← your organization's Recipes
-└── connectors/                 ← your organization's custom connectors
+├── connectors/                 ← your organization's custom connectors
+└── org/docs/                   ← your organization's accumulated knowledge (created on first learn)
 ```
 
 ## 3. Install the Workato Platform CLI
@@ -50,7 +45,7 @@ pipx install workato-platform-cli
 
 > If you do not have `pipx`: `brew install pipx && pipx ensurepath`
 
-> **Note**: Use the official CLI to pull/push projects. Features not covered by the CLI (job management, connector info retrieval, etc.) are filled in by the bundled API helper (`python3 scripts/workato-api.py`). See `.claude/rules/workato-cli.md` for details.
+> **Note**: Use the official CLI to pull/push projects. Features not covered by the CLI (job management, connector info retrieval, etc.) are filled in by the bundled API helper (`python3 scripts/workato-api.py`). See the `workato-cli` rule (always-on) for details.
 
 ## 4. Initial CLI authentication
 
@@ -63,21 +58,9 @@ Enter the following interactively:
 - **Data Center**: your data center (`us`, `eu`, `jp`, `sg`)
 - **API Token**: the token issued in step 1
 
-## 5. Updating the framework
+## 5. Updating the toolkit
 
-```bash
-git submodule update --remote kit
-bash kit/setup.sh    # ← Re-running is required for Cursor (copies latest kit content into .cursor/)
-git add kit .cursor && git commit -m "Update workato-dev-kit"
-```
-
-Files under `.cursor/` are real-file copies rather than symlinks, so **you must re-run `bash kit/setup.sh` whenever you update the kit**. Without re-running, Cursor will keep using the old rules and skills.
-
-- When new skills or rules are added to the kit, copies are added
-- Files removed from the kit are tracked via `.cursor/.kit-manifest` and pruned automatically
-- Your own files added under `.cursor/rules/` or `.cursor/skills/` (those not in the manifest) are preserved
-
-> **Why copy only for Cursor?** Cursor cannot reliably resolve symlinks for `.cursor/rules/*.mdc` or `.cursor/skills/<name>/`, and they fail to load silently. See [architecture.md](architecture.md#supported-editors) for details.
+Update the plugin from Cursor's Plugins panel. New skills, rules, and knowledge-base docs arrive with the update — there is nothing to re-copy or re-link. Pin to a release tag where supported.
 
 ## 6. Pull a Workato project
 
@@ -99,9 +82,9 @@ cd my-org-workato
 cursor .
 ```
 
-When Cursor starts, the following are loaded automatically:
-- `.cursor/rules/` — format rules per file type (Recipe JSON, page JSON, connector, etc.)
-- `.cursor/skills/` — development skills (Recipe generation, deployment, design, etc.)
+When Cursor starts, the plugin loads automatically:
+- format rules per file type (Recipe JSON, page JSON, connector, etc.), delivered as `.mdc` rules
+- development skills (Recipe generation, deployment, design, etc.)
 
 ## How to use skills
 
@@ -189,7 +172,7 @@ Workato Recipe JSON contains many structures that are not documented officially.
 - Auto-generated `dynamicPickListSelection` and `toggleCfg` produced by UI configuration
 - Connection-dependent fields (empty after push alone, only revealed once configured in the UI and pulled back)
 
-These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and feeds it back into the toolkit's knowledge base (`docs/`) and rules (`.cursor/rules/`). The more learning accumulates, the more accurately the next `/create-recipe` or `/create-workflow-app` will generate.
+These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and writes it to your workspace's `org/docs/` overlay (the plugin's bundled knowledge base is read-only; the docs-overlay MCP merges the two). The more learning accumulates, the more accurately the next `/create-recipe` or `/create-workflow-app` will generate.
 
 ### How to do it
 
@@ -202,20 +185,11 @@ You: /learn-recipe
 
 ### Contributing back to the toolkit
 
-If the patterns you learned would improve the toolkit, submit a PR to workato-dev-kit:
-
-```bash
-# In the kit/ directory
-cd kit
-git checkout -b feature/learn-jira-fields
-# Commit changes to docs/ or .claude/rules/
-git push origin feature/learn-jira-fields
-# Open a PR on GitHub
-```
+If the patterns you learned would improve the toolkit for everyone, open a PR against [`rkawaishi/workato-toolkit`](https://github.com/rkawaishi/workato-toolkit) with the proposed knowledge-base additions. Day-to-day, your learnings already live in your workspace's `org/docs/` and are shared with your team through your own repo.
 
 ## How rules work
 
-`.cursor/rules/` contains rules that are applied automatically based on file type:
+The plugin delivers Cursor rules as `.mdc` files that are applied automatically based on file type:
 
 | Rule | Auto-applied to |
 |---|---|
@@ -227,52 +201,11 @@ git push origin feature/learn-jira-fields
 | `workato-cli.mdc` | `.workatoenv`, `projects/**`, `connectors/**` |
 | `workato-project.mdc` | Always applied (project-wide context) |
 
-These rules and skills are pre-generated by the kit maintainer from `framework/claude/` via `python3 scripts/sync_agents.py`, and copied into the user's repository when `bash kit/setup.sh` runs (Cursor cannot reliably resolve symlinks). To update the kit:
-
-```bash
-git submodule update --remote kit
-bash kit/setup.sh    # Copy new skills/rules, prune old ones
-```
+These rules ship inside the plugin and load automatically; update them from Cursor's Plugins panel.
 
 ## Using git worktree
 
-`git worktree add` does **not** populate submodules in a new worktree on its own —
-left unhandled, the `kit/` submodule would start out empty there. The `docs/` and
-`guides/` symlinks would point at nothing, and although `.cursor/` holds real file
-copies, its rules reference `@docs/...`, so the framework would be effectively
-broken in that worktree.
-
-To prevent this, `bash kit/setup.sh` installs a git `post-checkout` hook that runs
-`git submodule update --init --recursive` automatically. So creating a worktree
-fills in `kit/` for you — just re-run setup to refresh the symlinks and re-copy
-`.cursor/`:
-
-```bash
-git worktree add ../my-org-workato-feature feature-branch   # hook populates kit/
-cd ../my-org-workato-feature
-bash kit/setup.sh                                            # refresh symlinks + re-copy .cursor/
-```
-
-If the hook is not active — you had a pre-existing `post-checkout` hook, or
-`core.hooksPath` is set (husky etc.) — `setup.sh` prints a `SKIP` notice. In that
-case populate the submodule manually first:
-
-```bash
-cd ../my-org-workato-feature
-git submodule update --init --recursive
-bash kit/setup.sh
-```
-
-`bash kit/setup.sh` re-copies `.cursor/` from the now-populated kit and verifies
-the symlinks at the end, printing a `DANGLING` warning if the submodule is still
-missing.
-
-> **Note on shared submodule state**: all worktrees share one `.git/modules/kit`,
-> and its `core.worktree` can only point at one worktree at a time. `git status` /
-> `git submodule status` for `kit/` may therefore look noisy across worktrees.
-> This is harmless because the kit is consumed read-only — just don't stage a
-> `kit` pointer change unless you intentionally bumped the kit version
-> (`git submodule update --remote kit`).
+Worktrees need no special handling — the toolkit is installed at the Cursor level, not vendored into your repo. `git worktree add` just works, and the plugin's skills and `.mdc` rules are available in every worktree automatically.
 
 ## FAQ
 
@@ -292,16 +225,11 @@ No, as long as each project's `.workatoignore` lists `specs/`. The `/spec` comma
 
 ### Q: Can I use this with Claude Code?
 
-Yes. The same rules and skills are placed under `.claude/rules/` and `.claude/skills/`. Invocation uses the same `/skill-name` format. See [QUICKSTART-CLAUDE-CODE.md](quickstart-claude-code.md) for details.
+Yes. The same toolkit installs as a Claude Code plugin and delivers the same skills and rules. Invocation uses the same `/skill-name` format. See [QUICKSTART-CLAUDE-CODE.md](quickstart-claude-code.md) for details.
 
 ### Q: How do I keep rules and skills up to date?
 
-The source of truth is `framework/claude/` in the kit, and Cursor files are pre-generated by the kit maintainer via `python3 scripts/sync_agents.py`. Users simply update the kit submodule and re-run setup.sh:
-
-```bash
-git submodule update --remote kit
-bash kit/setup.sh
-```
+Update the plugin from Cursor's Plugins panel. Everything (skills, rules, knowledge base) ships inside the plugin, so there is nothing else to sync.
 
 ### Q: Can I use it offline?
 

@@ -21,7 +21,7 @@ The write target is consolidated to `org/docs/patterns/recipe-patterns/`. When r
 
 The distinction between general and org-domain is expressed in the "Scope" section of each pattern's body, not by file path.
 
-`/create-recipe` and `/plan` consult all three catalogs, and conflicts are resolved in favor of the org side (`org/docs/`) (see `@.claude/rules/org-knowledge-overlay.md`).
+`/create-recipe` and `/plan` consult all three catalogs, and conflicts are resolved in favor of the org side (`org/docs/`) (see the `org-knowledge-overlay` rule (always-on)).
 
 ## Pattern flow
 
