@@ -136,7 +136,7 @@ The most important thing is that the expert's know-how is captured accurately.
 The single write target is `org/docs/patterns/recipe-patterns/`. The generic / org-domain distinction is captured in the pattern's "Scope" section (not by path).
 
 **Do not write to**:
-- The plugin's bundled `docs/patterns/recipe-patterns/` (kit canonical, read-only — surfaced via the MCP lookup, never writable from a project).
+- The kit's bundled recipe-patterns catalog (kit canonical, read-only — fetch via `workato_docs_lookup("patterns/recipe-patterns/...")`, never writable from a project).
 - `projects/docs/patterns/` (legacy; existing files are read-only. New writes consolidate into the org side).
 
 When valuable generic patterns accumulate for potential upstreaming, open a separate PR against the `workato-toolkit` repository (out of scope here).

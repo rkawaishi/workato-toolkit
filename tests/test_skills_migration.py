@@ -129,6 +129,31 @@ def test_no_bare_kit_connector_path_in_any_skill():
     assert not offenders, "bare kit docs/connectors/ refs:\n" + "\n".join(offenders)
 
 
+# A bundled doc tree is reached via the docs-overlay MCP (paths have NO `docs/`
+# prefix, e.g. workato_docs_lookup("patterns/recipe-patterns/_index.md")). A bare
+# `docs/<tree>/` in a skill is a local read of the read-only plugin docs, which do
+# not exist in the workspace under plugin distribution. `org/docs/` (overlay) and
+# `projects/docs/` (legacy, read-only) are the allowed local locations.
+_BARE_KIT_DOC_PATH = re.compile(
+    r"(?<!org/)(?<!projects/)docs/(?:connectors|patterns|logic|platform|guides)/"
+)
+
+
+def test_no_bare_kit_doc_read_in_any_skill():
+    # Generalizes test_no_bare_kit_connector_path_in_any_skill to every bundled
+    # doc tree (patterns/logic/platform/guides), so a local read of e.g.
+    # `docs/patterns/recipe-patterns/` is caught the same way as `docs/connectors/`.
+    offenders = []
+    for name, p in _skill_files().items():
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if _BARE_KIT_DOC_PATH.search(line):
+                offenders.append(f"{name}/SKILL.md:{i}: {line.strip()}")
+    assert not offenders, (
+        "bare kit docs/<tree>/ refs (read via workato_docs_lookup instead):\n"
+        + "\n".join(offenders)
+    )
+
+
 def test_learning_skills_reference_mcp_tool():
     files = _skill_files()
     for name in _MCP_REQUIRED_LEARNING_SKILLS:

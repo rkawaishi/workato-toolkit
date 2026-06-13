@@ -137,7 +137,7 @@ Next, run /tasks <project>/<NNN>-<slug> to break this down into executable tasks
 
 ## Applied Patterns
 <!-- Patterns from the catalog that apply here. -->
-- **<pattern>** (`docs/patterns/recipe-patterns/<file>.md`): <where it applies and why>
+- **<pattern>** (kit: `patterns/recipe-patterns/<file>.md` via `workato_docs_lookup`): <where it applies and why>
 - **<pattern>** (`org/docs/patterns/recipe-patterns/<file>.md`): <where it applies and why>
 
 ## Reused Assets

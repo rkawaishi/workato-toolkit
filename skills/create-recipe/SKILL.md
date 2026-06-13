@@ -243,10 +243,10 @@ Then, following "Recipe deployment flow" (call `workato_docs_lookup` with path `
 
 ## Git management
 
-Generated files (`Recipes/`, `Connections/`) live under `projects/<project-name>/`. Commit them in the workspace repository:
+Generated files (`Recipes/`, `Connections/`) live under `projects/<project-name>/`, and any connector field info you appended (step above) lives under `org/docs/connectors/`. Commit them in the workspace repository:
 
 ```bash
-git add projects/<project-name>/Recipes/ projects/<project-name>/Connections/
+git add projects/<project-name>/Recipes/ projects/<project-name>/Connections/ org/docs/
 git commit -m "Add recipe: <name>"
 git push origin
 ```

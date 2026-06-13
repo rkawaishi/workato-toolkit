@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Bootstrap the organization knowledge base from **Workato assets that already exist** before the kit was adopted.
 
-Most teams adopt this kit when their Workato workspace is already full of projects and custom connectors. `/onboard` pulls all of that down and runs the existing learn / sync / catalog skills over it, so `docs/` and `org/docs/` start out populated with the patterns, built-in actions, schemas and connector details this organization actually uses — making every later `/create-recipe` and `/plan` sharper.
+Most teams adopt this kit when their Workato workspace is already full of projects and custom connectors. `/onboard` pulls all of that down and runs the existing learn / sync / catalog skills over it, so the workspace's `org/docs/` and `connectors/docs/` start out populated with the patterns, built-in actions, schemas and connector details this organization actually uses — making every later `/create-recipe` and `/plan` sharper.
 
 This skill is a **thin orchestrator**. It does not pull, learn, sync or catalog anything itself — it sequences the existing skills and never reimplements their logic.
 
@@ -99,7 +99,7 @@ For each in-scope project, invoke **`/learn-recipe <project-name>`**. `/learn-re
 
 ### 7. Step — Learn patterns
 
-Across the pulled recipes, identify recurring constructions (pagination loops, approval flows, error handlers, …) and invoke **`/learn-pattern`** for each. Skip constructs already present in `docs/patterns/recipe-patterns/` or `org/docs/patterns/recipe-patterns/` — learn only the delta.
+Across the pulled recipes, identify recurring constructions (pagination loops, approval flows, error handlers, …) and invoke **`/learn-pattern`** for each. Skip constructs already documented in the merged kit + org catalog (`workato_docs_lookup("patterns/recipe-patterns/_index.md")`) — learn only the delta.
 
 ### 8. Step — Catalog
 
