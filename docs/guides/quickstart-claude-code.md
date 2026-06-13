@@ -1,6 +1,6 @@
 # Quick Start Guide (Claude Code)
 
-This guide walks through setting up Workato Dev Kit with Claude Code and creating your first Recipe.
+This guide walks through setting up the workato-toolkit with Claude Code and creating your first Recipe.
 
 ## 1. Check prerequisites
 
@@ -17,27 +17,23 @@ You will need:
 # Create your organization's workspace repository
 mkdir my-org-workato && cd my-org-workato
 git init
-
-# Add workato-dev-kit as a submodule
-git submodule add https://github.com/rkawaishi/workato-dev-kit.git kit
-
-# Run the setup script
-bash kit/setup.sh
-
-# Initial commit
-git add -A && git commit -m "Initial setup with workato-dev-kit"
+git commit --allow-empty -m "Initialize my-org-workato workspace"
 ```
 
-Structure after setup:
+Then install the toolkit as a Claude Code plugin (one time, at the editor level):
+
+```
+/plugin marketplace add rkawaishi/workato-toolkit
+/plugin install workato-toolkit@workato-toolkit
+```
+
+The plugin bundles everything (skills, the knowledge base, rules, hooks, the docs-overlay MCP). There is no `kit/` directory and nothing to symlink in your workspace. Your repo holds only your own assets:
 
 ```
 my-org-workato/                 ← working root
-├── .claude/                    ← symlinked from kit (you can add your own rules/skills)
-├── docs/ → kit/docs/           ← symlink
-├── guides/ → kit/guides/       ← symlink
-├── kit/                        ← git submodule (read-only)
 ├── projects/                   ← your organization's Recipes
-└── connectors/                 ← your organization's custom connectors
+├── connectors/                 ← your organization's custom connectors
+└── org/docs/                   ← your organization's accumulated knowledge (created on first learn)
 ```
 
 ## 3. Install the Workato Platform CLI
@@ -48,7 +44,7 @@ pipx install workato-platform-cli
 
 > If you do not have `pipx`: `brew install pipx && pipx ensurepath`
 
-> **Note**: Use the official CLI to pull/push projects. Features not covered by the CLI (job management, connector info retrieval, etc.) are filled in by the bundled API helper (`python3 scripts/workato-api.py`). See `.claude/rules/workato-cli.md` for details.
+> **Note**: Use the official CLI to pull/push projects. Features not covered by the CLI (job management, connector info retrieval, etc.) are filled in by the bundled API helper (`python3 scripts/workato-api.py`). See the `workato-cli` rule (always-on) for details.
 
 ## 4. Initial CLI authentication
 
@@ -61,16 +57,13 @@ Enter the following interactively:
 - **Data Center**: your data center (`us`, `eu`, `jp`, `sg`)
 - **API Token**: the token issued in step 1
 
-## 5. Updating the framework (when using submodule)
+## 5. Updating the toolkit
 
-```bash
-git submodule update --remote kit
-bash kit/setup.sh
-git add kit && git commit -m "Update workato-dev-kit"
+```
+/plugin update workato-toolkit
 ```
 
-When new skills or rules are added, `setup.sh` automatically creates the symlinks.
-Files you added yourself (those that are not symlinks) are not overwritten.
+New skills, rules, and knowledge-base docs arrive with the plugin update — there is nothing to sync or re-link. Pin to a release tag where supported.
 
 ## 6. Pull a Workato project
 
@@ -92,7 +85,7 @@ cd my-org-workato
 claude
 ```
 
-When Claude Code starts, the skills and rules under `.claude/` are loaded automatically.
+When Claude Code starts, the toolkit's skills and always-on rules are loaded automatically from the installed plugin.
 
 ## 8. Create your first project
 
@@ -153,7 +146,7 @@ Workato Recipe JSON contains many structures that are not documented officially.
 - Auto-generated `dynamicPickListSelection` and `toggleCfg` produced by UI configuration
 - Connection-dependent fields (empty after push alone, only revealed once configured in the UI and pulled back)
 
-These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and feeds it back into the toolkit's knowledge base (`docs/`) and rules (`.claude/rules/`). The more learning accumulates, the more accurately the next `/create-recipe` or `/create-workflow-app` will generate.
+These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and writes it to your workspace's `org/docs/` overlay (the plugin's bundled knowledge base is read-only; the docs-overlay MCP merges the two). The more learning accumulates, the more accurately the next `/create-recipe` or `/create-workflow-app` will generate.
 
 ### How to do it
 
@@ -166,53 +159,11 @@ You: /learn-recipe
 
 ### Contributing back to the toolkit
 
-If the patterns you learned would improve the toolkit, submit a PR to workato-dev-kit:
-
-```bash
-# In the kit/ directory
-cd kit
-git checkout -b feature/learn-jira-fields
-# Commit changes to docs/ or .claude/rules/
-git push origin feature/learn-jira-fields
-# Open a PR on GitHub
-```
+If the patterns you learned would improve the toolkit for everyone, open a PR against [`rkawaishi/workato-toolkit`](https://github.com/rkawaishi/workato-toolkit) with the proposed knowledge-base additions. Day-to-day, your learnings already live in your workspace's `org/docs/` and are shared with your team through your own repo.
 
 ## Using git worktree
 
-`git worktree add` does **not** populate submodules in a new worktree on its own —
-left unhandled, the `kit/` submodule would start out empty there, every `.claude/`
-symlink (and `docs/`, `guides/`, …) would point at nothing, and Claude Code could
-not load the framework's rules or skills.
-
-To prevent this, `bash kit/setup.sh` installs a git `post-checkout` hook that runs
-`git submodule update --init --recursive` automatically. So creating a worktree
-fills in `kit/` for you — just re-run setup to refresh the symlinks:
-
-```bash
-git worktree add ../my-org-workato-feature feature-branch   # hook populates kit/
-cd ../my-org-workato-feature
-bash kit/setup.sh                                            # refresh the symlinks
-```
-
-If the hook is not active — you had a pre-existing `post-checkout` hook, or
-`core.hooksPath` is set (husky etc.) — `setup.sh` prints a `SKIP` notice. In that
-case populate the submodule manually first:
-
-```bash
-cd ../my-org-workato-feature
-git submodule update --init --recursive
-bash kit/setup.sh
-```
-
-`bash kit/setup.sh` verifies the symlinks at the end and prints a `DANGLING`
-warning if the kit submodule is still missing.
-
-> **Note on shared submodule state**: all worktrees share one `.git/modules/kit`,
-> and its `core.worktree` can only point at one worktree at a time. `git status` /
-> `git submodule status` for `kit/` may therefore look noisy across worktrees.
-> This is harmless because the kit is consumed read-only — just don't stage a
-> `kit` pointer change unless you intentionally bumped the kit version
-> (`git submodule update --remote kit`).
+Worktrees need no special handling — the toolkit is installed at the Claude Code level, not vendored into your repo. `git worktree add` just works, and the plugin's skills and rules are available in every worktree automatically.
 
 ## FAQ
 
@@ -232,7 +183,7 @@ No, as long as each project's `.workatoignore` lists `specs/`. The `/spec` comma
 
 ### Q: Can I use this with Cursor?
 
-Yes. The same rules and skill-equivalent rules are placed under `.cursor/rules/` as well. See [QUICKSTART-CURSOR.md](quickstart-cursor.md) for details.
+Yes. The same toolkit installs as a Cursor plugin and delivers the same skills and rules. See [QUICKSTART-CURSOR.md](quickstart-cursor.md) for details.
 
 ### Q: Can I use it offline?
 
