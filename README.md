@@ -5,7 +5,7 @@ Officially supports **Claude Code**, **Cursor**, and **Codex CLI**. Gemini CLI i
 
 The toolkit bundles skills, the Workato knowledge base (300+ connectors, logic, platform, patterns),
 always-on rules, a credential-guard hook, and a docs-overlay MCP server — all from one shared tree.
-There is no submodule and nothing to symlink.
+Nothing to vendor into your repo and nothing to symlink.
 
 ## Install
 
