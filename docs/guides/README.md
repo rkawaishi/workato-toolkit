@@ -9,7 +9,7 @@ This toolkit supports **Claude Code**, **Cursor**, **Codex CLI**, and **Gemini C
 | [Claude Code quickstart](quickstart-claude-code.md) | Setup and first development session with Claude Code |
 | [Cursor quickstart](quickstart-cursor.md) | Setup and rule synchronization for Cursor |
 
-> **Note:** The canonical source for skills and rules is `framework/claude/` inside the kit. The kit maintainer regenerates `framework/{cursor,codex,gemini}/` and `framework/AGENTS.md` ahead of time via `python3 scripts/sync_agents.py`. Running `bash kit/setup.sh` symlinks each editor's directory into your workspace (no need to run sync yourself). See [Design and architecture](architecture.md) for details.
+> **Note:** Skills, rules, and the knowledge base ship inside the plugin. Always-on rules are delivered automatically per editor; knowledge-base docs are served on demand through the docs-overlay MCP (`workato_docs_lookup` / `workato_docs_list`). See [Design and architecture](architecture.md) for details.
 
 ## Design
 

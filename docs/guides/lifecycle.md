@@ -108,7 +108,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 
 A list of "who writes and who reads" for each docs directory.
 
-### Framework side (`workato-dev-kit` repo)
+### Framework side (the `workato-toolkit` plugin)
 
 The kit canonical `docs/` is **written only by kit maintainers and the sync skills**; user learning results accumulate on the `org/docs/` side (see `@.claude/rules/org-knowledge-overlay.md`).
 
