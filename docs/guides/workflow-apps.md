@@ -63,7 +63,7 @@ Define the screen for each stage. Main components:
 - **Detail** — detail display
 - **Button** — action button (approve, reject, etc.)
 
-For details on page components, see `.claude/rules/workato-page-components.md` (Cursor: `.cursor/rules/workato-page-components.mdc`).
+For details on page components, see the `workato-page-components` rule (always-on).
 
 #### App definition (`lcap_app.json`)
 

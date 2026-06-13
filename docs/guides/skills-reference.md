@@ -6,12 +6,12 @@ A reference summarizing the purpose, usage, and options of every skill.
 
 ## How to invoke a skill
 
-| Editor | How to invoke | Skill definition location |
-|---|---|---|
-| **Claude Code** | Type `/skill-name` in the prompt | `.claude/skills/` |
-| **Cursor** | Type `/skill-name` in Agent mode | `.cursor/skills/` |
-| **Codex CLI** | Type `$skill-name` in the prompt | `.agents/skills/` |
-| **Gemini CLI** | Type `/skill-name` in the prompt | `.gemini/skills/` |
+| Editor | How to invoke |
+|---|---|
+| **Claude Code** | Type `/skill-name` in the prompt |
+| **Cursor** | Type `/skill-name` in Agent mode |
+| **Codex CLI** | Type `$skill-name` in the prompt |
+| **Gemini CLI** *(coming soon)* | Type `/skill-name` in the prompt |
 
 Skills ship inside the plugin and load automatically in every editor; update them with your editor's plugin-update command.
 

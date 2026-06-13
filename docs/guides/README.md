@@ -1,6 +1,6 @@
-# Workato Dev Kit Guides
+# workato-toolkit Guides
 
-This toolkit supports **Claude Code**, **Cursor**, **Codex CLI**, and **Gemini CLI**. Skills (`/create-recipe`, etc.) and rules work the same way in every editor (Codex uses `$foo` instead of `/foo` syntax).
+This toolkit officially supports **Claude Code**, **Cursor**, and **Codex CLI**, with **Gemini CLI coming soon**. Skills (`/create-recipe`, etc.) and rules work the same way in every editor (Codex uses `$foo` instead of `/foo` syntax).
 
 ## Getting started
 
