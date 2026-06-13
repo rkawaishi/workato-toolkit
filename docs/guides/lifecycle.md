@@ -2,7 +2,7 @@
 
 A consolidated reference for **when, by whom, and for what purpose** each skill is invoked, and each docs file is read or written.
 
-The "knowledge lookup priority" in `@.claude/CLAUDE.md` defines the **reading order**, while this document presents the bigger picture including **write timing and responsibilities**. Use it as a map for "remembering the skill you should actually run before falling back to grep."
+The "knowledge lookup priority" in the always-on rules defines the **reading order**, while this document presents the bigger picture including **write timing and responsibilities**. Use it as a map for "remembering the skill you should actually run before falling back to grep."
 
 ## Overall flow
 

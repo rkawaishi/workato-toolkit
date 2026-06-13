@@ -12,7 +12,7 @@ README = ROOT / "README.md"
 # plugin model those live inside the plugin, reached via always-on rules / the MCP.
 _LEGACY = re.compile(
     r"submodule|setup\.sh|sync_agents\.py|framework/|@local"
-    r"|\.claude/(?:rules|skills)/|\.cursor/(?:rules|skills)/"
+    r"|@\.claude/|\.claude/(?:rules|skills|CLAUDE\.md)|\.cursor/(?:rules|skills)/"
     r"|\.gemini/skills/|\.agents/skills/"
 )
 
