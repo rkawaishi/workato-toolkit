@@ -6,8 +6,15 @@ ROOT = Path(__file__).resolve().parent.parent
 GUIDES = ROOT / "docs" / "guides"
 README = ROOT / "README.md"
 
-# S4 legacy distribution tokens — must be gone from user-facing docs.
-_LEGACY = re.compile(r"submodule|setup\.sh|sync_agents\.py|framework/|@local")
+# S4 legacy distribution tokens — must be gone from user-facing docs. Covers the
+# old submodule/setup.sh model AND old per-editor workspace paths (rules/skills
+# lived under .claude/ .cursor/ .gemini/ .agents/ via symlink/copy); under the
+# plugin model those live inside the plugin, reached via always-on rules / the MCP.
+_LEGACY = re.compile(
+    r"submodule|setup\.sh|sync_agents\.py|framework/|@local"
+    r"|\.claude/(?:rules|skills)/|\.cursor/(?:rules|skills)/"
+    r"|\.gemini/skills/|\.agents/skills/"
+)
 
 EXPECTED_VERSION = "0.1.0"
 
@@ -32,8 +39,10 @@ def _load(rel):
 def test_manifest_versions_bumped_and_consistent():
     cc = _load(".claude-plugin/plugin.json")["version"]
     codex = _load(".codex-plugin/plugin.json")["version"]
+    cursor = _load(".cursor-plugin/plugin.json")["version"]
     assert cc == EXPECTED_VERSION, f"CC version {cc} != {EXPECTED_VERSION}"
     assert codex == EXPECTED_VERSION, f"Codex version {codex} != {EXPECTED_VERSION}"
+    assert cursor == EXPECTED_VERSION, f"Cursor version {cursor} != {EXPECTED_VERSION}"
 
 
 def test_release_workflow_shape():

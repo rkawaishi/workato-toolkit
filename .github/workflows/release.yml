@@ -16,15 +16,19 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.11"
+
+      - name: Install test deps
+        run: pip install pytest
 
       - name: Verify derived files are in sync
         run: |
           python3 scripts/sync_derived.py
-          git diff --exit-code
+          git diff --exit-code -- rules/ agents/ CLAUDE.md AGENTS.md GEMINI.md \
+            || { echo "::error::Derived files out of sync. Run 'python3 scripts/sync_derived.py' and commit."; exit 1; }
 
       - name: Run test suite
-        run: python3 -m pytest -q
+        run: python3 -m pytest tests/ -q
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
