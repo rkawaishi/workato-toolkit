@@ -53,7 +53,7 @@ Format:
 
 ### 2. New providers / actions
 
-When you find an unknown `provider`/`name` combination in a recipe (i.e. an action that doesn't appear in the kit's `docs/connectors/<provider>.md`).
+When you find an unknown `provider`/`name` combination in a recipe (i.e. an action that doesn't appear in `workato_docs_lookup("connectors/<provider>.md")`).
 
 **Destination**:
 - Pre-built connectors → the trigger / action list table in `org/docs/connectors/<provider>.md`.
@@ -100,9 +100,9 @@ Anything that doesn't match the categories above.
 
 ## Duplicate check
 
-Before writing, grep both files for the same content:
-- The destination `org/docs/<path>.md`
-- The corresponding kit-side `docs/<same-path>.md`
+Before writing, compare against what already exists:
+- The destination `org/docs/<path>.md` (read it directly — it is in the workspace repo).
+- The kit canonical doc, via `workato_docs_lookup("<path>")` (it returns the bundled kit doc merged with any org overlay).
 
 - The kit already has field info for the same action → add only the diff (org-specific fields or corrections).
 - The same rule already exists → skip.
@@ -157,4 +157,4 @@ git add org/docs/ projects/<name>/specs/
 git commit -m "docs(org): learn from <project-name> recipes"
 ```
 
-**Do not commit to the kit submodule (`kit/`).** When you accumulate general findings worth upstreaming, open a separate PR against the kit repository.
+**Never write to the plugin's bundled `docs/` — it is read-only.** When you accumulate general findings worth upstreaming into the kit, open a separate PR against the `workato-toolkit` repository.

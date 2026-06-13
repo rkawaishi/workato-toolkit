@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 A Workato expert records construction patterns into **`org/docs/patterns/recipe-patterns/`**.
 The goal is to document know-how the expert already has. A reference recipe can be supplied as optional source material.
 
-The write target is a single location in the org knowledge layer (the kit submodule's `docs/` is left alone). See the `org-knowledge-overlay` rule (always-on).
+The write target is a single location in the org knowledge layer (the plugin's bundled `docs/` is read-only and left alone). See the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 
@@ -21,10 +21,9 @@ The write target is a single location in the org knowledge layer (the kit submod
 
 ### 1. Confirm the expert's intent
 
-First survey existing patterns (read kit canonical and org sides; org wins on conflicts):
-- `docs/patterns/recipe-patterns/_index.md` — kit canonical, generic patterns.
-- `org/docs/patterns/recipe-patterns/_index.md` — org-recorded patterns (if present).
-- `projects/docs/patterns/_index.md` — legacy org-domain patterns (if present; read-only for backwards compatibility).
+First survey existing patterns (kit canonical merged with the org side; org wins on conflicts):
+- `workato_docs_lookup("patterns/recipe-patterns/_index.md")` — returns the bundled kit index merged with any `org/docs/` overlay.
+- `projects/docs/patterns/_index.md` — legacy org-domain patterns (if present; read it directly — read-only, for backwards compatibility).
 
 Ask the user what they want to record:
 
@@ -125,7 +124,7 @@ Before appending, grep for duplicates. Only add new insights:
 ### 4. Update the index
 
 When you create a new pattern, add a row to the pattern list in `org/docs/patterns/recipe-patterns/_index.md`.
-If the file doesn't exist, create it using the same format as `docs/patterns/recipe-patterns/_index.md` (kit canonical).
+If the file doesn't exist, create it using the same format as the kit canonical index (fetch it via `workato_docs_lookup("patterns/recipe-patterns/_index.md")`).
 
 ### 5. Confirm
 
@@ -137,10 +136,10 @@ The most important thing is that the expert's know-how is captured accurately.
 The single write target is `org/docs/patterns/recipe-patterns/`. The generic / org-domain distinction is captured in the pattern's "Scope" section (not by path).
 
 **Do not write to**:
-- `docs/patterns/recipe-patterns/` (kit canonical, read-only).
+- The kit's bundled recipe-patterns catalog (kit canonical, read-only — fetch via `workato_docs_lookup("patterns/recipe-patterns/...")`, never writable from a project).
 - `projects/docs/patterns/` (legacy; existing files are read-only. New writes consolidate into the org side).
 
-When valuable generic patterns accumulate for potential upstreaming, open a separate PR against the kit repository (out of scope here).
+When valuable generic patterns accumulate for potential upstreaming, open a separate PR against the `workato-toolkit` repository (out of scope here).
 
 ## Output
 
@@ -151,7 +150,7 @@ After completion, report:
 
 ## Git management
 
-The write target is in the workspace repository's `org/docs/patterns/recipe-patterns/` (outside the kit submodule):
+The write target is in the workspace repository's `org/docs/patterns/recipe-patterns/`:
 
 ```bash
 cd <workspace-root>
@@ -159,4 +158,4 @@ git add org/docs/patterns/recipe-patterns/
 git commit -m "docs(org): record pattern <pattern-name>"
 ```
 
-**Do not commit to the kit submodule (`kit/`).**
+**Never write to the plugin's bundled `docs/` — it is read-only.**

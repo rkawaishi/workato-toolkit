@@ -155,3 +155,15 @@ def test_agent_has_no_stale_rule_paths():
     for f in ("workato-builder.md", "workato-builder.toml"):
         text = (AGENTS / f).read_text(encoding="utf-8")
         assert ".claude/rules/" not in text, f"agents/{f} has stale .claude/rules path"
+
+
+def test_overlay_rule_reflects_plugin_distribution():
+    text = (RULES / "org-knowledge-overlay.md").read_text(encoding="utf-8")
+    # Reads go through the docs-overlay MCP, not @docs/@org/docs file reads.
+    assert "workato_docs_lookup" in text, "overlay rule must describe the MCP read tool"
+    # Submodule / symlink era wording must be gone.
+    assert "submodule" not in text, "overlay rule still mentions a kit submodule"
+    assert "symlink to kit/docs" not in text, "overlay rule still describes the docs/ symlink"
+    # The official-spec write target is now org/docs (not the read-only bundled docs/).
+    assert "`docs/` (kit) | `/sync-connectors`" not in text, \
+        "overlay rule still routes sync skills to the read-only kit docs/"

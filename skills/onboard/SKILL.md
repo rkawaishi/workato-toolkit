@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Bootstrap the organization knowledge base from **Workato assets that already exist** before the kit was adopted.
 
-Most teams adopt this kit when their Workato workspace is already full of projects and custom connectors. `/onboard` pulls all of that down and runs the existing learn / sync / catalog skills over it, so `docs/` and `org/docs/` start out populated with the patterns, built-in actions, schemas and connector details this organization actually uses — making every later `/create-recipe` and `/plan` sharper.
+Most teams adopt this kit when their Workato workspace is already full of projects and custom connectors. `/onboard` pulls all of that down and runs the existing learn / sync / catalog skills over it, so the workspace's `org/docs/` and `connectors/docs/` start out populated with the patterns, built-in actions, schemas and connector details this organization actually uses — making every later `/create-recipe` and `/plan` sharper.
 
 This skill is a **thin orchestrator**. It does not pull, learn, sync or catalog anything itself — it sequences the existing skills and never reimplements their logic.
 
@@ -24,7 +24,7 @@ This skill is a **thin orchestrator**. It does not pull, learn, sync or catalog 
 | Step | Skill invoked | Writes to |
 |---|---|---|
 | Pull | `/pull-project --all` (or `--projects`) | `projects/` |
-| Connectors | `/sync-connectors --all` | `docs/connectors/`, `connectors/docs/` |
+| Connectors | `/sync-connectors --all` | `org/docs/connectors/`, `connectors/docs/` |
 | Learn recipes | `/learn-recipe <project>` (per project) | `org/docs/` |
 | Patterns | `/learn-pattern` | `org/docs/patterns/recipe-patterns/` |
 | Catalog | `/catalog scan` | `projects/CATALOG.md` |
@@ -88,7 +88,7 @@ Invoke **`/pull-project --all`** — or **`/pull-project --projects "<a>","<b>"`
 
 ### 5. Step — Sync connectors
 
-Invoke **`/sync-connectors --all`** — pre-built connectors via API into `docs/connectors/`, custom connectors parsed from `connector.rb` into `connectors/docs/`. Mark the step done with counts.
+Invoke **`/sync-connectors --all`** — pre-built connectors via API into `org/docs/connectors/`, custom connectors parsed from `connector.rb` into `connectors/docs/`. Mark the step done with counts.
 
 ### 6. Step — Learn recipes (per project)
 
@@ -99,7 +99,7 @@ For each in-scope project, invoke **`/learn-recipe <project-name>`**. `/learn-re
 
 ### 7. Step — Learn patterns
 
-Across the pulled recipes, identify recurring constructions (pagination loops, approval flows, error handlers, …) and invoke **`/learn-pattern`** for each. Skip constructs already present in `docs/patterns/recipe-patterns/` or `org/docs/patterns/recipe-patterns/` — learn only the delta.
+Across the pulled recipes, identify recurring constructions (pagination loops, approval flows, error handlers, …) and invoke **`/learn-pattern`** for each. Skip constructs already documented in the merged kit + org catalog (`workato_docs_lookup("patterns/recipe-patterns/_index.md")`) — learn only the delta.
 
 ### 8. Step — Catalog
 
@@ -152,12 +152,12 @@ Compute "most-used built-in actions" by tallying `provider` / action keywords ac
 
 ## Git management
 
-Onboarding produces a lot of files (`projects/`, `org/docs/`, `docs/connectors/`, `CATALOG.md`). Commit in the workspace repository once the user has reviewed:
+Onboarding produces a lot of files (`projects/`, `org/docs/`, `connectors/docs/`, `CATALOG.md`). Commit in the workspace repository once the user has reviewed:
 
 ```bash
-git add projects/ org/ docs/ connectors/ AGENTS.md
+git add projects/ org/ connectors/ AGENTS.md
 git commit -m "onboard: bootstrap knowledge base from existing Workato assets"
 git push origin
 ```
 
-Connector docs under the kit's `docs/connectors/` are commits into the kit submodule — PR them back to workato-dev-kit separately (see `/sync-connectors`).
+All connector knowledge (pre-built and custom) is written to the workspace repo (`org/docs/connectors/` and `connectors/docs/`); the plugin's bundled `docs/` is read-only. To upstream broadly-useful spec into the kit canonical docs, open a separate PR against `workato-toolkit` (see `/sync-connectors`).

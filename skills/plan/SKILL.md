@@ -104,7 +104,7 @@ Use the template below.
 
 ### 8. Extract Unlearned Actions
 
-Whenever you use a trigger or action that **lacks documentation** in Workato official docs or in `docs/connectors/` / `connectors/docs/`, populate `Unlearned Actions`. These get expanded into `[learn]`-tagged tasks by `/tasks`.
+Whenever you use a trigger or action that **lacks documentation** in Workato official docs or in the connector docs (`workato_docs_lookup("connectors/<provider>.md")` / `connectors/docs/`), populate `Unlearned Actions`. These get expanded into `[learn]`-tagged tasks by `/tasks`.
 
 ### 9. Next-step guidance
 
@@ -137,7 +137,7 @@ Next, run /tasks <project>/<NNN>-<slug> to break this down into executable tasks
 
 ## Applied Patterns
 <!-- Patterns from the catalog that apply here. -->
-- **<pattern>** (`docs/patterns/recipe-patterns/<file>.md`): <where it applies and why>
+- **<pattern>** (kit: `patterns/recipe-patterns/<file>.md` via `workato_docs_lookup`): <where it applies and why>
 - **<pattern>** (`org/docs/patterns/recipe-patterns/<file>.md`): <where it applies and why>
 
 ## Reused Assets
