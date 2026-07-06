@@ -31,10 +31,11 @@ systems must not be conflated.
 
 ### 0. Read the design guide and the org record
 
-- `workato_docs_lookup("platform/developer-api-clients.md")` — the three-client scheme,
-  permission matrix, role checklists, and record template this skill applies.
-- Read `org/docs/platform/developer-api-clients.md` if it exists — a previous issuance
-  record changes the flow (rotation/audit instead of first issue; reuse recorded role IDs).
+- `workato_docs_lookup("platform/developer-api-clients.md")` — returns the kit design
+  guide (three-client scheme, permission matrix, role checklists, record template)
+  merged with the org's issuance record overlay when one exists (org content wins).
+  A previous issuance record changes the flow: rotation/audit instead of first issue,
+  and recorded role IDs are reused.
 
 ### 1. Plan
 

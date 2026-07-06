@@ -125,6 +125,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 PROFILES_PATH = Path.home() / ".workato" / "profiles"
+PENDING_TOKENS_DIR = Path.home() / ".workato" / "pending-tokens"
 KEYRING_SERVICE = "workato-platform-cli"
 __version__ = "1.0.0"
 
@@ -779,6 +780,45 @@ def require_explicit_profile_for_admin(args: argparse.Namespace, operation: str)
         sys.exit(1)
 
 
+def _store_token_fallback(name: str, token: str) -> Path:
+    """Write `token` to ~/.workato/pending-tokens/<name>.token, 0600 from birth.
+
+    The file is created with os.open(..., 0o600) so there is no umask window
+    where it is group/world-readable, and the directory is forced to 0700.
+    Never prints the token.
+    """
+    PENDING_TOKENS_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(PENDING_TOKENS_DIR, 0o700)
+    token_file = PENDING_TOKENS_DIR / f"{name}.token"
+    fd = os.open(token_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(token)
+    # O_CREAT mode only applies to new files; force 0600 on pre-existing ones.
+    os.chmod(token_file, 0o600)
+    return token_file
+
+
+def _keychain_guidance(token_file: Path, account: str) -> str:
+    # The -w prompt reads the password interactively, so the token never
+    # appears in a process argv or shell history.
+    return (
+        f"keyring unavailable — token written to {token_file} (0600, dir 0700).\n"
+        f"Store it in the OS keychain and delete the file:\n"
+        f"  security add-generic-password -s {KEYRING_SERVICE} -a {account} -w\n"
+        f"  (the -w prompt asks for the password — paste the file's contents)\n"
+        f"  rm {token_file}"
+    )
+
+
+def _write_profiles_atomic(data: dict) -> None:
+    """Replace ~/.workato/profiles via a same-directory temp file + os.replace,
+    so a crash mid-write can never leave the file truncated."""
+    tmp = PROFILES_PATH.with_name(PROFILES_PATH.name + ".tmp")
+    with open(tmp, "w") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, PROFILES_PATH)
+
+
 def register_profile(api, profile_name: str, token: str, source_profile: str,
                      region: str | None = None) -> tuple[str, str]:
     """Store `token` for `profile_name` the same way the Platform CLI does.
@@ -786,11 +826,23 @@ def register_profile(api, profile_name: str, token: str, source_profile: str,
     Returns (storage_method, location). Never prints the token.
     workspace_id comes from GET /api/users/me issued with the NEW token, so
     the stored profile matches whatever environment the client was scoped to.
-    Falls back to a chmod-600 file under ~/.workato/pending-tokens/ when the
-    keyring package is unavailable.
+
+    Ordering matters: validate the source profile, resolve workspace_id, store
+    the token (keyring, else a 0600 file under ~/.workato/pending-tokens/),
+    and only then update ~/.workato/profiles atomically — the profiles file
+    never points at a profile whose token was not stored.
     """
     data = load_profiles()
-    src = data.get("profiles", {}).get(source_profile, {})
+    profiles = data.get("profiles", {})
+    if source_profile not in profiles:
+        print(
+            f"Error: source profile '{source_profile}' not found in "
+            f"{PROFILES_PATH}. Available: {', '.join(profiles) or '(none)'}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    src = profiles[source_profile]
+
     new_api = WorkatoAPI(api.base_url, token)
     me = new_api.users_me()
     entry = {
@@ -798,27 +850,19 @@ def register_profile(api, profile_name: str, token: str, source_profile: str,
         "region_url": src.get("region_url") or api.base_url,
         "workspace_id": me.get("id"),
     }
-    data.setdefault("profiles", {})[profile_name] = entry
-    with open(PROFILES_PATH, "w") as f:
-        json.dump(data, f, indent=2)
 
     try:
         import keyring
         keyring.set_password(KEYRING_SERVICE, profile_name, token)
-        return ("keyring", profile_name)
+        stored = ("keyring", profile_name)
     except Exception:
-        pending = Path.home() / ".workato" / "pending-tokens"
-        pending.mkdir(parents=True, exist_ok=True)
-        token_file = pending / f"{profile_name}.token"
-        token_file.write_text(token, encoding="utf-8")
-        token_file.chmod(0o600)
-        print(
-            f"keyring unavailable — token written to {token_file} (chmod 600).\n"
-            f"Move it into your OS keychain and delete the file:\n"
-            f'  security add-generic-password -s {KEYRING_SERVICE} '
-            f'-a {profile_name} -w "$(cat {token_file})" && rm {token_file}',
-        )
-        return ("file", str(token_file))
+        token_file = _store_token_fallback(profile_name, token)
+        print(_keychain_guidance(token_file, profile_name))
+        stored = ("file", str(token_file))
+
+    data.setdefault("profiles", {})[profile_name] = entry
+    _write_profiles_atomic(data)
+    return stored
 
 
 def check_deploy_transition(source_env: str | None, target_env: str) -> None:
@@ -1397,14 +1441,10 @@ def cmd_api_clients_create(api: WorkatoAPI, args: argparse.Namespace):
                   "API again.")
     else:
         # No profile requested: still never echo the token.
-        pending = Path.home() / ".workato" / "pending-tokens"
-        pending.mkdir(parents=True, exist_ok=True)
-        token_file = pending / f"client-{client_id}.token"
-        token_file.write_text(token, encoding="utf-8")
-        token_file.chmod(0o600)
-        print(f"Token written to {token_file} (chmod 600) — it is shown only "
-              "once by the API and was not printed. Prefer --register-profile "
-              "next time.")
+        token_file = _store_token_fallback(f"client-{client_id}", token)
+        print(f"Token written to {token_file} (0600, dir 0700) — it is shown "
+              "only once by the API and was not printed. Prefer "
+              "--register-profile next time.")
 
 
 def cmd_api_clients_delete(api: WorkatoAPI, args: argparse.Namespace):
@@ -1459,13 +1499,9 @@ def cmd_api_clients_rotate(api: WorkatoAPI, args: argparse.Namespace):
         if method == "keyring":
             print(f"New token stored in OS keyring for profile {where!r}.")
     elif token:
-        pending = Path.home() / ".workato" / "pending-tokens"
-        pending.mkdir(parents=True, exist_ok=True)
-        token_file = pending / f"client-{client.get('id')}.token"
-        token_file.write_text(token, encoding="utf-8")
-        token_file.chmod(0o600)
-        print(f"New token written to {token_file} (chmod 600) — re-run with "
-              "--register-profile to store it as a CLI profile instead.")
+        token_file = _store_token_fallback(f"client-{client.get('id')}", token)
+        print(f"New token written to {token_file} (0600, dir 0700) — re-run "
+              "with --register-profile to store it as a CLI profile instead.")
 
 
 def cmd_sdk_generate_schema(api: WorkatoAPI, args: argparse.Namespace):

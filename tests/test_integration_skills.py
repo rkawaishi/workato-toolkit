@@ -31,6 +31,19 @@ def test_issue_api_keys_writes_org_record_only():
     assert "org/docs/platform/developer-api-clients.md" in text
 
 
+def test_issue_api_keys_reads_record_via_lookup():
+    # READS go through the docs-overlay MCP (org record overlays the kit guide);
+    # a direct file read of the org record as the read path is a regression.
+    text = _read("issue-api-keys")
+    assert 'workato_docs_lookup("platform/developer-api-clients.md")' in text
+    assert "Read `org/docs/platform/developer-api-clients.md`" not in text
+
+
+def test_deploy_project_reads_policy_via_lookup():
+    text = _read("deploy-project")
+    assert 'workato_docs_lookup("platform/developer-api-clients.md")' in text
+
+
 def test_deploy_project_guards():
     text = _read("deploy-project")
     assert "Never approve a deployment" in text

@@ -150,6 +150,118 @@ def test_rotate_is_delete_then_same_name_create():
     assert SECRET not in out.getvalue()
 
 
+def _profiles_file(tmp_path, monkeypatch):
+    profiles = tmp_path / "profiles"
+    profiles.write_text(json.dumps({
+        "current_profile": "acme-admin",
+        "profiles": {"acme-admin": {"region": "jp",
+                                    "region_url": "https://app.jp.workato.com",
+                                    "workspace_id": 1}}}), encoding="utf-8")
+    monkeypatch.setattr(mod, "PROFILES_PATH", profiles)
+    return profiles
+
+
+class _StubUsersMeAPI:
+    def __init__(self, base_url, token):
+        pass
+
+    def users_me(self):
+        return {"id": 4242, "name": "svc"}
+
+
+def test_register_profile_rejects_unknown_source_profile(tmp_path, monkeypatch):
+    profiles = _profiles_file(tmp_path, monkeypatch)
+    before = profiles.read_text()
+    try:
+        mod.register_profile(FakeAPI(), profile_name="acme-dev", token=SECRET,
+                             source_profile="nope-admin")
+        raised = False
+    except SystemExit as e:
+        raised = e.code != 0
+    assert raised, "unknown source profile must exit non-zero"
+    assert profiles.read_text() == before, "profiles must not be touched"
+
+
+def test_register_profile_users_me_failure_leaves_profiles_untouched(tmp_path, monkeypatch):
+    profiles = _profiles_file(tmp_path, monkeypatch)
+    before = profiles.read_text()
+
+    class BoomAPI:
+        def __init__(self, base_url, token):
+            pass
+
+        def users_me(self):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(mod, "WorkatoAPI", BoomAPI)
+    try:
+        mod.register_profile(FakeAPI(), profile_name="acme-dev", token=SECRET,
+                             source_profile="acme-admin")
+        raised = False
+    except RuntimeError:
+        raised = True
+    assert raised
+    assert profiles.read_text() == before
+
+
+def test_register_profile_fallback_file_is_0600_in_0700_dir_and_silent(tmp_path, monkeypatch):
+    profiles = _profiles_file(tmp_path, monkeypatch)
+    monkeypatch.setattr(mod, "WorkatoAPI", _StubUsersMeAPI)
+    monkeypatch.setitem(sys.modules, "keyring", None)  # import keyring -> ImportError
+    monkeypatch.setattr(mod, "PENDING_TOKENS_DIR", tmp_path / "pending")
+    out = io.StringIO()
+    with redirect_stdout(out):
+        method, where = mod.register_profile(
+            FakeAPI(), profile_name="acme-dev", token=SECRET,
+            source_profile="acme-admin")
+    assert method == "file"
+    tf = Path(where)
+    assert tf.read_text(encoding="utf-8") == SECRET
+    assert (tf.stat().st_mode & 0o777) == 0o600, "token file must be 0600 from birth"
+    assert (tf.parent.stat().st_mode & 0o777) == 0o700, "pending dir must be 0700"
+    text = out.getvalue()
+    assert SECRET not in text
+    assert "$(cat" not in text, "guidance must not expand the token into argv"
+    # profiles updated only after the token was stored
+    data = json.loads(profiles.read_text())
+    assert data["profiles"]["acme-dev"]["workspace_id"] == 4242
+
+
+def test_register_profile_no_profiles_write_when_all_storage_fails(tmp_path, monkeypatch):
+    profiles = _profiles_file(tmp_path, monkeypatch)
+    before = profiles.read_text()
+    monkeypatch.setattr(mod, "WorkatoAPI", _StubUsersMeAPI)
+    monkeypatch.setitem(sys.modules, "keyring", None)
+
+    def boom(*a, **k):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(mod, "_store_token_fallback", boom)
+    try:
+        mod.register_profile(FakeAPI(), profile_name="acme-dev", token=SECRET,
+                             source_profile="acme-admin")
+        raised = False
+    except OSError:
+        raised = True
+    assert raised
+    assert profiles.read_text() == before, \
+        "profiles must not point at a profile whose token was never stored"
+
+
+def test_create_without_register_writes_0600_pending_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod, "PENDING_TOKENS_DIR", tmp_path / "pending")
+    api = FakeAPI()
+    out = io.StringIO()
+    with redirect_stdout(out):
+        mod.cmd_api_clients_create(api, _args(
+            name="acme-agent-dev", environment="DEV", role_id=547))
+    tf = tmp_path / "pending" / "client-77.token"
+    assert tf.read_text(encoding="utf-8") == SECRET
+    assert (tf.stat().st_mode & 0o777) == 0o600
+    assert (tf.parent.stat().st_mode & 0o777) == 0o700
+    assert SECRET not in out.getvalue()
+
+
 def test_register_profile_uses_keyring_and_profiles_file(tmp_path, monkeypatch):
     stored = {}
 

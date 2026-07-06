@@ -27,9 +27,10 @@ environment to the next, never a direct write.
    never work around the refusal.
 2. `run --to prod` additionally requires the helper's `--yes` flag **and** an explicit
    confirmation from the user in this conversation, restating what will be deployed.
-3. Check the org record (`org/docs/platform/developer-api-clients.md`, if present): under
-   promotion **Policy B** agent keys hold no deployment privilege — refuse `run`, print
-   the UI steps (project → Deploy → target environment), and stop.
+3. Check the promotion policy via `workato_docs_lookup("platform/developer-api-clients.md")`
+   (the org's issuance record overlays the kit guide): under promotion **Policy B** agent
+   keys hold no deployment privilege — refuse `run`, print the UI steps
+   (project → Deploy → target environment), and stop.
 4. **Never approve a deployment** on the user's behalf, never call an approve endpoint,
    and never treat approval UI steps as automatable. Prod approval belongs to the release
    manager in the Workato UI.

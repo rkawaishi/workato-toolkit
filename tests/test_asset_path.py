@@ -27,3 +27,10 @@ def test_unknown_asset_rejected():
 def test_traversal_rejected():
     out = assets.asset_path(PLUGIN, "../scripts/workato-api.py")
     assert out.startswith("UNKNOWN ASSET")
+
+
+def test_resolved_assets_stay_under_plugin_root():
+    root = PLUGIN.resolve()
+    for name in assets.ASSETS:
+        p = Path(assets.asset_path(root, name))
+        assert p.is_relative_to(root), f"{name} escapes the plugin root: {p}"
