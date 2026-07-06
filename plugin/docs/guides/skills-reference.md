@@ -303,7 +303,7 @@ Gather information about pre-built and custom connectors and update the document
 
 **Pre-built connectors:**
 - Fetch trigger/action metadata via the Workato API
-- Create or update `docs/connectors/<provider>.md`
+- Create or update `org/docs/connectors/<provider>.md`
 
 **Custom connectors:**
 - Parse `connectors/*/connector.rb` via the Ruby DSL parser
@@ -311,7 +311,7 @@ Gather information about pre-built and custom connectors and update the document
 
 ### /auto-learn — autonomously collect all ops from the Workato UI
 
-Drive the Workato UI through the Claude in Chrome extension to actively collect input / output fields for every operation (trigger / action) of a single connector per run and append them to `docs/connectors/<provider>.md`.
+Drive the Workato UI through the Claude in Chrome extension to actively collect input / output fields for every operation (trigger / action) of a single connector per run and append them to `org/docs/connectors/<provider>.md`.
 
 ```
 /auto-learn <provider>                 # Learn all ops

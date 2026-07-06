@@ -141,7 +141,7 @@ Fetches the latest connector information and updates the documentation.
 
 **Pre-built connectors:**
 - Fetches trigger / action metadata from the Workato API
-- Updates `docs/connectors/<provider>.md`
+- Updates `org/docs/connectors/<provider>.md`
 - Hand-written field detail sections are preserved
 
 **Custom connectors:**
