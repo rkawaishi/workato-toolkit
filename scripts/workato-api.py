@@ -49,6 +49,19 @@ Usage:
     [--environment-type <test|prod>] [--state <state>] [--limit <N>]
     [--from-date <iso>] [--to-date <iso>]
   python3 scripts/workato-api.py profile show
+  python3 scripts/workato-api.py api-clients list
+  python3 scripts/workato-api.py api-clients roles
+    (GET /api/developer_api_client_roles; falls back to reading role IDs
+     from the UI when the endpoint is unavailable)
+  python3 scripts/workato-api.py api-clients create --profile <admin>
+    --name <org>-agent-<env> --environment <DEV|TEST|PROD> --role-id <id>
+    [--all-folders | --folder-ids <ids>] [--ip-allow-list <cidrs>]
+    [--register-profile <name>] [--dry-run]
+    (token is stored in the OS keyring / a chmod-600 file, never printed)
+  python3 scripts/workato-api.py api-clients delete --profile <admin>
+    --client-id <id> --yes [--dry-run]
+  python3 scripts/workato-api.py api-clients rotate --profile <admin>
+    --name <client-name> [--register-profile <name>] --yes [--dry-run]
 
 Global options:
   --profile <name>   Use a specific profile instead of auto-resolution
@@ -524,6 +537,33 @@ class WorkatoAPI:
             f"/api/custom_oauth_profiles/{profile_id}", method="DELETE",
         )
 
+    # -- Developer API clients --
+
+    def api_clients_list(self) -> list:
+        result = self._request("/api/developer_api_clients")
+        items = result.get("result", result) if isinstance(result, dict) else result
+        return items or []
+
+    def api_clients_roles(self) -> list:
+        result = self._request("/api/developer_api_client_roles")
+        items = result.get("result", result) if isinstance(result, dict) else result
+        return items or []
+
+    def api_clients_create(self, payload: dict) -> dict:
+        result = self._request(
+            "/api/developer_api_clients", method="POST", body=payload,
+        )
+        return result.get("result", result) if isinstance(result, dict) else result
+
+    def api_clients_delete(self, client_id: int) -> dict:
+        result = self._request(
+            f"/api/developer_api_clients/{client_id}", method="DELETE",
+        )
+        return result if isinstance(result, dict) else {"result": result}
+
+    def users_me(self) -> dict:
+        return self._request("/api/users/me")
+
     # -- SDK Generate Schema --
 
     def sdk_generate_schema_json(self, raw_json: str) -> dict:
@@ -719,6 +759,66 @@ def require_dev_profile_for_mutation(profile_name: str, operation: str) -> None:
         file=sys.stderr,
     )
     sys.exit(1)
+
+
+def require_explicit_profile_for_admin(args: argparse.Namespace, operation: str) -> None:
+    """Refuse an api-clients mutation without an explicit --profile.
+
+    api-clients mutations act on the whole workspace with an admin key.
+    Auto-resolution from .workatoenv is refused for them so the target
+    workspace is always a conscious choice, never an accident of cwd.
+    """
+    if not getattr(args, "profile", None):
+        print(
+            f"Refusing {operation}: pass --profile <admin-profile> explicitly.\n"
+            "api-clients mutations use a workspace-admin key; auto-resolution "
+            "from .workatoenv is disabled for them to avoid touching the "
+            "wrong workspace.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def register_profile(api, profile_name: str, token: str, source_profile: str,
+                     region: str | None = None) -> tuple[str, str]:
+    """Store `token` for `profile_name` the same way the Platform CLI does.
+
+    Returns (storage_method, location). Never prints the token.
+    workspace_id comes from GET /api/users/me issued with the NEW token, so
+    the stored profile matches whatever environment the client was scoped to.
+    Falls back to a chmod-600 file under ~/.workato/pending-tokens/ when the
+    keyring package is unavailable.
+    """
+    data = load_profiles()
+    src = data.get("profiles", {}).get(source_profile, {})
+    new_api = WorkatoAPI(api.base_url, token)
+    me = new_api.users_me()
+    entry = {
+        "region": region or src.get("region"),
+        "region_url": src.get("region_url") or api.base_url,
+        "workspace_id": me.get("id"),
+    }
+    data.setdefault("profiles", {})[profile_name] = entry
+    with open(PROFILES_PATH, "w") as f:
+        json.dump(data, f, indent=2)
+
+    try:
+        import keyring
+        keyring.set_password(KEYRING_SERVICE, profile_name, token)
+        return ("keyring", profile_name)
+    except Exception:
+        pending = Path.home() / ".workato" / "pending-tokens"
+        pending.mkdir(parents=True, exist_ok=True)
+        token_file = pending / f"{profile_name}.token"
+        token_file.write_text(token, encoding="utf-8")
+        token_file.chmod(0o600)
+        print(
+            f"keyring unavailable — token written to {token_file} (chmod 600).\n"
+            f"Move it into your OS keychain and delete the file:\n"
+            f'  security add-generic-password -s {KEYRING_SERVICE} '
+            f'-a {profile_name} -w "$(cat {token_file})" && rm {token_file}',
+        )
+        return ("file", str(token_file))
 
 
 def check_deploy_transition(source_env: str | None, target_env: str) -> None:
@@ -1245,6 +1345,127 @@ def cmd_oauth_profiles_delete(api: WorkatoAPI, args: argparse.Namespace):
     result = api.oauth_profiles_delete(args.id)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     print(f"\nDeleted OAuth profile id={args.id}", file=sys.stderr)
+
+
+def cmd_api_clients_list(api: WorkatoAPI, args: argparse.Namespace):
+    print(json.dumps(api.api_clients_list(), indent=2, ensure_ascii=False))
+
+
+def cmd_api_clients_roles(api: WorkatoAPI, args: argparse.Namespace):
+    # Endpoint is probed at runtime: on HTTP 404 _request exits 1 with the
+    # URL, and the operator falls back to reading role IDs from the UI
+    # (Workspace admin > API clients).
+    print(json.dumps(api.api_clients_roles(), indent=2, ensure_ascii=False))
+
+
+def cmd_api_clients_create(api: WorkatoAPI, args: argparse.Namespace):
+    require_explicit_profile_for_admin(args, "api-clients create")
+    payload = {
+        "name": args.name,
+        "api_privilege_group_id": args.role_id,
+        "environment": args.environment,
+        "all_folders": bool(args.all_folders and not args.folder_ids),
+    }
+    if args.folder_ids:
+        payload["folder_ids"] = [int(x) for x in args.folder_ids.split(",")]
+    if args.ip_allow_list:
+        payload["ip_allow_list"] = args.ip_allow_list.split(",")
+
+    if args.dry_run:
+        print("DRY RUN: POST /api/developer_api_clients")
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        if args.register_profile:
+            print(f"Would register token as profile {args.register_profile!r} "
+                  f"(keyring service {KEYRING_SERVICE!r}).")
+        return
+
+    client = api.api_clients_create(payload)
+    token = (client.get("token") or {}).get("value")
+    client_id = client.get("id")
+    print(f"Created Developer API client id={client_id} "
+          f"name={client.get('name')} environment={client.get('environment')}")
+    if not token:
+        print("Warning: response contained no token value; check the API "
+              "client in the UI.", file=sys.stderr)
+        return
+    if args.register_profile:
+        method, where = register_profile(
+            api, args.register_profile, token, args.profile, region=args.region)
+        if method == "keyring":
+            print(f"Token stored in OS keyring for profile {where!r}. "
+                  "It was not displayed and cannot be retrieved from the "
+                  "API again.")
+    else:
+        # No profile requested: still never echo the token.
+        pending = Path.home() / ".workato" / "pending-tokens"
+        pending.mkdir(parents=True, exist_ok=True)
+        token_file = pending / f"client-{client_id}.token"
+        token_file.write_text(token, encoding="utf-8")
+        token_file.chmod(0o600)
+        print(f"Token written to {token_file} (chmod 600) — it is shown only "
+              "once by the API and was not printed. Prefer --register-profile "
+              "next time.")
+
+
+def cmd_api_clients_delete(api: WorkatoAPI, args: argparse.Namespace):
+    require_explicit_profile_for_admin(args, "api-clients delete")
+    if args.dry_run:
+        print(f"DRY RUN: DELETE /api/developer_api_clients/{args.client_id}")
+        return
+    if not args.yes:
+        print("Refusing delete without --yes (destructive; the client's "
+              "token stops working immediately).", file=sys.stderr)
+        sys.exit(1)
+    api.api_clients_delete(args.client_id)
+    print(f"Deleted Developer API client id={args.client_id}")
+
+
+def cmd_api_clients_rotate(api: WorkatoAPI, args: argparse.Namespace):
+    require_explicit_profile_for_admin(args, "api-clients rotate")
+    clients = api.api_clients_list()
+    match = [c for c in clients if c.get("name") == args.name]
+    if not match:
+        print(f"Error: no Developer API client named {args.name!r}.",
+              file=sys.stderr)
+        sys.exit(1)
+    old = match[0]
+    if args.dry_run:
+        print(f"DRY RUN: rotate {args.name!r} — DELETE id={old['id']} then "
+              f"POST a same-name client "
+              f"(environment={old.get('environment')}, "
+              f"role={old.get('api_privilege_group_id')}).")
+        return
+    if not args.yes:
+        print("Refusing rotate without --yes (the old token stops working "
+              "immediately).", file=sys.stderr)
+        sys.exit(1)
+    api.api_clients_delete(old["id"])
+    payload = {
+        "name": old["name"],
+        "api_privilege_group_id": old.get("api_privilege_group_id"),
+        "environment": old.get("environment"),
+        "all_folders": old.get("all_folders", True),
+    }
+    if old.get("folder_ids"):
+        payload["folder_ids"] = old["folder_ids"]
+    client = api.api_clients_create(payload)
+    token = (client.get("token") or {}).get("value")
+    print(f"Rotated {args.name!r}: old id={old['id']} -> "
+          f"new id={client.get('id')}")
+    if token and args.register_profile:
+        method, where = register_profile(
+            api, args.register_profile, token, args.profile,
+            region=args.region)
+        if method == "keyring":
+            print(f"New token stored in OS keyring for profile {where!r}.")
+    elif token:
+        pending = Path.home() / ".workato" / "pending-tokens"
+        pending.mkdir(parents=True, exist_ok=True)
+        token_file = pending / f"client-{client.get('id')}.token"
+        token_file.write_text(token, encoding="utf-8")
+        token_file.chmod(0o600)
+        print(f"New token written to {token_file} (chmod 600) — re-run with "
+              "--register-profile to store it as a CLI profile instead.")
 
 
 def cmd_sdk_generate_schema(api: WorkatoAPI, args: argparse.Namespace):
@@ -2763,6 +2984,107 @@ def main():
         help="Print the intended DELETE request without sending it",
     )
 
+    # -- api-clients (Developer API clients) --
+    ac_parser = subparsers.add_parser(
+        "api-clients",
+        help="Manage Developer API clients (per-environment keys)",
+    )
+    ac_sub = ac_parser.add_subparsers(dest="api_clients_command")
+
+    ac_sub.add_parser(
+        "list", help="List Developer API clients",
+        description="List Developer API clients in the connected workspace "
+                    "(GET /api/developer_api_clients). Read-only.",
+    )
+
+    ac_sub.add_parser(
+        "roles", help="List API client roles (privilege groups)",
+        description="List Developer API client roles / privilege groups. "
+                    "Probes GET /api/developer_api_client_roles; if the "
+                    "endpoint is not available on this data center, read the "
+                    "role IDs from Workspace admin > API clients in the UI "
+                    "instead.",
+    )
+
+    ac_create = ac_sub.add_parser(
+        "create", help="Create a Developer API client",
+        description="Create a Developer API client scoped to one environment. "
+                    "Requires an explicit --profile (workspace-admin key). "
+                    "The issued token is stored via --register-profile and "
+                    "is never printed.",
+        epilog=(
+            "Examples:\n"
+            "  # Dry-run first:\n"
+            "  python3 scripts/workato-api.py api-clients create --profile acme-admin \\\n"
+            "      --name acme-agent-dev --environment DEV --role-id 547 --dry-run\n"
+            "  # Issue and register as the CLI profile 'acme-dev':\n"
+            "  python3 scripts/workato-api.py api-clients create --profile acme-admin \\\n"
+            "      --name acme-agent-dev --environment DEV --role-id 547 \\\n"
+            "      --register-profile acme-dev\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ac_create.add_argument(
+        "--name", required=True, help="Client name (e.g. acme-agent-dev)")
+    ac_create.add_argument(
+        "--environment", required=True, choices=["DEV", "TEST", "PROD"],
+        help="Environment the client is scoped to")
+    ac_create.add_argument(
+        "--role-id", required=True, type=int, dest="role_id",
+        help="api_privilege_group_id (role) — see 'api-clients roles'")
+    ac_create.add_argument(
+        "--all-folders", action="store_true", default=True, dest="all_folders",
+        help="Scope to all folders (default)")
+    ac_create.add_argument(
+        "--folder-ids", default=None, dest="folder_ids",
+        help="Comma-separated folder IDs (overrides --all-folders)")
+    ac_create.add_argument(
+        "--ip-allow-list", default=None, dest="ip_allow_list",
+        help="Comma-separated CIDRs/IPs")
+    ac_create.add_argument(
+        "--register-profile", default=None, dest="register_profile",
+        help="Store the token as this Platform CLI profile (keyring)")
+    ac_create.add_argument(
+        "--region", default=None,
+        help="Region for the registered profile (default: same as --profile)")
+    ac_create.add_argument(
+        "--dry-run", action="store_true", dest="dry_run",
+        help="Print the intended request without sending it")
+
+    ac_delete = ac_sub.add_parser(
+        "delete", help="Delete a Developer API client",
+        description="Delete a Developer API client by id. Requires explicit "
+                    "--profile and --yes; the client's token stops working "
+                    "immediately.",
+        epilog="Example:\n"
+               "  python3 scripts/workato-api.py api-clients delete "
+               "--profile acme-admin --client-id 77 --dry-run\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ac_delete.add_argument("--client-id", required=True, type=int,
+                           dest="client_id")
+    ac_delete.add_argument("--yes", action="store_true")
+    ac_delete.add_argument("--dry-run", action="store_true", dest="dry_run")
+
+    ac_rotate = ac_sub.add_parser(
+        "rotate", help="Rotate a client's token (delete + same-name create)",
+        description="Rotate the token of the named client: delete it and "
+                    "recreate it with the same name/role/environment/scope. "
+                    "Requires explicit --profile and --yes. Re-register the "
+                    "new token with --register-profile.",
+        epilog="Example:\n"
+               "  python3 scripts/workato-api.py api-clients rotate "
+               "--profile acme-admin --name acme-agent-dev "
+               "--register-profile acme-dev --yes\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ac_rotate.add_argument("--name", required=True)
+    ac_rotate.add_argument("--yes", action="store_true")
+    ac_rotate.add_argument("--register-profile", default=None,
+                           dest="register_profile")
+    ac_rotate.add_argument("--region", default=None)
+    ac_rotate.add_argument("--dry-run", action="store_true", dest="dry_run")
+
     # -- profile --
     profile_parser = subparsers.add_parser(
         "profile", help="Show resolved profile info"
@@ -2857,6 +3179,11 @@ def main():
         ("oauth-profiles", "create"): cmd_oauth_profiles_create,
         ("oauth-profiles", "update"): cmd_oauth_profiles_update,
         ("oauth-profiles", "delete"): cmd_oauth_profiles_delete,
+        ("api-clients", "list"): cmd_api_clients_list,
+        ("api-clients", "roles"): cmd_api_clients_roles,
+        ("api-clients", "create"): cmd_api_clients_create,
+        ("api-clients", "delete"): cmd_api_clients_delete,
+        ("api-clients", "rotate"): cmd_api_clients_rotate,
     }
 
     cmd_key = args.command.replace("-", "_")
