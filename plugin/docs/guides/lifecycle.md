@@ -31,6 +31,8 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
                   (Adjust pick_list etc. in the UI)
                   /pull-project                  → Pull adjustments back locally
                      ↓
+[Promotion]       /deploy-project         → Promote dev→test→prod via Deploy manifests (approvals stay human)
+                     ↓
 [Learning]        /learn-recipe           → Enrich org/docs/ from the adjusted recipe
                                             and tidy plan.md.Unlearned and tasks.md.[learn]
                   /learn-pattern          → Record a reusable construction pattern in org/docs/patterns/recipe-patterns/
@@ -44,6 +46,13 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
 ## Skill responsibility map
 
 A list of "when each skill is invoked, what it reads, and what it writes."
+
+### Setup phase (once per workspace)
+
+| Skill | When to invoke | Reads | Writes |
+|---|---|---|---|
+| `/setup-workspace` | Adopting the toolkit in a repo, or after a plugin update (`--update`) | plugin bundled assets (via the `workato_asset_path` MCP tool) | `scripts/workato-api.py`, `scripts/ensure-workatoignore.sh`, `templates/workatoignore.template`, `org/` skeleton, credential deny-lists |
+| `/issue-api-keys` | New workspace, key rotation, audits | `platform/developer-api-clients.md` (via `workato_docs_lookup`), `org/docs/platform/developer-api-clients.md` | Developer API clients (remote), CLI profiles/keyring, `org/docs/platform/developer-api-clients.md` |
 
 ### Specification phase
 
@@ -96,6 +105,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | `/validate-recipe` | Before push, after editing JSON | The project's JSON files, the always-on rules | None (validation report only) |
 | `/push-project` | Before deploy | The project's assets | Workato remote (does not modify local) |
 | `/pull-project` | After UI adjustments, at handover time | Workato remote | Assets under `projects/<name>/` (overwritten) |
+| `/deploy-project` | Releasing to test/prod (after dev verification) | `platform/environments.md` (via `workato_docs_lookup`), the org promotion policy record | Deploy manifests (remote; approvals stay human) |
 
 ### Learning phase
 

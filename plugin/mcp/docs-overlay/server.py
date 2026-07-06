@@ -10,10 +10,12 @@ from typing import Optional
 
 from fastmcp import FastMCP
 
+import assets  # same directory
 import overlay  # same directory
 
 HERE = Path(__file__).resolve()
-KIT_DOCS = HERE.parents[2] / "docs"  # <plugin_root>/docs
+PLUGIN_ROOT = HERE.parents[2]
+KIT_DOCS = PLUGIN_ROOT / "docs"  # <plugin_root>/docs
 
 
 def _find_org_docs() -> Optional[Path]:
@@ -51,6 +53,17 @@ def workato_docs_list(prefix: str = "") -> list:
     """List available Workato doc paths (kit + org overlay), optionally filtered by prefix
     (e.g. 'connectors/')."""
     return overlay.list_docs(KIT_DOCS, _find_org_docs(), prefix)
+
+
+@mcp.tool()
+def workato_asset_path(name: str) -> str:
+    """Absolute path of a plugin-bundled workspace asset (e.g. 'workato-api.py',
+    'ensure-workatoignore.sh', 'workatoignore.template').
+
+    Skills copy the file from this path into the user's workspace
+    (see /setup-workspace). Returns the path only, never file content.
+    """
+    return assets.asset_path(PLUGIN_ROOT, name)
 
 
 if __name__ == "__main__":
