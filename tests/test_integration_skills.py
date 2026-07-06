@@ -3,7 +3,7 @@
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SKILLS = REPO / "skills"
+SKILLS = REPO / "plugin" / "skills"
 
 
 def _read(name):
@@ -46,7 +46,7 @@ def test_deploy_project_reads_environments_doc():
 
 
 def test_kit_doc_for_developer_api_clients_exists():
-    doc = REPO / "docs" / "platform" / "developer-api-clients.md"
+    doc = REPO / "plugin" / "docs" / "platform" / "developer-api-clients.md"
     assert doc.exists()
     text = doc.read_text(encoding="utf-8")
     for token in ("api_privilege_group_id", "DEV", "TEST", "PROD", "all_folders"):

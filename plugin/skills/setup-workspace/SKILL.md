@@ -36,8 +36,8 @@ Call the docs-overlay MCP tool **`workato_asset_path`** for each of:
 
 Each call returns the absolute path of the file bundled inside the plugin.
 Fallback when the MCP is unavailable: fetch the same three files from
-`https://raw.githubusercontent.com/rkawaishi/workato-toolkit/<release-tag>/scripts/workato-api.py`
-(and siblings under `scripts/` / `templates/`) — pin a release tag, never `main`.
+`https://raw.githubusercontent.com/rkawaishi/workato-toolkit/<release-tag>/plugin/scripts/workato-api.py`
+(and siblings under `plugin/scripts/` / `plugin/templates/`) — pin a release tag, never `main`.
 
 ### 3. Materialize into the workspace (idempotent)
 

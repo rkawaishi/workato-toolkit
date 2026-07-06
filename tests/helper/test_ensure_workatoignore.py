@@ -15,8 +15,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-SCRIPT = REPO / "scripts" / "ensure-workatoignore.sh"
-TEMPLATE = REPO / "templates" / "workatoignore.template"
+SCRIPT = REPO / "plugin" / "scripts" / "ensure-workatoignore.sh"
+TEMPLATE = REPO / "plugin" / "templates" / "workatoignore.template"
 
 
 def run(project_dir: str) -> subprocess.CompletedProcess:

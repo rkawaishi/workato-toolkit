@@ -19,7 +19,7 @@ import traceback
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCRIPT = HERE.parents[1] / "scripts" / "workato-api.py"
+SCRIPT = HERE.parents[1] / "plugin" / "scripts" / "workato-api.py"
 
 spec = importlib.util.spec_from_file_location("workato_api", SCRIPT)
 wa = importlib.util.module_from_spec(spec)
