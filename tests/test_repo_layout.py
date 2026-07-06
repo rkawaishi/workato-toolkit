@@ -1,3 +1,9 @@
+"""リポジトリ横断のレイアウト境界ガード。
+
+manifests の個別形状は test_manifests.py が見る。ここは「配布物は plugin/ の下、
+開発物は root」という境界不変条件を横断的に固定する(marketplace の source 値の
+検証が test_manifests.py と一部重複するのは意図的な二重化)。
+"""
 import json
 from pathlib import Path
 

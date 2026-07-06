@@ -23,7 +23,10 @@ SKILLS_WITH_DOC_REFS = {
 
 
 def _skill_files():
-    return {p.parent.name: p for p in SKILLS.rglob("SKILL.md")}
+    files = {p.parent.name: p for p in SKILLS.rglob("SKILL.md")}
+    # 空なら SKILLS パスが壊れている。内容系テストが空振り PASS しないよう即死させる。
+    assert files, f"no skills found under {SKILLS} — layout broken?"
+    return files
 
 
 def test_all_skills_present():
