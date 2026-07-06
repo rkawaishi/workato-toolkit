@@ -6,10 +6,10 @@ SKILLS = REPO / "skills"
 
 EXPECTED_SKILLS = {
     "analyze", "auto-learn", "catalog", "clarify", "create-connector",
-    "create-genie", "create-recipe", "create-workflow-app", "design",
-    "implement", "learn-pattern", "learn-recipe", "onboard", "ping", "plan",
-    "pull-project", "push-project", "spec", "sync-connectors", "tasks",
-    "validate-recipe",
+    "create-genie", "create-recipe", "create-workflow-app", "deploy-project",
+    "design", "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
+    "onboard", "ping", "plan", "pull-project", "push-project",
+    "setup-workspace", "spec", "sync-connectors", "tasks", "validate-recipe",
 }
 
 # @-prefixed doc references that must be gone after the rewrite (READ refs → MCP).
@@ -18,7 +18,8 @@ FORBIDDEN = re.compile(r"@(?:docs|org/docs|projects/docs)/")
 # Skills that DO consult the docs knowledge base and therefore must mention the MCP tool.
 SKILLS_WITH_DOC_REFS = {
     "analyze", "auto-learn", "create-connector", "create-genie", "create-recipe",
-    "create-workflow-app", "learn-recipe", "plan", "push-project", "tasks",
+    "create-workflow-app", "deploy-project", "issue-api-keys", "learn-recipe",
+    "plan", "push-project", "tasks",
 }
 
 
