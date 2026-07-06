@@ -481,7 +481,7 @@ The `/auto-learn` skill is built from a **combination of official documentation 
 
 ```
 Run /sync-connectors → WebFetch each connector page on docs.workato.com
-→ reflect the list and summary of triggers/actions into docs/connectors/<provider>.md
+→ reflect the list and summary of triggers/actions into org/docs/connectors/<provider>.md
 ```
 
 This yields a catalog of "which connectors have which triggers / actions".
@@ -525,7 +525,7 @@ For each target operation:
 ### Phase 3: write the collected results out to docs
 
 ```
-In docs/connectors/<provider>.md write:
+In org/docs/connectors/<provider>.md write:
 ## triggers
 ### <operation_name>
 - title, description, help (from Phase 1)

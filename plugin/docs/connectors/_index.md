@@ -2,9 +2,9 @@
 
 ## Scope of this list
 
-This file is the **inventory of 316 Workato pre-built connectors** (connector name, provider key, trigger count, action count). `/sync-connectors` auto-generates and updates it from the Workato API.
+This file is the **inventory of 316 Workato pre-built connectors** (connector name, provider key, trigger count, action count). It was generated from the Workato API and is maintained as kit-canonical content (updates arrive via PRs to the `workato-toolkit` repository).
 
-The details for each connector (individual trigger/action lists, field specifications) are split into **`docs/connectors/<provider>.md`** files. `/sync-connectors` creates the skeleton (`## Triggers` / `## Actions` tables + an empty `## Field details` section) in each of those files too, but **descriptions and field details are initialized empty because they cannot be retrieved from the API**.
+The details for each connector (individual trigger/action lists, field specifications) are split into **`docs/connectors/<provider>.md`** files. `/sync-connectors` creates the same skeleton (`## Triggers` / `## Actions` tables + an empty `## Field details` section) on the workspace overlay side (`org/docs/connectors/<provider>.md`), but **descriptions and field details are initialized empty because they cannot be retrieved from the API**.
 
 ### Growing the documentation
 

@@ -76,7 +76,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 |---|---|---|---|
 | `/catalog` | At session start (reuse check) | `projects/CATALOG.md` | None |
 | `/catalog scan` | After shared assets are added or changed | All projects under `projects/`, `projects/CATALOG_CONFIG.yaml` | `projects/CATALOG.md` |
-| `/sync-connectors <provider>` | Immediately before using an unknown connector | Workato API | `docs/connectors/<provider>.md` |
+| `/sync-connectors <provider>` | Immediately before using an unknown connector | Workato API | `org/docs/connectors/<provider>.md` |
 | `/sync-connectors --custom <name>` | After custom connector development | `connectors/<name>/connector.rb` | `connectors/docs/<name>.md` |
 
 ### Build phase
@@ -110,11 +110,11 @@ A list of "who writes and who reads" for each docs directory.
 
 ### Framework side (the `workato-toolkit` plugin)
 
-The kit canonical `docs/` is **written only by kit maintainers and the sync skills**; user learning results accumulate on the `org/docs/` side (see the `org-knowledge-overlay` rule (always-on)).
+The kit canonical `docs/` is **written only by kit maintainers** (via PRs to the `workato-toolkit` repository); the sync skills and user learning results accumulate on the `org/docs/` side (see the `org-knowledge-overlay` rule (always-on)).
 
 | Path | Writer | Reader | Contents |
 |---|---|---|---|
-| `docs/connectors/<provider>.md` | `/sync-connectors` | `/create-recipe`, `/create-workflow-app`, `/create-genie` | Pre-built connector trigger/action/field specs (kit canonical) |
+| `docs/connectors/<provider>.md` | Kit maintainers (PR) | `/create-recipe`, `/create-workflow-app`, `/create-genie` | Pre-built connector trigger/action/field specs (kit canonical) |
 | `docs/connector-sdk/` | Manual | `/create-connector` | Connector SDK reference |
 | `docs/logic/` | Manual | `/create-recipe`, `/create-workflow-app` | datapill syntax, formulas, loops, error handling, triggers |
 | `docs/platform/` | Manual | `/create-workflow-app`, `/create-genie`, `/plan` | Data Table, Lookup Table, Agent Studio, MCP, Workflow App |
