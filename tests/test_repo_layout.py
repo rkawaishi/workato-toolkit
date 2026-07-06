@@ -58,9 +58,16 @@ def test_dev_mcp_json_targets_plugin_server():
     args = " ".join(d["mcpServers"]["workato-docs-dev"]["args"])
     assert "plugin/mcp/docs-overlay/server.py" in args
     assert "${CLAUDE_PLUGIN_ROOT}" not in args, "dev entry must not depend on the plugin-root var"
+    # 設定が指す実体の存在まで確認する（server.py の rename を沈黙させない）
+    assert (REPO / "plugin" / "mcp" / "docs-overlay" / "server.py").is_file(), \
+        ".mcp.json points at a missing server script"
 
 
 def test_plugin_mcp_json_uses_plugin_root_var():
     d = json.loads((PLUGIN / ".mcp.json").read_text(encoding="utf-8"))
-    args = " ".join(d["mcpServers"]["workato-docs"]["args"])
-    assert "${CLAUDE_PLUGIN_ROOT}" in args
+    args = d["mcpServers"]["workato-docs"]["args"]
+    joined = " ".join(args)
+    assert "${CLAUDE_PLUGIN_ROOT}" in joined
+    # ${CLAUDE_PLUGIN_ROOT} を plugin/ に展開した実体が存在すること
+    rel = joined.split("${CLAUDE_PLUGIN_ROOT}/", 1)[1].split(" ", 1)[0]
+    assert (PLUGIN / rel).is_file(), f"plugin/.mcp.json points at missing plugin/{rel}"

@@ -36,17 +36,29 @@ def test_agents_md_generated():
 
 
 def test_generator_does_not_touch_frozen_or_root_claude_md():
-    """凍結資材（.mdc/.toml/GEMINI.md）と root CLAUDE.md は生成器の対象外。"""
+    """凍結資材（plugin/rules/ plugin/agents/ の全ファイル・GEMINI.md）と
+    root CLAUDE.md は生成器の対象外。
+
+    実行前後の git status スナップショット比較: 生成器が凍結領域に書いた
+    ものは種類を問わず（stray な .json 等も）検知し、実行前からある局所
+    編集（rules 編集途中の pytest 実行など）には反応しない。
+    """
+    paths = ["plugin/rules/", "plugin/agents/", "plugin/GEMINI.md", "CLAUDE.md"]
+
+    def snapshot():
+        r = subprocess.run(
+            ["git", "status", "--porcelain", *paths],
+            capture_output=True, text=True, cwd=str(REPO),
+        )
+        return r.stdout
+
+    before = snapshot()
     _run_generator()
-    r = subprocess.run(
-        ["git", "status", "--porcelain",
-         "plugin/rules/", "plugin/agents/", "plugin/GEMINI.md", "CLAUDE.md"],
-        capture_output=True, text=True, cwd=str(REPO),
+    after = snapshot()
+    assert after == before, (
+        "generator changed frozen/dev files:\n"
+        f"before: {before!r}\nafter: {after!r}"
     )
-    dirty = [l for l in r.stdout.splitlines()
-             if l.endswith(".mdc") or l.endswith(".toml")
-             or l.split()[-1] in ("plugin/GEMINI.md", "CLAUDE.md")]
-    assert not dirty, f"generator touched frozen files: {dirty}"
 
 
 def test_frozen_assets_still_present():
@@ -77,10 +89,17 @@ def test_derived_file_in_sync_with_source():
     assert not r.stdout.strip(), f"plugin/AGENTS.md out of sync: {r.stdout}"
 
 
+# drift 検知スコープの全文(生成物 + 凍結ガード)。substring では
+# リストの一部欠落を検知できないため、行全体を固定する。
+DRIFT_SCOPE = (
+    "git diff --exit-code -- "
+    "plugin/rules/ plugin/agents/ plugin/AGENTS.md plugin/GEMINI.md CLAUDE.md"
+)
+
+
 def test_sync_check_workflow_pins_new_scope():
     wf = REPO / ".github" / "workflows" / "sync-check.yml"
     assert wf.is_file()
     text = wf.read_text(encoding="utf-8")
     assert "scripts/sync_derived.py" in text
-    assert "git diff --exit-code" in text
-    assert "plugin/AGENTS.md" in text, "drift scope must cover the new derived path"
+    assert DRIFT_SCOPE in text, "drift scope must pin the full derived+frozen path list"

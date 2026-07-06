@@ -48,13 +48,21 @@ def test_manifest_versions_bumped_and_consistent():
     assert cursor == EXPECTED_VERSION, f"Cursor version {cursor} != {EXPECTED_VERSION}"
 
 
+# sync-check.yml 側(tests/test_derived_sync.py の DRIFT_SCOPE)と同一の
+# スコープ全文。substring ではリストの一部欠落を検知できない。
+_DRIFT_SCOPE = (
+    "git diff --exit-code -- "
+    "plugin/rules/ plugin/agents/ plugin/AGENTS.md plugin/GEMINI.md CLAUDE.md"
+)
+
+
 def test_release_workflow_shape():
     wf = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "on:" in wf and "tags:" in wf, "release.yml must trigger on tags"
     assert "scripts/sync_derived.py" in wf, "release.yml must verify derived sync"
     assert "pytest" in wf, "release.yml must run the test suite"
     assert "release" in wf.lower(), "release.yml must publish a release"
-    assert "plugin/AGENTS.md" in wf, "drift scope must cover the new derived path"
+    assert _DRIFT_SCOPE in wf, "drift scope must pin the full derived+frozen path list"
 
 
 def test_readme_covers_cc_install_and_freeze():
