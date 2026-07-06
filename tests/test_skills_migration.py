@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SKILLS = REPO / "skills"
+SKILLS = REPO / "plugin" / "skills"
 
 EXPECTED_SKILLS = {
     "analyze", "auto-learn", "catalog", "clarify", "create-connector",

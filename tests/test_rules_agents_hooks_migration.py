@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-RULES = REPO / "rules"
+RULES = REPO / "plugin" / "rules"
 
 EXPECTED_RULES = {
     "org-knowledge-overlay",
@@ -28,8 +28,8 @@ def test_rules_nonempty_with_heading():
 
 import os, subprocess, json
 
-BIN = REPO / "bin"
-PATTERNS = REPO / "credential-patterns.txt"
+BIN = REPO / "plugin" / "bin"
+PATTERNS = REPO / "plugin" / "credential-patterns.txt"
 
 EXPECTED_HOOKS = {
     "block-credential-read.sh",
@@ -66,7 +66,7 @@ def test_block_hook_allows_plain_command():
                        input=payload, capture_output=True, text=True)
     assert r.returncode == 0, f"expected allow (exit 0), got {r.returncode}: {r.stderr}"
 
-AGENTS = REPO / "agents"
+AGENTS = REPO / "plugin" / "agents"
 
 def test_agent_md_present():
     md = AGENTS / "workato-builder.md"
@@ -80,7 +80,7 @@ def test_agent_md_present():
 def test_session_start_rules_emits_context():
     script = BIN / "session-start-rules"
     assert script.is_file() and os.access(script, os.X_OK), "bin/session-start-rules missing/!x"
-    env = dict(os.environ, CLAUDE_PLUGIN_ROOT=str(REPO))
+    env = dict(os.environ, CLAUDE_PLUGIN_ROOT=str(REPO / "plugin"))
     r = subprocess.run(["bash", str(script)], input="{}", capture_output=True, text=True, env=env)
     assert r.returncode == 0, f"script failed: {r.stderr}"
     out = json.loads(r.stdout)
@@ -88,7 +88,7 @@ def test_session_start_rules_emits_context():
     assert "Workato Recipe JSON Format" in ctx, "rule content not injected"
 
 
-HOOKS = REPO / "hooks"
+HOOKS = REPO / "plugin" / "hooks"
 
 def _load_hooks(name):
     return json.loads((HOOKS / name).read_text(encoding="utf-8"))

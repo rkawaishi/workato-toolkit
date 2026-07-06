@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GUIDES = ROOT / "docs" / "guides"
+GUIDES = ROOT / "plugin" / "docs" / "guides"
 README = ROOT / "README.md"
 
 # S4 legacy distribution tokens — must be gone from user-facing docs. Covers the
@@ -20,7 +20,10 @@ EXPECTED_VERSION = "0.1.0"
 
 
 def _doc_files():
-    return [README] + sorted(GUIDES.glob("*.md"))
+    # root CLAUDE.md（手書き開発コンテキスト）も走査対象に含める — 開発文書にも
+    # stale パスは混入しうる（spec §7）。plugin/AGENTS.md は rules 真ソース由来の
+    # 既存 stale 参照を含むため対象外（rules 内容の再編は issue #6 / スコープ外）。
+    return [README, ROOT / "CLAUDE.md"] + sorted(GUIDES.glob("*.md"))
 
 
 def test_no_legacy_distribution_refs_in_docs():
@@ -37,9 +40,9 @@ def _load(rel):
 
 
 def test_manifest_versions_bumped_and_consistent():
-    cc = _load(".claude-plugin/plugin.json")["version"]
-    codex = _load(".codex-plugin/plugin.json")["version"]
-    cursor = _load(".cursor-plugin/plugin.json")["version"]
+    cc = _load("plugin/.claude-plugin/plugin.json")["version"]
+    codex = _load("plugin/.codex-plugin/plugin.json")["version"]
+    cursor = _load("plugin/.cursor-plugin/plugin.json")["version"]
     assert cc == EXPECTED_VERSION, f"CC version {cc} != {EXPECTED_VERSION}"
     assert codex == EXPECTED_VERSION, f"Codex version {codex} != {EXPECTED_VERSION}"
     assert cursor == EXPECTED_VERSION, f"Cursor version {cursor} != {EXPECTED_VERSION}"
@@ -51,16 +54,17 @@ def test_release_workflow_shape():
     assert "scripts/sync_derived.py" in wf, "release.yml must verify derived sync"
     assert "pytest" in wf, "release.yml must run the test suite"
     assert "release" in wf.lower(), "release.yml must publish a release"
+    assert "plugin/AGENTS.md" in wf, "drift scope must cover the new derived path"
 
 
-def test_readme_covers_plugin_install():
+def test_readme_covers_cc_install_and_freeze():
     text = README.read_text(encoding="utf-8")
-    # the three official editors' marketplace/install entry points
+    # Claude Code is the (only) supported install path
     assert "/plugin marketplace add rkawaishi/workato-toolkit" in text
-    assert "codex plugin marketplace add rkawaishi/workato-toolkit" in text
-    assert "Cursor" in text
-    # Gemini is deferred, not dropped
-    assert "Gemini" in text and "soon" in text.lower()
-    # security defense-in-depth is documented
+    assert "/plugin install workato-toolkit@workato-toolkit" in text
+    # non-CC editors are explicitly on hold, with no active install steps advertised
+    assert "on hold" in text.lower()
+    assert "codex plugin marketplace add" not in text
+    # security defense-in-depth is documented (editor-agnostic hardening stays)
     assert "permissions" in text and "deny" in text
     assert ".codexignore" in text

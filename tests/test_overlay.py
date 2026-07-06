@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "mcp" / "docs-overlay"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "plugin" / "mcp" / "docs-overlay"))
 
 import overlay  # noqa: E402
 
