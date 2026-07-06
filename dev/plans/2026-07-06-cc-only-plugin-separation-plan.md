@@ -952,3 +952,31 @@ git commit -m "docs(dev): record restructure verification results"
 - skills が参照する `templates/workatoignore.template` / `templates/gitignore/connectors.gitignore` の不存在問題(既存バグ。別タスク)
 - `plugin/rules/workato-deployment-flow.md` 等の rules 真ソースに残る `@.claude/rules/` 参照(生成される plugin/AGENTS.md にも流入する既存の stale 参照。rules 内容の再編 = issue #6 の一部として扱う)
 - `rules/*.md` の内容再編(issue #6 の未決部分)
+
+---
+
+## 検証記録(2026-07-07)
+
+| 完了条件 | 結果 |
+|---|---|
+| 1. pytest 全件 PASS | ✅ 74 passed |
+| 2. sync_derived 後 drift ゼロ | ✅(`git status --porcelain` 出力なし) |
+| 3a. SessionStart hook 注入 | ✅ `{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "# Workato Toolkit — Agent Context...` を確認 |
+| 3b. credential guard ブロック | ✅ exit=2(`Blocked by workato-dev-kit credential guard: master.key: ...`) |
+| 3c. self-install スモーク | ⚠️ 中止(下記所見参照) |
+| 4. root CLAUDE.md 手書き・小型 | ✅(3,095 bytes) |
+| 5. dev/ コミット済み | ✅(specs 3 / plans 9 / handovers 4) |
+| 6. 凍結資材の配置 + README 宣言 | ✅ |
+
+### 所見
+
+- **Step 3c(self-install スモーク)は安全確認の時点で中止した。** `claude plugin marketplace list` を実行したところ、`workato-toolkit` という名前の marketplace が**既にユーザーの環境に登録済み**であることが判明した(`Source: Directory (/Users/ryotaro/workspace/workato-toolkit)` — メインチェックアウトを指しており、本 worktree ではない)。対応する `claude plugin list` でも `workato-toolkit@workato-toolkit`(version 0.0.1, scope local, Status: ✘ disabled)が既にインストール済みだった。
+  - marketplace 名は `.claude-plugin/marketplace.json` の `"name": "workato-toolkit"` にハードコードされており、`marketplace add` 実行時に別名を指定するオプションはない。そのため本 worktree をマーケットプレイスとして追加すると、既存登録(実体のあるメインチェックアウトを指す本物の設定)との名前衝突・上書きリスクがある。
+  - タスク指示の安全確認手順(「既に存在する場合はスモークを中止し、その旨を報告」)に従い、`marketplace add` / `install` / `uninstall` / `marketplace remove` は一切実行しなかった。実行したのは読み取り専用の `marketplace list` / `plugin list` のみで、既存登録に副作用は無い(事後に再確認済み: エントリは1件のまま、パスも不変)。
+  - **これは「pending (P6-A)」(`claude` CLI が使えない場合のフォールバック)とは異なる状況** — CLI は正常に使え、`claude --version` は `2.1.177 (Claude Code)` を返した。今回中止した理由は CLI の欠如ではなく、既存のユーザー環境との衝突回避のためであり、区別して記録する。
+  - **代替検証**として、docs-overlay の解決ロジック単体(プラグインのインストール状態に依存しない直接呼び出し)は実行し、成功を確認した:
+    ```
+    python3 -c "import sys; sys.path.insert(0, 'plugin/mcp/docs-overlay'); import overlay; from pathlib import Path; print(overlay.resolve_doc(Path('plugin/docs'), None, 'connectors/slack.md')[:200])"
+    ```
+    → `# Slack connector` から始まる本文を返した(NOT FOUND ではない)。
+  - **積み残し:** 実際の `marketplace add` → `install` → 新セッションでの `-p` 挙動確認 → `uninstall` → `marketplace remove` という一連の self-install スモークは、メインチェックアウト側の既存 `workato-toolkit` 登録の扱いをユーザーと合意した上で(例: 一時的に別名でエイリアスする、メインチェックアウト側で検証する等)、別途実施する必要がある。P6 Phase A のリリースゲート項目として引き継ぐことを推奨。
