@@ -38,6 +38,9 @@ bash scripts/ensure-workatoignore.sh "projects/<project-name>"
 
 The helper creates `.workatoignore` from the base template (`templates/workatoignore.template`) when absent, or appends only the missing entries otherwise. It is idempotent and never removes or reorders existing lines.
 
+If `scripts/ensure-workatoignore.sh` does not exist in the workspace, run
+`/setup-workspace --update` first — it materializes the helper scripts bundled in the plugin.
+
 The template ignores `*.custom_adapter.{rb,json}` by default: a connector pulled into the project would otherwise be re-pushed by a later `workato push` and could roll the connector back to an older version. If this project intentionally manages a connector as code, tell the user to delete those two lines from `.workatoignore` (keeping the `>>> opt-out <<<` marker comments) — the helper will then leave the opt-out alone.
 
 ### No argument / project name supplied

@@ -55,7 +55,7 @@ Key endpoints (in the source workspace):
 | List deployments | `GET /api/deployments` |
 | Get deployment status | `GET /api/deployments/{id}` |
 
-See https://docs.workato.com/en/recipe-development-lifecycle/recipe-lifecycle-management.html for the full schema. Wrap usage in helper scripts so AI agents do not call the raw API ad-hoc.
+See https://docs.workato.com/en/recipe-development-lifecycle/recipe-lifecycle-management.html for the full schema. The toolkit wraps these endpoints in `python3 scripts/workato-api.py deploy preview/run/status/list` (transition-guarded), surfaced as the `/deploy-project` skill — use that instead of calling the raw API ad-hoc.
 
 ### Approvals
 

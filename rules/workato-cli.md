@@ -25,6 +25,9 @@ Common commands:
 
 A script that fills the gaps in Platform CLI by calling the API directly. Profile auto-resolves from `workspace_id`.
 
+> The helper and its templates are bundled in the plugin and materialized into the
+> workspace by `/setup-workspace` (refresh with `/setup-workspace --update`).
+
 ```bash
 python3 scripts/workato-api.py <command>
 ```
@@ -38,7 +41,10 @@ python3 scripts/workato-api.py <command>
 | `recipes list [--folder-id <id>]` | List recipes (JSON) |
 | `sdk push --connector <path> [--connector-id <id>]` | Push a custom connector (**recommended**) |
 | `sdk pull (--connector-id <id> \| --name <name>)` | Pull a custom connector's source into `connectors/<name>/` |
+| `deploy preview/run/status/list` | Promote a project via the Deploy feature (dev→test→prod). Use through `/deploy-project` |
+| `api-clients list/roles/create/delete/rotate` | Developer API clients — per-environment agent keys. Use through `/issue-api-keys` |
 | `profile show` | Show the resolved profile |
+| `--version` | Helper version (used by `/setup-workspace --update` staleness check) |
 
 ## 3. Connector SDK CLI (custom connector development & local testing)
 

@@ -49,8 +49,10 @@ Direct push to prod is not allowed. To release to prod:
 
 1. Push to dev (workato push, with the <org>-dev profile).
 2. Verify in the dev workspace.
-3. In the Workato UI, open the project and click Deploy → test. Get QA sign-off.
-4. From test, click Deploy → prod. Get release-manager approval.
+3. Promote dev → test with the Deploy feature: /deploy-project run --to test
+   (or the UI: open the project and click Deploy → test). Get QA sign-off.
+4. Promote test → prod: /deploy-project run --to prod from a <org>-test profile,
+   or the UI. The release manager's approval happens in the Workato UI and stays manual.
 
 See @docs/platform/environments.md for the full Deploy flow.
 ```

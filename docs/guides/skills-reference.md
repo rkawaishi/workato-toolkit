@@ -15,6 +15,40 @@ A reference summarizing the purpose, usage, and options of every skill.
 
 Skills ship inside the plugin and load automatically in every editor; update them with your editor's plugin-update command.
 
+## Setup phase (once per workspace)
+
+### /setup-workspace — bootstrap the workspace repository
+
+One-time infrastructure bootstrap: Platform CLI check, materialization of the bundled API
+helper and templates (via the docs-overlay MCP's `workato_asset_path`), `org/` directory
+skeleton, credential deny-lists, dev-profile setup and verification.
+
+```
+/setup-workspace              # Full bootstrap (idempotent)
+/setup-workspace --update     # Refresh the materialized scripts after a plugin update
+```
+
+Ends by pointing at `/issue-api-keys`, `/pull-project --all`, and `/onboard`.
+
+### /issue-api-keys — per-environment Developer API clients
+
+Design, issue, rotate, revoke, and audit the Developer API clients that agents and CI
+authenticate with: dev = write, test/prod = read-only, so the dev-only push policy is
+enforced by the keys themselves. Tokens go straight into the OS keyring and are never
+displayed.
+
+```
+/issue-api-keys               # Plan mode: present the permission design only
+/issue-api-keys issue         # Full flow: roles → issue → verify → record
+/issue-api-keys rotate <env>  # Rotate one environment's key
+/issue-api-keys revoke <env>  # Revoke one environment's client
+/issue-api-keys audit         # Compare remote clients against the org record
+```
+
+The permission matrix and role checklists live in `platform/developer-api-clients.md`
+(via `workato_docs_lookup`); the issuance record goes to
+`org/docs/platform/developer-api-clients.md`.
+
 ## Onboarding phase (first run)
 
 ### /onboard — bootstrap the knowledge base from existing assets
@@ -248,6 +282,28 @@ Push local changes to the Workato remote. Runs validation before pushing.
 **Reason for the two-phase push:** if a connection is unauthenticated, the recipe's `pick_list` fields cannot be resolved and the push fails.
 
 See [Deployment procedure guide](deployment.md) for details.
+
+---
+
+## Promotion phase
+
+### /deploy-project — promote between environments
+
+Promote a project dev→test→prod with Workato's Deploy feature (auditable manifests, not
+direct writes). Wraps the API helper's transition-guarded `deploy` commands; skip-tier and
+backward transitions are refused, prod runs require explicit human confirmation, and
+deployment approval always stays with the release manager in the UI.
+
+```
+/deploy-project                        # Preview a dev→test deploy (read-only)
+/deploy-project preview --to <env>     # Preview a specific transition
+/deploy-project run --to <test|prod>   # Execute (guarded)
+/deploy-project status <id> [--wait]   # Check / follow one deployment
+/deploy-project list                   # Deployment history (audit)
+```
+
+Prints the per-environment checklist (connection credentials, environment properties,
+table seeds, connector releases, recipe starts) on every run.
 
 ---
 

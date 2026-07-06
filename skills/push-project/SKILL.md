@@ -78,7 +78,7 @@ WARNING: dropdown "<label>" in <page>.lcap_page.json has dataSource: null.
 
 #### 1d. Workato CLI `recipes validate` (blocking)
 
-**Inside Claude Code**: `kit/framework/claude/hooks/validate-before-push.sh` runs via the PreToolUse hook whenever it detects `workato push`. It runs `workato recipes validate --path <file>` on every `*.recipe.json`, catching format issues before push.
+**Inside Claude Code**: the plugin's `validate-before-push` PreToolUse hook runs whenever it detects `workato push`. It runs `workato recipes validate --path <file>` on every `*.recipe.json`, catching format issues before push.
 
 **Other editors (Cursor / Codex / Gemini)**: no auto-hook. Run `/validate-recipe` explicitly before push to verify the format.
 

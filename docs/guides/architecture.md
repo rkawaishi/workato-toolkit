@@ -130,11 +130,13 @@ Skills cover each phase of the development lifecycle:
 
 | Phase | Skills | Role |
 |---|---|---|
+| **Setup** | `/setup-workspace`, `/issue-api-keys` | Workspace bootstrap and per-environment agent keys |
 | **Specification** | `/spec`, `/clarify` | Create spec.md and resolve Open Questions |
 | **Design** | `/plan`, `/tasks`, `/analyze` | Generate plan.md / tasks.md and check consistency |
 | **Build** | `/implement`, `/create-recipe`, `/create-workflow-app`, `/create-genie`, `/create-connector` | Asset generation |
 | **Validation** | `/validate-recipe` | JSON structure check |
-| **Sync** | `/push-project`, `/pull-project` | Sync with Workato |
+| **Sync** | `/push-project`, `/pull-project` | Sync with Workato (dev) |
+| **Promotion** | `/deploy-project` | dev→test→prod promotion via the Deploy feature |
 | **Learning** | `/learn-recipe`, `/learn-pattern`, `/sync-connectors` | Knowledge accumulation |
 | **Organization** | `/catalog` | Inventory of shared assets |
 | **Legacy** | `/design migrate` | Migration tool from legacy DESIGN.md → specs/ |
