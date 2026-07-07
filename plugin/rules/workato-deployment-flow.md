@@ -61,7 +61,7 @@ Direct push to prod is not allowed. To release to prod:
 4. Promote test → prod: /deploy-project run --to prod from a <org>-test profile,
    or the UI. The release manager's approval happens in the Workato UI and stays manual.
 
-See @docs/platform/environments.md for the full Deploy flow.
+See `workato_docs_lookup("platform/environments.md")` for the full Deploy flow.
 ```
 
 ## When you must read from test or prod
@@ -90,7 +90,7 @@ workato push --profile <org>-prod
 
 ## Related
 
-- `@docs/platform/environments.md` — environment roles and the Deploy feature
-- `@docs/platform/cli-profiles.md` — profile naming and push/pull matrix
-- `@.claude/rules/workato-cli.md` — Platform CLI commands
-- `@.claude/rules/workato-cli-autonomy.md` — when the CLI is the right answer
+- `workato_docs_lookup("platform/environments.md")` — environment roles and the Deploy feature
+- `workato_docs_lookup("platform/cli-profiles.md")` — profile naming and push/pull matrix
+- the `workato-cli` rule (always-on) — Platform CLI commands
+- the `workato-cli-autonomy` rule (always-on) — when the CLI is the right answer

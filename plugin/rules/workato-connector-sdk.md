@@ -96,4 +96,4 @@ Steps:
 - If `settings.yaml` contains real credentials, add it to `.gitignore`.
 - `connectors/` lives in the organization's workspace repository.
 
-Details: `@docs/connector-sdk/connector-rb.md`.
+Details: `workato_docs_lookup("connector-sdk/connector-rb.md")`.

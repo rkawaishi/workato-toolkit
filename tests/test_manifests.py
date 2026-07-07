@@ -86,5 +86,5 @@ def test_sample_skill_present():
     assert skill.exists()
     text = skill.read_text(encoding="utf-8")
     assert text.startswith("---")
-    assert "name:" in text
+    # name: is intentionally absent — the directory name is canonical (#23)
     assert "description:" in text

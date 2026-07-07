@@ -1,5 +1,4 @@
 ---
-name: ping
 description: Smoke-test skill for workato-toolkit. Confirms the toolkit is installed and a skill can load in the current editor. Use to verify installation after running marketplace add + install.
 ---
 
