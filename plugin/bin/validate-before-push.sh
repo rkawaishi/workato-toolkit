@@ -1,12 +1,15 @@
 #!/bin/bash
 # Pre-push validation hook
-# Validates JSON syntax and checks for common issues before workato push
+# 1. Environment guard: refuses `workato push` / `workato recipes start|stop`
+#    unless the resolved profile is a -dev profile (the deterministic layer
+#    under the workato-deployment-flow rule — promotion goes via Deploy).
+# 2. Validates JSON syntax and checks for common issues before workato push.
 
 INPUT=$(cat)
 
-# Fast exit: skip if not a workato push command (avoids python3 overhead)
+# Fast exit: skip unless a guarded workato command (avoids python3 overhead)
 case "$INPUT" in
-  *"workato push"*) ;;
+  *"workato push"*|*"workato recipes start"*|*"workato recipes stop"*) ;;
   *) exit 0 ;;
 esac
 
@@ -43,6 +46,79 @@ if [ -z "$PROJECT_DIR" ]; then
     fi
   done
 fi
+
+# --- Environment guard (runs even when no project dir was found) ---
+# Resolution mirrors the helper's resolve_profile():
+#   --profile flag > .workatoenv workspace_id match > current_profile.
+# Fails open only when no profiles file exists (the CLI can't run either).
+VERDICT=$(COMMAND="$COMMAND" PROJECT_DIR="$PROJECT_DIR" python3 <<'PY'
+import json, os, re, sys
+from pathlib import Path
+
+cmd = os.environ.get("COMMAND", "")
+if not re.search(r"\bworkato\s+(push\b|recipes\s+(start|stop)\b)", cmd):
+    print("SKIP")
+    sys.exit(0)
+
+try:
+    data = json.loads((Path.home() / ".workato" / "profiles").read_text(encoding="utf-8"))
+    profiles = data.get("profiles") or {}
+except Exception:
+    data, profiles = {}, {}
+if not profiles:
+    print("ALLOW")  # no profiles configured — the CLI itself cannot push
+    sys.exit(0)
+
+name = None
+m = re.search(r"--profile[=\s]+['\"]?([\w.-]+)", cmd)
+if m:
+    name = m.group(1)
+
+if name is None:
+    proj = os.environ.get("PROJECT_DIR", "")
+    envfile = Path(proj) / ".workatoenv" if proj else None
+    if envfile and envfile.is_file():
+        try:
+            ws = json.loads(envfile.read_text(encoding="utf-8")).get("workspace_id")
+        except Exception:
+            ws = None
+        if ws is not None:
+            for pname, prof in profiles.items():
+                if prof.get("workspace_id") is not None and str(prof["workspace_id"]) == str(ws):
+                    name = pname
+                    break
+
+if name is None:
+    current = data.get("current_profile", "")
+    name = current if current in profiles else next(iter(profiles))
+
+if name.endswith("-dev"):
+    print("ALLOW")
+else:
+    print(f"BLOCK {name}")
+PY
+)
+
+case "$VERDICT" in
+  BLOCK*)
+    BLOCKED_PROFILE="${VERDICT#BLOCK }"
+    {
+      echo "Blocked by the workato deployment-flow guard: resolved profile"
+      echo "  '$BLOCKED_PROFILE' is not a dev profile (name must end in '-dev')."
+      echo "Direct push / recipe start / recipe stop against test or prod is"
+      echo "forbidden — promote through the Deploy feature (/deploy-project)."
+      echo "Switch to your '<org>-dev' profile, or rename your dev profile to"
+      echo "follow the '<org>-dev' convention. This guard has no override."
+    } >&2
+    exit 2
+    ;;
+esac
+
+# recipes start/stop only needed the environment guard — no JSON validation.
+case "$COMMAND" in
+  *"workato push"*) ;;
+  *) exit 0 ;;
+esac
 
 if [ -z "$PROJECT_DIR" ] || [ ! -d "$PROJECT_DIR" ]; then
   exit 0  # Can't determine project, allow push

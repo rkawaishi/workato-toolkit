@@ -10,9 +10,9 @@
 
 INPUT=$(cat)
 
-# Fast exit: skip if not an sdk push command
+# Fast exit: skip if not an sdk push command (any invocation route)
 case "$INPUT" in
-  *"sdk push"*) ;;
+  *"sdk push"*|*"bundle exec workato push"*) ;;
   *) exit 0 ;;
 esac
 
@@ -23,8 +23,12 @@ import sys, json, re
 data = json.load(sys.stdin)
 command = data.get('tool_input', {}).get('command', '')
 
-# Verify it's an sdk push command
-if 'workato-api.py sdk push' not in command:
+# Verify it's an sdk push command — helper-mediated or the raw Platform CLI
+# form. (The SDK gem's 'bundle exec workato push' runs inside the connector
+# dir with no --connector arg; it gets the generic fallback below.)
+if ('workato-api.py sdk push' not in command
+        and not re.search(r'\bworkato\s+sdk\s+push\b', command)
+        and not re.search(r'\bbundle\s+exec\s+workato\s+push\b', command)):
     sys.exit(0)
 
 # Get exit code: Claude Code uses tool_response (dict), Cursor uses tool_output (JSON string)
@@ -47,6 +51,7 @@ if exit_code != 0:
 q = chr(39)  # single quote (avoids bash escaping issues)
 m = re.search(r'--connector[\s=]+[\"' + q + r'](.*?)[\"' + q + r']', command) or re.search(r'--connector[\s=]+(\S+)', command)
 if not m:
+    print('__GENERIC__')  # sdk push without --connector (e.g. bundle exec form)
     sys.exit(0)
 
 from pathlib import Path
@@ -59,9 +64,12 @@ if [ -z "$RESULT" ]; then
   exit 0
 fi
 
-CONNECTOR_NAME="$RESULT"
-
 # Output feedback (stdout is shown to the AI as hook feedback)
-echo "sdk push completed. Please update connector docs: read connectors/${CONNECTOR_NAME}/connector.rb and generate/update connectors/docs/${CONNECTOR_NAME}.md following the custom connector doc format defined in the /sync-connectors skill."
+if [ "$RESULT" = "__GENERIC__" ]; then
+  echo "sdk push completed. Please update the connector's docs: read its connector.rb and generate/update connectors/docs/<name>.md following the custom connector doc format defined in the /sync-connectors skill."
+else
+  CONNECTOR_NAME="$RESULT"
+  echo "sdk push completed. Please update connector docs: read connectors/${CONNECTOR_NAME}/connector.rb and generate/update connectors/docs/${CONNECTOR_NAME}.md following the custom connector doc format defined in the /sync-connectors skill."
+fi
 
 exit 0

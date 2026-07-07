@@ -29,6 +29,7 @@ python3 scripts/workato-api.py profile show
 ```
 
 - **Hard-block: if the resolved profile name does not end with `-dev`, abort immediately.** This covers `-test`, `-prod`, `-production`, `-staging`, `-qa`, and any other non-dev suffix. Do not offer a confirmation prompt — the rule is inviolable.
+- **Inside Claude Code this is also enforced mechanically**: the plugin's `validate-before-push` PreToolUse hook refuses `workato push` / `workato recipes start|stop` (exit 2) whenever the resolved profile is not `-dev`. Treat a hook block as final — do not retry with workarounds.
 - The only way to proceed is for the user to either (a) switch to a `-dev` profile, or (b) rename their dev profile to follow the `<org>-dev` convention. Tell the user which option applies.
 - Direct push to test/prod is forbidden; promotion goes through the Deploy feature (call `workato_docs_lookup` with path `platform/environments.md`).
 
