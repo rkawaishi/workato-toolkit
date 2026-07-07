@@ -15,9 +15,9 @@ Verify the **consistency** of `spec.md` ↔ `plan.md` ↔ `tasks.md`. Running th
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                                      ↑
-                                   you are here
+/spec → /plan → /tasks → /analyze → /implement
+                           ↑
+                        you are here
 ```
 
 ## Checks
@@ -58,7 +58,8 @@ Verify that **every New Component in plan is tasked**:
 | Recipe Functions | `[function]` | One task per function |
 | Handlers | `[handler]` | One task per handler |
 | Connections (new) | `[connection]` or `[manual]` | A task for each new connection |
-| MCP / Genie | `[mcp]` | Has matching tasks |
+| Genie | `[genie]` | Has matching tasks |
+| MCP server | `[mcp]` | Has matching tasks |
 | Unlearned Actions (rows) | `[learn]` | One `[learn]` task per unlearned row |
 
 **Mismatch examples**:

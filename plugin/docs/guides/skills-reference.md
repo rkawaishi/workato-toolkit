@@ -65,12 +65,14 @@ For a workspace that already has Workato projects and custom connectors before t
 
 ## Specification and design phases
 
-### /spec — create feature requirements
+### /spec — create feature requirements and resolve Open Questions
 
 Organize the business requirements (WHAT/WHY) in business language and generate `spec.md`. Workato vocabulary is forbidden.
 
 ```
-/spec <project-name>       # Create spec.md from an interview
+/spec <project>               # Create spec.md from an interview
+/spec <project>/<NNN>-<slug>  # Clarification mode: resolve remaining Open Questions
+/spec migrate <project>       # Convert a legacy DESIGN.md into specs/<NNN>-<slug>/{spec,plan,tasks}.md
 ```
 
 **Interview items:**
@@ -84,13 +86,9 @@ Organize the business requirements (WHAT/WHY) in business language and generate 
 
 Add `specs/` to `.workatoignore` so that `workato pull` does not remove it.
 
-### /clarify — resolve Open Questions
+**Clarification mode** walks through `## Open Questions` in spec.md one item at a time with the user and reflects the answers into the spec body. It runs automatically after creation while questions remain, and also serves as the resume command after interruptions or context exhaustion (`/spec <project>/<NNN>-<slug>`).
 
-Walk through `## Open Questions` in spec.md one item at a time with the user and reflect the answers into the spec body. Also serves as a resume command after interruptions or context exhaustion.
-
-```
-/clarify <project>/<NNN>-<slug>
-```
+**Migration mode** (`/spec migrate <project>`) is the only surviving piece of the retired standalone design skill: it splits an existing legacy `DESIGN.md` into `specs/` artifacts and renames the original to `DESIGN.md.legacy.<date>`. Convert projects with a legacy DESIGN.md early.
 
 ### /plan — translate into Workato configuration (HOW)
 
@@ -101,7 +99,7 @@ Cross-read spec.md with `projects/CATALOG.md` / `.resource-providers.yml` / the 
 ```
 
 **Key points:**
-- Halts if `## Open Questions` remains (run `/clarify` first)
+- Halts if `## Open Questions` remains (resolve them first via `/spec <project>/<NNN>-<slug>`)
 - State reuse of existing shared assets explicitly under `## Reused Assets`
 - Record actions that are missing from the documentation in the `## Unlearned Actions` table (they become `[learn]` tasks via `/tasks`)
 
@@ -120,22 +118,6 @@ Verify the consistency of `spec.md` ↔ `plan.md` ↔ `tasks.md` in read-only mo
 ```
 /analyze <project>/<NNN>-<slug>
 ```
-
-### /design — deprecated (migration tool only)
-
-> ⚠️ `/design` has been migrated to the spec-driven workflow. Do not use it for new projects.
-
-Only `/design migrate` remains useful as a standard-operation subcommand:
-
-```
-/design migrate <project>  # Migrate an existing DESIGN.md into specs/<NNN>-<slug>/{spec,plan,tasks}.md
-/design <project>          # Display legacy DESIGN.md (compatibility mode with warning)
-/design update             # Update legacy DESIGN.md (compatibility mode with warning)
-```
-
-- `/design new` has been **retired** (if invoked, refuse and direct the user to `/spec`)
-- For projects with an existing DESIGN.md, convert it to `specs/` early via `/design migrate`
-- See the Deprecation phase in [Lifecycle and responsibility map](lifecycle.md) for details
 
 ---
 

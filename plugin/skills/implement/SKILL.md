@@ -19,32 +19,21 @@ This skill itself does not generate JSON or implement anything — it merely rou
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                                                  ↑
-                                               you are here
+/spec → /plan → /tasks → /analyze → /implement
+                                        ↑
+                                     you are here
 ```
 
 Recommended (not required): `/analyze` reports 0 BLOCKERS before running `/implement`.
 
-## Tag → skill mapping
+## Tag registry
 
-| Tag | Skill / action it dispatches to |
-|---|---|
-| `[connection]` | Handled inside `/workato-create recipe` (standalone tasks: manual or template-generated) |
-| `[connector]` | `/workato-create connector` |
-| `[data-table]` | `/workato-create workflow-app` (Data Table task) |
-| `[page]` | `/workato-create workflow-app` (Page task) |
-| `[recipe]` | `workato-builder` subagent (fallback: `/workato-create recipe`) |
-| `[function]` | `workato-builder` subagent — Recipe Function flag (fallback: `/workato-create recipe`) |
-| `[handler]` | `workato-builder` subagent — handler recipe (fallback: `/workato-create recipe`) |
-| `[mcp]` | `/workato-create mcp-server` |
-| `[validate]` | `/validate-recipe` |
-| `[push]` | `/push-project` |
-| `[pull]` | `/pull-project` |
-| `[learn]` | `/learn-recipe` |
-| `[learn-pattern]` | `/learn-pattern` |
-| `[manual]` | Tell the user what to do, wait for their completion confirmation |
-| `[test]` | Tell the user the test scenarios, wait for their result |
+The tag registry lives in `/tasks`' table (the kind-tag → owning-skill registry is single-sourced there). `/implement` owns only the execution specifics:
+
+- **`[recipe]` / `[function]` / `[handler]`** — dispatched directly to the `workato-builder` subagent with the finalized design from `plan.md` (details in Step 4c; fallback: `/workato-create recipe`).
+- **`[connector]` / `[data-table]` / `[page]` / `[genie]` / `[mcp]`** — invoke the owning `/workato-create` subcommand from the registry (`connector`, `workflow-app`, `workflow-app`, `genie`, `mcp-server` respectively). Standalone `[connection]` tasks are manual or template-generated; connections created alongside a recipe are handled inside `/workato-create recipe`.
+- **`[validate]` / `[push]` / `[pull]` / `[learn]` / `[learn-pattern]`** — dispatch to their slash skills: `/validate-recipe`, `/push-project`, `/pull-project`, `/learn-recipe`, `/learn-pattern`.
+- **`[manual]` / `[test]`** — user actions: tell the user what to do (or the test scenarios) and wait for their confirmation (see "Handling `[manual]` / `[test]`" below).
 
 ## Procedure
 
@@ -116,7 +105,7 @@ For example, for `[recipe] approval_main`:
 Dispatch the task to its owning skill. `/implement` itself never generates JSON.
 
 - **`[recipe]` / `[function]` / `[handler]`** — dispatch directly to the **`workato-builder` subagent** (asset type `recipe`), invoked via Claude Code's subagent mechanism. `plan.md` already holds the finalized design, so no interview is needed: pass the recipe definition, Resource Inventory and Reused Assets from Step 4b plus the target file paths. The subagent keeps the ~1000-line JSON out of this orchestrator's context, returning a short summary. (This is the generation half of `/workato-create recipe` Steps 7–9.) Only if subagent dispatch is unavailable, invoke `/workato-create recipe <project>/<NNN>-<slug>` instead.
-- **Other tags** — invoke the owning skill from the tag → skill table. `/workato-create workflow-app`, `/workato-create genie` and `/workato-create connector` each dispatch their own generation step to `workato-builder` internally.
+- **Other tags** — invoke the owning skill per `/tasks`' tag registry (with the execution specifics from "Tag registry" above). `/workato-create workflow-app`, `/workato-create genie` and `/workato-create connector` each dispatch their own generation step to `workato-builder` internally.
 
 > **Important**: `/implement` must not generate JSON itself. The `workato-builder` subagent and the owning skills own all implementation.
 

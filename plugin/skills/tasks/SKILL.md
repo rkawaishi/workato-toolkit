@@ -17,9 +17,9 @@ This sits after `/plan` in the spec-driven workflow. Explicit tags and dependenc
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                            ↑
-                         you are here
+/spec → /plan → /tasks → /analyze → /implement
+                  ↑
+               you are here
 ```
 
 ## Procedure
@@ -41,10 +41,11 @@ For each section of `plan.md`, cut tasks out and apply a **kind tag** and a **pa
 | `[connector]` | `/workato-create connector` | Implement a custom connector |
 | `[data-table]` | `/workato-create workflow-app` | Create a Data Table schema |
 | `[page]` | `/workato-create workflow-app` | Create a Workflow App page |
-| `[recipe]` | `/workato-create recipe` | Generate a recipe JSON |
-| `[function]` | `/workato-create recipe` | Generate a Recipe Function |
-| `[handler]` | `/workato-create recipe` | Handler recipe (Slack buttons, etc.) |
-| `[mcp]` | `/workato-create mcp-server` | MCP server / Genie / skill |
+| `[recipe]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Generate a recipe JSON |
+| `[function]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Generate a Recipe Function |
+| `[handler]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Handler recipe (Slack buttons, etc.) |
+| `[genie]` | `/workato-create genie` | Genie (AI agent) + its skills |
+| `[mcp]` | `/workato-create mcp-server` | MCP server + skills (no Genie) |
 | `[validate]` | `/validate-recipe` | Validate JSON structure |
 | `[push]` | `/push-project` | Deploy to Workato |
 | `[pull]` | `/pull-project` | Pull post-UI changes |
@@ -147,7 +148,7 @@ consistency, then /implement <project>/<NNN>-<slug> to execute.
 
 ## Tag Legend
 - `[P]` runnable in parallel
-- Kind tags: `[recipe]`, `[function]`, `[handler]`, `[page]`, `[data-table]`, `[connection]`, `[connector]`, `[mcp]`, `[validate]`, `[push]`, `[pull]`, `[learn]`, `[learn-pattern]`, `[manual]`, `[test]`
+- Kind tags: `[recipe]`, `[function]`, `[handler]`, `[page]`, `[data-table]`, `[connection]`, `[connector]`, `[genie]`, `[mcp]`, `[validate]`, `[push]`, `[pull]`, `[learn]`, `[learn-pattern]`, `[manual]`, `[test]`
 - `(depends: N, M)` predecessor task IDs
 
 ## Tasks

@@ -7,7 +7,7 @@ Invoked as `/workato-create workflow-app [<project>/<NNN>-<slug> | <name>]` —
 with the full slug, plan.md context is pulled automatically (how `/implement`
 invokes it).
 
-> **Note**: as part of the migration to the spec-driven workflow, the legacy `DESIGN.md` reference is retired. Start new projects with `/spec`; for existing projects, run `/design migrate` first to convert into `specs/`.
+> **Note**: as part of the migration to the spec-driven workflow, the legacy `DESIGN.md` reference is retired. Start new projects with `/spec`; for existing projects, run `/spec migrate` first to convert into `specs/`.
 
 ## Background reading
 

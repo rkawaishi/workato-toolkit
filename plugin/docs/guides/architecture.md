@@ -111,9 +111,9 @@ Each feature in each project is managed under `projects/<project>/specs/<NNN>-<s
 - **`plan.md`** — Workato composition (HOW, Data Table / Recipe / Connection / applied patterns / Unlearned Actions)
 - **`tasks.md`** — executable tasks (`[P]` parallel marker + tags like `[recipe]` / `[page]` / `[learn]`)
 
-Proceed in the order `/spec` → `/clarify` → `/plan` → `/tasks` → `/analyze` → `/implement`. For resilience to interruption, Open Questions are persisted in spec.md and can be resumed with `/clarify`.
+Proceed in the order `/spec` → `/plan` → `/tasks` → `/analyze` → `/implement` (clarification happens inside `/spec`). For resilience to interruption, Open Questions are persisted in spec.md and can be resumed with `/spec <project>/<NNN>-<slug>`.
 
-> The legacy single-file DESIGN.md format is migrated into specs/ via `/design migrate`. `/design new` is retired (see the Deprecation phase in [lifecycle and responsibility map](lifecycle.md)).
+> The legacy single-file DESIGN.md format is migrated into specs/ via `/spec migrate` (see the [lifecycle and responsibility map](lifecycle.md)).
 
 ## Skill system
 
@@ -122,7 +122,7 @@ Skills cover each phase of the development lifecycle:
 | Phase | Skills | Role |
 |---|---|---|
 | **Setup** | `/setup-workspace`, `/issue-api-keys` | Workspace bootstrap and per-environment agent keys |
-| **Specification** | `/spec`, `/clarify` | Create spec.md and resolve Open Questions |
+| **Specification** | `/spec` | Create spec.md and resolve Open Questions (clarification mode) |
 | **Design** | `/plan`, `/tasks`, `/analyze` | Generate plan.md / tasks.md and check consistency |
 | **Build** | `/implement`, `/workato-create recipe`, `/workato-create workflow-app`, `/workato-create genie`, `/workato-create connector` | Asset generation |
 | **Validation** | `/validate-recipe` | JSON structure check |
@@ -130,7 +130,7 @@ Skills cover each phase of the development lifecycle:
 | **Promotion** | `/deploy-project` | dev→test→prod promotion via the Deploy feature |
 | **Learning** | `/learn-recipe`, `/learn-pattern`, `/sync-connectors` | Knowledge accumulation |
 | **Organization** | `/catalog` | Inventory of shared assets |
-| **Legacy** | `/design migrate` | Migration tool from legacy DESIGN.md → specs/ |
+| **Legacy** | `/spec migrate` | Migration tool from legacy DESIGN.md → specs/ |
 
 For details on each skill, see the [skill reference](skills-reference.md).
 

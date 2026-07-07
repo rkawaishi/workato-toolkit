@@ -71,7 +71,7 @@ projects:
 2. Confirm the scope of each project with the user.
 3. Generate `CATALOG_CONFIG.yaml`.
 
-`CATALOG.md` and `CATALOG_CONFIG.yaml` are part of the kit's base `.workatoignore` template (`templates/workatoignore.template`), which `/pull-project`, `/spec` and `/design` place into each project — so no separate `.workatoignore` step is needed here.
+`CATALOG.md` and `CATALOG_CONFIG.yaml` are part of the kit's base `.workatoignore` template (`templates/workatoignore.template`), which `/pull-project` and `/spec` place into each project — so no separate `.workatoignore` step is needed here.
 
 ## Catalog structure
 

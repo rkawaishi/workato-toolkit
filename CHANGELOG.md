@@ -33,6 +33,12 @@ see issue #10 / P6 Phase A).
   now its own subcommand). Type-specific procedures load on demand from
   `references/<type>.md`; the workato-builder subagent fetches its generation
   reference via `workato_asset_path`. (#18)
+- **BREAKING**: `/clarify` and `/design` are merged into `/spec` — the
+  Open-Questions resolution loop is now `/spec`'s clarification mode
+  (`/spec <project>/<NNN>-<slug>`), and legacy DESIGN.md conversion is
+  `/spec migrate <project>`; the retired design skill's view/update/new
+  modes are dropped. The pipeline is now `/spec` → `/plan` → `/tasks` →
+  `/analyze` → `/implement`. (#20)
 - User-facing docs and skills now state Claude Code–only support everywhere;
   the Cursor quickstart guide was removed (other-editor assets remain frozen
   in-tree). A test guard keeps multi-editor support claims out of shipped
