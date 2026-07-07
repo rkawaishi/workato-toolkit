@@ -117,7 +117,7 @@ Features still carrying unfinished Unlearned Actions:
 - <project>/specs/<NNN>-<slug>: <remaining count>
 ```
 
-> **Backwards compatibility**: the legacy `## Unlearned Actions` in `projects/<project-name>/DESIGN.md` is **not read** (hard-cutover in Phase B). If a project still only has DESIGN.md, run `/design migrate` first to convert into `specs/`.
+> **Backwards compatibility**: the legacy `## Unlearned Actions` in `projects/<project-name>/DESIGN.md` is **not read** (hard-cutover in Phase B). If a project still only has DESIGN.md, run `/spec migrate` first to convert into `specs/`.
 
 ## Git management
 

@@ -15,9 +15,9 @@ Verify the **consistency** of `spec.md` ↔ `plan.md` ↔ `tasks.md`. Running th
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                                      ↑
-                                   you are here
+/spec → /plan → /tasks → /analyze → /implement
+                           ↑
+                        you are here
 ```
 
 ## Checks

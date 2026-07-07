@@ -9,8 +9,8 @@ The "knowledge lookup priority" in the always-on rules defines the **reading ord
 Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
 
 ```
-[Specification]   /spec                   → Write user experience and requirements in spec.md (technology-neutral)
-                  /clarify                → Resolve Open Questions and reflect them in spec.md
+[Specification]   /spec                   → Write user experience and requirements in spec.md (technology-neutral),
+                                            then resolve Open Questions in clarification mode (same skill)
                      ↓
 [Design]          /plan                   → Write Workato configuration in plan.md (HOW)
                   /tasks                  → Decompose into executable tasks in tasks.md ([P]/[recipe]/[learn] tags)
@@ -41,7 +41,7 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
                   /tasks --update         → Regenerate remaining tasks (optional)
 ```
 
-> **`/design` is deprecated**: existing projects written in the legacy `DESIGN.md` format are converted to `specs/` via `/design migrate` and then join this flow. New projects do not use the `/design` family. `/design new` has been retired (if invoked, refuse and direct the user to `/spec`); `/design` (view) and `/design update` operate only in a compatibility mode with a warning.
+> **The legacy design skill has been removed**: existing projects written in the legacy `DESIGN.md` format are converted to `specs/` via `/spec migrate <project>` and then join this flow. The legacy view/update compatibility modes are retired along with the rest of the old skill.
 
 ## Skill responsibility map
 
@@ -59,7 +59,8 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | Skill | When to invoke | Reads | Writes |
 |---|---|---|---|
 | `/spec <project>` | At project / feature start | (interview) | `projects/<name>/specs/<NNN>-<slug>/spec.md` (new) |
-| `/clarify <project>/<NNN>-<slug>` | When Open Questions remain in spec.md, or when resuming after an interruption | `spec.md` (`## Open Questions`) | `spec.md` (body + Open Questions checked off) |
+| `/spec <project>/<NNN>-<slug>` | When Open Questions remain in spec.md (clarification mode), or when resuming after an interruption | `spec.md` (`## Open Questions`) | `spec.md` (body + Open Questions checked off) |
+| `/spec migrate <project>` | When converting a project that only has the legacy DESIGN.md into the spec-driven format | `projects/<name>/DESIGN.md` | `projects/<name>/specs/<NNN>-<slug>/{spec,plan,tasks}.md`, `DESIGN.md` → `DESIGN.md.legacy.<date>` |
 
 ### Design phase
 
@@ -69,15 +70,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | `/tasks <project>/<NNN>-<slug>` | After plan.md is finalized | `plan.md` | `tasks.md` (new, with `[P]` / `[recipe]` etc. tags) |
 | `/analyze <project>/<NNN>-<slug>` | Consistency check before `/implement` | `spec.md`, `plan.md`, `tasks.md` | None (read-only report) |
 
-### Deprecation phase (existing projects only)
-
-| Skill | When to invoke | Reads | Writes |
-|---|---|---|---|
-| `/design migrate <project>` | When converting a project that only has the legacy DESIGN.md into the spec-driven format (**standard operation**) | `projects/<name>/DESIGN.md` | `projects/<name>/specs/<NNN>-<slug>/{spec,plan,tasks}.md`, `DESIGN.md` → `DESIGN.md.legacy.<date>` |
-| `/design`, `/design update` | View / update legacy DESIGN.md (**compatibility mode only, with a warning**; switch to `/design migrate` early) | `projects/<name>/DESIGN.md` | `projects/<name>/DESIGN.md` |
-| ~~`/design new`~~ | **Retired**. If invoked, refuse and direct the user to `/spec` | — | — |
-
-> **Do not use the `/design` family for new projects**. Start from `/spec`. For legacy DESIGN.md, migrate to `specs/` early via `/design migrate`.
+> **Legacy DESIGN.md**: migrate to `specs/` early via `/spec migrate <project>` (see the Specification phase above). The retired design skill's view/update compatibility modes are gone.
 
 ### Preparation phase
 
@@ -141,10 +134,10 @@ The kit canonical `docs/` is **written only by kit maintainers** (via PRs to the
 |---|---|---|---|
 | `connectors/docs/<name>.md` | `/sync-connectors --custom` | `/workato-create recipe`, `/workato-create workflow-app` | Custom connector trigger/action/field specs |
 | `connectors/<name>/connector.rb` | `/workato-create connector`, manual | `/sync-connectors --custom` | Custom connector implementation |
-| `projects/<name>/specs/<NNN>-<slug>/spec.md` | `/spec`, `/clarify` | `/plan`, `/analyze`, Claude at session start | Feature requirements (WHAT/WHY, no Workato vocabulary) |
+| `projects/<name>/specs/<NNN>-<slug>/spec.md` | `/spec` (creation + clarification mode) | `/plan`, `/analyze`, Claude at session start | Feature requirements (WHAT/WHY, no Workato vocabulary) |
 | `projects/<name>/specs/<NNN>-<slug>/plan.md` | `/plan` | `/tasks`, `/analyze`, `/workato-create recipe`, `/workato-create workflow-app`, `/learn-recipe` (tidies Unlearned Actions) | Workato configuration (HOW). Includes the Unlearned Actions table |
 | `projects/<name>/specs/<NNN>-<slug>/tasks.md` | `/tasks`, `/implement` (check-off), `/learn-recipe` (`[learn]` completion) | `/analyze`, `/implement` | Executable tasks (with `[P]` / type tags) |
-| `projects/<name>/DESIGN.md` / `DESIGN.md.legacy.*` | `/design update` (legacy, compatibility mode with warning) | `/design migrate`, manual review | **Deprecated**. Not generated for new projects. `/design new` is retired (refuse if invoked) |
+| `projects/<name>/DESIGN.md` / `DESIGN.md.legacy.*` | (no writer — legacy format) | `/spec migrate`, manual review | **Deprecated**. Not generated for new projects; convert via `/spec migrate` |
 | `projects/<name>/Recipes/*.json` | `/workato-create recipe`, `/pull-project` | `/learn-recipe`, `/validate-recipe`, `/push-project` | Recipe body |
 | `projects/CATALOG.md` | `/catalog scan` | `/workato-create recipe`, `/plan` | List of organization shared assets (Recipe Function, Connection) |
 | `projects/CATALOG_CONFIG.yaml` | Manual | `/catalog` | Scope settings (global / team / private) |
@@ -197,7 +190,8 @@ Knowledge writes are the responsibility of the **learning skills** (`/learn-reci
 
 ```
 /spec <project>                       # Create spec.md (business requirements, technology-neutral)
-/clarify <project>/001-<slug>         # Resolve Open Questions
+                                      # ... and resolve Open Questions in clarification mode
+                                      # (resume anytime with /spec <project>/001-<slug>)
 /plan <project>/001-<slug>            # Create plan.md (CATALOG / pattern / resource lookup)
 /tasks <project>/001-<slug>           # Create tasks.md (tagged task decomposition)
 /analyze <project>/001-<slug>         # spec ↔ plan ↔ tasks consistency check
@@ -213,8 +207,8 @@ Knowledge writes are the responsibility of the **learning skills** (`/learn-reci
 ### Scenario B: New feature with a known connector
 
 ```
-/spec <project>
-/clarify <project>/<NNN>-<slug>       # For existing projects, 002, 003...
+/spec <project>                       # For existing projects, the sequence becomes 002, 003...
+                                      # (clarification mode resolves Open Questions in the same run)
 /plan <project>/<NNN>-<slug>
 /tasks <project>/<NNN>-<slug>
 /analyze <project>/<NNN>-<slug>
@@ -249,8 +243,8 @@ cat .../plan.md                       # Read the Workato configuration
 ### Scenario E: Migrating a legacy DESIGN.md project
 
 ```
-/design migrate <project>             # DESIGN.md → specs/001-<slug>/{spec,plan,tasks}.md
-/clarify <project>/001-<slug>         # Resolve the Open Questions emitted during migration
+/spec migrate <project>               # DESIGN.md → specs/001-<slug>/{spec,plan,tasks}.md
+/spec <project>/001-<slug>            # Resolve the Open Questions emitted during migration
 /analyze <project>/001-<slug>         # Consistency check
 # From here, follow Scenario A / B
 ```
@@ -259,7 +253,7 @@ cat .../plan.md                       # Read the Workato configuration
 
 - "Let me grep `projects/<other-project>/Recipes/` to investigate input/output" → **stop**. Read `docs/connectors/<provider>.md`, or run `/sync-connectors` if it does not exist
 - "Let me append to `docs/connectors/` while building" → **stop**. Build skills do not write docs. Leave it to `/learn-recipe`
-- "Skip the spec and jump straight to implementation" → **stop**. Going through `/spec` → `/clarify` → `/plan` → `/tasks` prevents leftover Open Questions and missed Unlearned Actions. Even a one-line `/spec` is fine; tighten it with `/clarify`
-- "Move to `/plan` while Open Questions remain" → **stop**. Resolve them with `/clarify` first, then `/plan`. `/plan` halts when it detects unresolved questions
-- "Just write DESIGN.md and call it done" → **stop**. `/design new` has been retired. Start from `/spec`. If there is an existing DESIGN.md, convert it with `/design migrate` to `specs/` and join this flow
+- "Skip the spec and jump straight to implementation" → **stop**. Going through `/spec` → `/plan` → `/tasks` prevents leftover Open Questions and missed Unlearned Actions. Even a one-line `/spec` is fine; tighten it in clarification mode
+- "Move to `/plan` while Open Questions remain" → **stop**. Resolve them first via `/spec <project>/<NNN>-<slug>` (clarification mode), then `/plan`. `/plan` halts when it detects unresolved questions
+- "Just write DESIGN.md and call it done" → **stop**. The DESIGN.md format is retired. Start from `/spec`. If there is an existing DESIGN.md, convert it with `/spec migrate` to `specs/` and join this flow
 - "It's a new connector but let me just try implementing it" → OK, but record it in **plan.md's Unlearned Actions and tasks.md's `[learn]` task**, and run `/learn-recipe` afterward (it tidies automatically)

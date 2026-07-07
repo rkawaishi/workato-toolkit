@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 Map the requirements in `spec.md` into **Workato configuration** and generate `plan.md`.
 
-In the spec-driven workflow this runs after `/spec` → `/clarify`. It only decides "how to build this in Workato". Splitting the work into executable tasks is `/tasks`'s responsibility.
+In the spec-driven workflow this runs after `/spec` (including its clarification mode). It only decides "how to build this in Workato". Splitting the work into executable tasks is `/tasks`'s responsibility.
 
 ## Usage
 
@@ -18,12 +18,12 @@ In the spec-driven workflow this runs after `/spec` → `/clarify`. It only deci
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                    ↑
-                 you are here
+/spec → /plan → /tasks → /analyze → /implement
+          ↑
+       you are here
 ```
 
-Assumes `/clarify` has cleared every Open Question. If any remain unresolved, abort and ask the user to run `/clarify` first.
+Assumes `/spec` (clarification mode) has cleared every Open Question. If any remain unresolved, abort and ask the user to re-run `/spec <project>/<NNN>-<slug>` to resolve them first.
 
 ## Procedure
 
@@ -32,7 +32,7 @@ Assumes `/clarify` has cleared every Open Question. If any remain unresolved, ab
 - Read `projects/<project>/specs/<NNN>-<slug>/spec.md`.
 - If `## Open Questions` still has unchecked items, abort:
   ```
-  <N> Open Questions are unresolved. Run /clarify <project>/<NNN>-<slug> first.
+  <N> Open Questions are unresolved. Run /spec <project>/<NNN>-<slug> first to resolve them.
   ```
 - If `plan.md` already exists, switch to **update mode** (respect existing content; only append diffs).
 
@@ -148,7 +148,7 @@ Next, run /tasks <project>/<NNN>-<slug> to break this down into executable tasks
 ## New Components
 
 ### Data Tables
-- **<table>** (`<project>/Data Tables/<file>.data_table.json`):
+- **<table>** (`<project>/Data Tables/<file>.workato_db_table.json`):
   - Fields: `<field1>` (string), `<field2>` (datetime), ...
   - Primary key / indexes: <definition>
 
@@ -161,7 +161,7 @@ Next, run /tasks <project>/<NNN>-<slug> to break this down into executable tasks
 - **<main recipe>** (`<project>/Recipes/<file>.recipe.json`):
   - Trigger: <provider/event>
   - Flow: <step summary>
-- **<Recipe Function>**:
+- **<Recipe Function>** (`<project>/Recipes/fnc_<name>.recipe.json` — the `fnc_` filename prefix comes from the workato-project-structure rule):
   - Purpose: <reusable logic>
   - Input / output: <schema summary>
 - **<handler recipe>** (Slack buttons, etc.):
@@ -209,10 +209,10 @@ draft → submitted → approved → completed
 
 ## Rules to follow
 
-- **Do not work while spec Open Questions remain**: always finish `/clarify` first.
+- **Do not work while spec Open Questions remain**: always resolve them via `/spec` (clarification mode) first.
 - **Do not skip the CATALOG / pattern lookup**: otherwise you miss reuse opportunities.
 - **Always declare Unlearned Actions**: surface gaps now so the downstream `[learn]` task closes them.
-- **Do not rewrite spec.md's body**: do not let technical terms leak back into spec. If the requirement needs changing, fix it on the requirements side via `/clarify`.
+- **Do not rewrite spec.md's body**: do not let technical terms leak back into spec. If the requirement needs changing, fix it on the requirements side by re-running `/spec <project>/<NNN>-<slug>`.
 
 ## Git management
 

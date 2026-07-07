@@ -65,7 +65,7 @@ projects:
 
 | Scope | Catalog listing | LLM references |
 |---|---|---|
-| `global` | All assets | `/workato-create recipe` and `/design` suggest as shared assets |
+| `global` | All assets | `/workato-create recipe` and `/plan` suggest as shared assets |
 | `team:<name>` | All assets (with team name) | Same as above (suggested with team info) |
 | `private` | **Not listed** | LLM does not access via the catalog |
 

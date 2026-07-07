@@ -105,7 +105,7 @@ Claude will interview you on:
 From the interview, `projects/<project>/specs/001-<slug>/spec.md` (requirements, WHAT/WHY) is generated, and any open points are recorded under `## Open Questions`. Then:
 
 ```
-You: /clarify <project>/001-<slug>   # Resolve Open Questions
+You: /spec <project>/001-<slug>      # Resolve Open Questions (clarification mode; runs automatically after creation)
 You: /plan <project>/001-<slug>      # Workato design (plan.md)
 You: /tasks <project>/001-<slug>     # Execution tasks (tasks.md)
 You: /analyze <project>/001-<slug>   # Consistency check across spec ↔ plan ↔ tasks
@@ -179,7 +179,7 @@ It lives directly inside the workspace repository. Manage it normally with `git 
 
 No, as long as each project's `.workatoignore` lists `specs/`. The `/spec` command sets this up automatically on first run.
 
-> Projects still using the legacy `DESIGN.md` can be converted to `specs/` via `/design migrate <project>`. `/design new` has been retired.
+> Projects still using the legacy `DESIGN.md` can be converted to `specs/` via `/spec migrate <project>`.
 
 ### Q: Can I use this with other editors?
 

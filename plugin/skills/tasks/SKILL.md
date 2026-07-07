@@ -17,9 +17,9 @@ This sits after `/plan` in the spec-driven workflow. Explicit tags and dependenc
 ## Workflow
 
 ```
-/spec → /clarify → /plan → /tasks → /analyze → /implement
-                            ↑
-                         you are here
+/spec → /plan → /tasks → /analyze → /implement
+                  ↑
+               you are here
 ```
 
 ## Procedure
@@ -41,9 +41,9 @@ For each section of `plan.md`, cut tasks out and apply a **kind tag** and a **pa
 | `[connector]` | `/workato-create connector` | Implement a custom connector |
 | `[data-table]` | `/workato-create workflow-app` | Create a Data Table schema |
 | `[page]` | `/workato-create workflow-app` | Create a Workflow App page |
-| `[recipe]` | `/workato-create recipe` | Generate a recipe JSON |
-| `[function]` | `/workato-create recipe` | Generate a Recipe Function |
-| `[handler]` | `/workato-create recipe` | Handler recipe (Slack buttons, etc.) |
+| `[recipe]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Generate a recipe JSON |
+| `[function]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Generate a Recipe Function |
+| `[handler]` | `/workato-create recipe` (dispatched to the `workato-builder` subagent by `/implement`) | Handler recipe (Slack buttons, etc.) |
 | `[mcp]` | `/workato-create mcp-server` | MCP server / Genie / skill |
 | `[validate]` | `/validate-recipe` | Validate JSON structure |
 | `[push]` | `/push-project` | Deploy to Workato |

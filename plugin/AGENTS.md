@@ -553,7 +553,7 @@ Writes to `connectors/<name>/connector.rb` and stores `connector_id` in `connect
   - Pull overwrites and can delete local files — treat both as silent and
     unrecoverable; commit or stash before pulling.
   - Commit or stash any uncommitted edits before pulling.
-- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); the skills that need it (`/setup-workspace`, `/pull-project`, `/spec`, `/design`) place it automatically. Add any further project-specific exclusions to that file.
+- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); the skills that need it (`/setup-workspace`, `/pull-project`, `/spec`) place it automatically. Add any further project-specific exclusions to that file.
 
 #### Running `workato init` against an existing directory
 
