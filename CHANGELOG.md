@@ -25,6 +25,12 @@ see issue #10 / P6 Phase A).
 - Development: dev-session bootstrap (#24), CI lint jobs + release version
   gate + this changelog (#25).
 
+### Fixed
+- docs-overlay MCP server failed to start whenever the workspace (or this
+  repo) contains a `pyproject.toml` — `uv run` tried to adopt it as the
+  project. Both `.mcp.json` launch definitions now pass `--no-project`.
+  (Found by the self-install smoke, #28.)
+
 ### Notes
 - Claude Code is the only supported editor; Cursor / Codex / Gemini assets
   are frozen in-tree.

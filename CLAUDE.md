@@ -79,8 +79,10 @@ prior to 2026-07), regenerate, and verify on the real editor before advertising 
 - Dev MCP: the root `.mcp.json` starts the docs-overlay server (`workato-docs-dev`)
   from `plugin/mcp/docs-overlay/server.py`, so a dev session can call
   `workato_docs_lookup` directly.
-- Self-install smoke: `claude plugin marketplace add <repo-path>` →
-  `claude plugin install workato-toolkit@workato-toolkit`; verify the `ping` skill,
-  SessionStart rule injection, a docs lookup, and the credential guard. Clean up with
-  `claude plugin uninstall` / `claude plugin marketplace remove`.
+- Self-install smoke: run `bash scripts/self-install-smoke.sh` — it covers the
+  structural preflight and the CLI install cycle automatically, then prints the
+  manual checklist (ping / SessionStart injection / docs lookup / credential
+  guard / builder-subagent probe). Record the results in
+  `dev/verifications/YYYY-MM-DD-<topic>.md` (convention in
+  `dev/verifications/README.md`).
 - Tests: `python3 -m pytest tests/ -q`.
