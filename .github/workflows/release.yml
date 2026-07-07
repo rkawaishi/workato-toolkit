@@ -21,6 +21,19 @@ jobs:
       - name: Install test deps
         run: pip install -r requirements-dev.txt
 
+      - name: Verify tag matches plugin manifest version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest="$(python3 -c "import json; print(json.load(open('plugin/.claude-plugin/plugin.json'))['version'])")"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::tag v${tag} does not match plugin.json version ${manifest} — bump plugin/.claude-plugin/plugin.json before tagging"
+            exit 1
+          fi
+          if ! grep -q "^## \[${tag}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [${tag}]' section — move the [Unreleased] content under a versioned heading before tagging"
+            exit 1
+          fi
+
       - name: Verify generated file is in sync and frozen paths untouched
         run: |
           python3 scripts/sync_derived.py
