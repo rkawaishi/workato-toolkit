@@ -141,3 +141,35 @@ def test_list_docs_posix_paths(tmp_path):
     paths = overlay.list_docs(kit, org, "")
     assert all("\\" not in p for p in paths)
     assert "connectors/slack.md" in paths
+
+
+def test_section_ignores_fenced_code_hashes(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "sdk.md").write_text(
+        "# Doc\n## Upload\nintro\n```bash\n# Push: create new\ncmd --x\n```\ntail\n## Next\nn\n",
+        encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/sdk.md", section="Upload")
+    assert "cmd --x" in out and "tail" in out, "fence comment must not end the section"
+    assert "## Next" not in out
+    miss = overlay.resolve_doc(kit, org, "connectors/sdk.md", section="Zzz")
+    assert "Push: create new" not in miss, "fence comments must not appear as headings"
+
+
+def test_section_header_honest_when_one_side_lacks_it(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "jira.md").write_text("# Jira\n## Triggers\nt\n", encoding="utf-8")
+    (org / "connectors" / "jira.md").write_text("## Actions\norg act\n", encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/jira.md", section="Actions")
+    assert "org act" in out
+    assert "no kit baseline" not in out, "kit doc exists — must not claim org-only doc"
+    assert "kit doc has no matching section" in out
+
+
+def test_search_cap_cannot_starve_org_hits(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "big.md").write_text("pagination\n" * 200, encoding="utf-8")
+    (org / "connectors" / "ours.md").write_text("org pagination guidance\n", encoding="utf-8")
+    hits = overlay.search_docs(kit, org, "pagination")
+    assert any("org/docs/connectors/ours.md" in h for h in hits), (
+        "org (authoritative) hits must survive the result cap"
+    )

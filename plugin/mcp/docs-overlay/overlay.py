@@ -26,26 +26,40 @@ def _read(base: Optional[Path], rel: str) -> Optional[str]:
     return None
 
 
+def _heading_lines(text: str) -> list:
+    """(line_index, level, title) for every real markdown heading — lines
+    starting with '#' INSIDE fenced code blocks (bash comments etc.) are not
+    headings and must not terminate sections or pollute heading lists."""
+    out, in_fence = [], False
+    for i, ln in enumerate(text.splitlines()):
+        stripped = ln.lstrip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            continue
+        if not in_fence and ln.startswith("#"):
+            out.append((i, len(ln) - len(ln.lstrip("#")), ln.lstrip("#").strip()))
+    return out
+
+
 def _headings(text: str) -> list:
-    return [ln.lstrip("#").strip() for ln in text.splitlines()
-            if ln.startswith("#")]
+    return [title for _, _, title in _heading_lines(text)]
 
 
 def _extract_section(text: str, section: str) -> Optional[str]:
     """Return the block from the heading matching `section` (case-insensitive
     substring) up to the next heading of the same or higher level."""
     lines = text.splitlines()
+    headings = _heading_lines(text)
     start = level = None
-    for i, ln in enumerate(lines):
-        if ln.startswith("#") and section.lower() in ln.lstrip("#").strip().lower():
-            start, level = i, len(ln) - len(ln.lstrip("#"))
+    for i, lvl, title in headings:
+        if section.lower() in title.lower():
+            start, level = i, lvl
             break
     if start is None:
         return None
     end = len(lines)
-    for j in range(start + 1, len(lines)):
-        ln = lines[j]
-        if ln.startswith("#") and (len(ln) - len(ln.lstrip("#"))) <= level:
+    for j, lvl, _ in headings:
+        if j > start and lvl <= level:
             end = j
             break
     return "\n".join(lines[start:end]).rstrip() + "\n"
@@ -82,6 +96,18 @@ def resolve_doc(
             return (
                 f"SECTION NOT FOUND: {section!r} in {norm}. "
                 f"Available headings: {', '.join(available) or '(none)'}"
+            )
+        # A doc can exist yet lack the section — say so instead of the
+        # misleading 'org-only / kit-only' framing of the whole-doc branches.
+        if org_sec is not None and kit_sec is None and kit_text is not None:
+            return (
+                f"# {norm} § {section} (org overlay only — the kit doc has no "
+                f"matching section)\n\n{org_sec}\n"
+            )
+        if kit_sec is not None and org_sec is None and org_text is not None:
+            return (
+                f"# {norm} § {section} (kit only — the org overlay has no "
+                f"matching section)\n\n{kit_sec}\n"
             )
         kit_text, org_text = kit_sec, org_sec
 
@@ -124,7 +150,9 @@ def search_docs(
     """
     q = query.lower()
     hits = []
-    for base, label in ((kit_dir, ""), (org_dir, "org/docs/")):
+    # org first: the overlay is authoritative, so the result cap must never
+    # starve org hits in favor of kit ones.
+    for base, label in ((org_dir, "org/docs/"), (kit_dir, "")):
         if base is None or not base.is_dir():
             continue
         for p in sorted(base.rglob("*.md")):
