@@ -507,19 +507,25 @@ def test_inspect_env_contains_no_write_commands():
     assert not offenders, "write commands in inspect-env:\n" + "\n".join(offenders)
 
 
-def test_inspect_env_profile_flag_precedes_subcommand():
+def test_profile_flag_precedes_subcommand_everywhere():
     """ヘルパーの --profile はルートパーサ専用 — サブコマンド後置は argparse に
-    拒否される。本文の全コマンド行で --profile が subcommand より前に来ること。"""
-    text = _inspect_env_text()
-    for i, line in enumerate(text.splitlines(), 1):
-        if "workato-api.py" not in line or "--profile" not in line:
-            continue
-        after_helper = line.split("workato-api.py", 1)[1]
-        first_word = after_helper.strip().split()[0]
-        assert first_word == "--profile", (
-            f"line {i}: --profile must directly follow workato-api.py "
-            f"(global flag), got: {line.strip()}"
-        )
+    拒否される（実機確認済み）。plugin 配下の全 .md とヘルパー自身の help 文で、
+    --profile を含むコマンド行は workato-api.py 直後に置くこと。"""
+    from conftest import PLUGIN
+    targets = sorted(PLUGIN.rglob("*.md")) + [PLUGIN / "scripts" / "workato-api.py"]
+    offenders = []
+    for p in targets:
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if "workato-api.py" not in line or "--profile" not in line:
+                continue
+            after_helper = line.split("workato-api.py", 1)[1]
+            words = after_helper.strip().split()
+            if not words or words[0] != "--profile":
+                offenders.append(f"{p.relative_to(PLUGIN)}:{i}: {line.strip()}")
+    assert not offenders, (
+        "--profile placed after the subcommand (argparse rejects it):\n"
+        + "\n".join(offenders)
+    )
 
 
 def test_inspect_env_diffs_via_scratch_pull():
@@ -569,3 +575,81 @@ def test_inspect_env_prod_reclaim_and_consent():
     assert re.search(r"rerun|re-run", text, re.IGNORECASE)
     assert re.search(r"idempoten|double-process", text, re.IGNORECASE)
     assert re.search(r"explicit consent|explicitly agree", text, re.IGNORECASE)
+
+
+# ---- 実装順 5: 既存スキル改修 (operations-lifecycle spec §4 既存の変更) ----
+
+def test_push_project_has_trigger_injection_matrix():
+    """S5-1: --test はトリガー型別の投入マトリクスを持つ（webhook / polling /
+    schedule / Workflow App / MCP・Genie / Data Table / API endpoint + その他）。"""
+    text = (SKILLS / "push-project" / "SKILL.md").read_text(encoding="utf-8")
+    for token in ("webhook", "polling", "schedule", "Workflow App",
+                  "Data Table", "API endpoint"):
+        assert re.search(token, text, re.IGNORECASE), f"injection matrix lacks {token!r}"
+    assert "/diagnose-jobs" in text, "failures route to the diagnose loop"
+
+
+def test_push_project_table_seed_and_cleanup():
+    """S5-4: テーブル依存レシピはシード→発火→検証→掃除。掃除はループ終了時、
+    Truncate は使わない。"""
+    text = (SKILLS / "push-project" / "SKILL.md").read_text(encoding="utf-8")
+    assert re.search(r"clean\s?up|cleanup", text, re.IGNORECASE), "cleanup step missing"
+    assert "Truncate" in text, "the no-Truncate rule must be stated"
+
+
+def test_push_project_defers_start_to_run_recipes():
+    """§4: 起動系の記述は /run-recipes への参照に置換（重複を持たない）—
+    raw CLI の recipes start/stop を手順として残さない。"""
+    text = (SKILLS / "push-project" / "SKILL.md").read_text(encoding="utf-8")
+    assert "/run-recipes" in text
+    offenders = [
+        line.strip() for line in text.splitlines()
+        if re.search(r"\bworkato recipes (start|stop)\b", line)
+    ]
+    assert not offenders, "raw CLI start/stop remains:\n" + "\n".join(offenders)
+
+
+def test_deploy_project_rollback_and_hotfix():
+    """S8-3/S8-4: ロールバック checklist（git がリリース台帳・commit 漏れ時の
+    リカバリ・packages import は dev 復元限定）と hotfix 注記（緊急時も
+    チェックリストを省略しない）。"""
+    text = (SKILLS / "deploy-project" / "SKILL.md").read_text(encoding="utf-8")
+    assert re.search(r"^#+ .*[Rr]ollback", text, re.MULTILINE), "rollback section missing"
+    assert re.search(r"git .*ledger|release ledger", text, re.IGNORECASE), \
+        "the git-is-the-release-ledger premise must be stated"
+    assert "hotfix" in text.lower(), "hotfix note missing"
+    assert re.search(r"do not skip|never skip|same checklist", text, re.IGNORECASE), \
+        "emergencies run the same checklist"
+
+
+def test_deploy_project_generates_named_seed_lists():
+    """S8-5/S8-6: チェックリストの properties・テーブル項目は「〜しましたか」の
+    一言でなく、名前つきの設定/シードリストを生成して人間に渡す。"""
+    text = (SKILLS / "deploy-project" / "SKILL.md").read_text(encoding="utf-8")
+    assert "properties list" in text, \
+        "generate the properties list from dev (workato properties list)"
+    assert re.search(r"seed(ing)? list", text, re.IGNORECASE), "named seed list missing"
+    assert re.search(r"master|accumulat|env(ironment)?-dependent", text, re.IGNORECASE), \
+        "seed requirements must distinguish master / accumulating / env-dependent rows"
+
+
+def test_workato_create_properties_convention():
+    """S8-5: 生成リファレンスは環境依存値のハードコードを禁じ、Environment
+    properties 参照 + dev 値の設定（properties set）まで含める。"""
+    text = (SKILLS / "workato-create" / "references" / "recipe.md").read_text(encoding="utf-8")
+    assert re.search(r"hardcode|hard-code", text, re.IGNORECASE)
+    assert "Environment properties" in text
+    assert "properties set" in text
+
+
+def test_api_clients_matrix_covers_lookup_tables_and_reads():
+    """S5-4/S8-6/S8-2: 権限マトリクスに Lookup Tables 行（書込は dev のみ）と、
+    テーブル/connections/activity log の読取行がある。ReadOnly ロール定義にも
+    読取が現れる。"""
+    from conftest import DOCS
+    text = (DOCS / "platform" / "developer-api-clients.md").read_text(encoding="utf-8")
+    assert "Lookup Tables" in text, \
+        "matrix must carry a Lookup Tables row — a ReadOnly role without it lets table writes through"
+    assert re.search(r"[Tt]ables read", text), "table read row missing"
+    assert re.search(r"Connections read", text), "connections read row missing"
+    assert re.search(r"[Aa]ctivity log", text), "activity log read row missing"
