@@ -31,7 +31,7 @@ Recommended (not required): `/analyze` reports 0 BLOCKERS before running `/imple
 The tag registry lives in `/tasks`' table (the kind-tag → owning-skill registry is single-sourced there). `/implement` owns only the execution specifics:
 
 - **`[recipe]` / `[function]` / `[handler]`** — dispatched directly to the `workato-builder` subagent with the finalized design from `plan.md` (details in Step 4c; fallback: `/workato-create recipe`).
-- **`[connector]` / `[data-table]` / `[page]` / `[mcp]`** — invoke the owning `/workato-create` subcommand from the registry (`connector`, `workflow-app`, `workflow-app`, `mcp-server` respectively). Standalone `[connection]` tasks are manual or template-generated; connections created alongside a recipe are handled inside `/workato-create recipe`.
+- **`[connector]` / `[data-table]` / `[page]` / `[genie]` / `[mcp]`** — invoke the owning `/workato-create` subcommand from the registry (`connector`, `workflow-app`, `workflow-app`, `genie`, `mcp-server` respectively). Standalone `[connection]` tasks are manual or template-generated; connections created alongside a recipe are handled inside `/workato-create recipe`.
 - **`[validate]` / `[push]` / `[pull]` / `[learn]` / `[learn-pattern]`** — dispatch to their slash skills: `/validate-recipe`, `/push-project`, `/pull-project`, `/learn-recipe`, `/learn-pattern`.
 - **`[manual]` / `[test]`** — user actions: tell the user what to do (or the test scenarios) and wait for their confirmation (see "Handling `[manual]` / `[test]`" below).
 

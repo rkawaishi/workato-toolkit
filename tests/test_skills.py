@@ -285,6 +285,7 @@ def test_no_references_to_retired_sdd_skills():
         list(SKILLS.rglob("*.md"))
         + list((SKILLS.parent / "docs").rglob("*.md"))
         + list((SKILLS.parent / "rules").glob("*.md"))
+        + list((SKILLS.parent / "templates").glob("*"))  # templates ship too
         + [SKILLS.parent / "agents" / "workato-builder.md"]
     )
     for p in scan:
