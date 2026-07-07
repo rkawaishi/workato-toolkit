@@ -65,6 +65,12 @@ prior to 2026-07), regenerate, and verify on the real editor before advertising 
 - Design specs → `dev/specs/` · implementation plans → `dev/plans/` · session
   handovers → `dev/handovers/`. These locations override any skill defaults
   (e.g. `docs/superpowers/...`).
+- **Lifecycle**: every plan/spec carries `status:` frontmatter
+  (draft/active/done/superseded) — conventions, the issue-vs-spec split, and
+  the doc index live in `dev/README.md`. On completing a plan, append the
+  verification results to the plan itself, then flip its status to done.
+- **Handover**: write one to `dev/handovers/` whenever a session ends with
+  unmerged work or an in-flight plan; optional when everything landed clean.
 - Never put development docs under `plugin/docs/` — that tree is product content served
   to users through the docs-overlay MCP.
 

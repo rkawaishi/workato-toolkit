@@ -1,3 +1,7 @@
+---
+status: done
+---
+
 # workato-toolkit: plugin/extension 配布への移行 設計 (spec)
 
 - 日付: 2026-06-07

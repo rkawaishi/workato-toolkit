@@ -20,4 +20,5 @@ matches; shared path constants live in `conftest.py`.
 | `test_derived_sync.py` | `sync_derived.py` generation, idempotence, freeze scope |
 | `test_guards_stale_tokens.py` | cross-tree stale-token sweeps over user-facing docs (legacy distribution wording, README install surface) |
 | `test_dev_env.py` | dev-session bootstrap, CI workflow shape (lint jobs, release gates) |
+| `test_dev_docs.py` | dev/ document lifecycle (status frontmatter, index, conventions) |
 | `helper/` | unit tests for `plugin/scripts/workato-api.py` |

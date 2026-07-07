@@ -1,7 +1,10 @@
+---
+status: done
+---
+
 # Workato サービス連携スキルの完備 — 設計書
 
-Status: Draft (自律セッションで作成 — ユーザレビュー待ち)
-Date: 2026-07-06
+Date: 2026-07-06 (status is tracked in the frontmatter; implemented via PR #9)
 Scope: workato-toolkit プラグイン本体（このリポジトリ）
 
 ## 1. 背景と目的
