@@ -87,16 +87,16 @@ def test_credential_guard_matrix(tool_name, tool_input, expected, why):
 # validate-before-push behavior (issue #28): fixture project driven via
 # CLAUDE_PROJECT_DIR; the workato-CLI validation step degrades gracefully
 # when the CLI is absent, so these cover the hook's own checks.
-def _project_fixture(tmp_path, recipe_json):
+def _project_fixture(tmp_path, recipe_json, filename="a.recipe.json"):
     proj = tmp_path / "projects" / "p1"
     proj.mkdir(parents=True)
     (proj / ".workatoenv").write_text("project_id=1\n", encoding="utf-8")
-    (proj / "bad.recipe.json").write_text(recipe_json, encoding="utf-8")
+    (proj / filename).write_text(recipe_json, encoding="utf-8")
     return tmp_path
 
 
 def test_validate_hook_blocks_broken_recipe_json(tmp_path):
-    ws = _project_fixture(tmp_path, "{broken")
+    ws = _project_fixture(tmp_path, "{broken", filename="broken.recipe.json")
     r = _run_hook("validate-before-push.sh",
                   {"tool_input": {"command": "workato push"}},
                   env={"CLAUDE_PROJECT_DIR": str(ws)})

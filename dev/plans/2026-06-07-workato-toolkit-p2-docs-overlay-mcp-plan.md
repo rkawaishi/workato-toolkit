@@ -329,7 +329,8 @@ if __name__ == "__main__":
 Run:
 ```bash
 cd /Users/ryotaro/workspace/workato-toolkit
-uv run --with fastmcp python -c "import sys; sys.path.insert(0,'mcp/docs-overlay'); import server; print('OK', server.KIT_DOCS)"
+uv run --no-project --with fastmcp python -c "import sys; sys.path.insert(0,'mcp/docs-overlay'); import server; print('OK', server.KIT_DOCS)"
+# (--no-project added 2026-07-07: without it uv adopts any ambient pyproject.toml and fails — see issue #28)
 ```
 Expected: `OK .../workato-toolkit/docs` と表示(FastMCP が `uv` 経由で解決され、import が通る)。失敗時は BLOCKED 報告。
 

@@ -66,14 +66,22 @@ else
 fi
 
 echo ""
-echo "== 2. Claude Code CLI install cycle =="
+echo "== 2. Claude Code CLI install cycle (installs, verifies, then removes) =="
 if command -v claude >/dev/null 2>&1; then
+  # Pre-clean so a previous aborted run doesn't turn 'add' into a spurious FAIL.
+  claude plugin uninstall workato-toolkit >/dev/null 2>&1 || true
+  claude plugin marketplace remove workato-toolkit >/dev/null 2>&1 || true
+
   claude plugin marketplace add "$REPO_ROOT" >/dev/null 2>&1
   report "claude plugin marketplace add (local path)" $?
   claude plugin install workato-toolkit@workato-toolkit >/dev/null 2>&1
   report "claude plugin install workato-toolkit@workato-toolkit" $?
-  echo "  (cleanup: claude plugin uninstall workato-toolkit;"
-  echo "            claude plugin marketplace remove workato-toolkit)"
+
+  # Always clean up — the smoke must not leave the plugin installed on the host.
+  claude plugin uninstall workato-toolkit >/dev/null 2>&1
+  report "cleanup: plugin uninstalled" $?
+  claude plugin marketplace remove workato-toolkit >/dev/null 2>&1
+  report "cleanup: marketplace removed" $?
 else
   echo "  SKIP  claude CLI not on PATH — run this section on a machine with Claude Code"
 fi
