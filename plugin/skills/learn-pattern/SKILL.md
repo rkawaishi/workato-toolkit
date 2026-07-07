@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 A Workato expert records construction patterns into **`org/docs/patterns/recipe-patterns/`**.
 The goal is to document know-how the expert already has. A reference recipe can be supplied as optional source material.
 
-The write target is a single location in the org knowledge layer (the plugin's bundled `docs/` is read-only and left alone). See the `org-knowledge-overlay` rule (always-on).
+Write destinations, dedup, and git conventions: follow the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 
@@ -56,7 +56,6 @@ If a reference recipe is supplied, read the `.recipe.json` and summarize its str
 Document the expert's know-how.
 
 The write target is unified at **`org/docs/patterns/recipe-patterns/<pattern-name>.md`**.
-Create the directory with `mkdir -p org/docs/patterns/recipe-patterns/` if it doesn't exist.
 
 #### Template for a new pattern
 
@@ -133,13 +132,7 @@ The most important thing is that the expert's know-how is captured accurately.
 
 ## Where things accumulate
 
-The single write target is `org/docs/patterns/recipe-patterns/`. The generic / org-domain distinction is captured in the pattern's "Scope" section (not by path).
-
-**Do not write to**:
-- The kit's bundled recipe-patterns catalog (kit canonical, read-only — fetch via `workato_docs_lookup("patterns/recipe-patterns/...")`, never writable from a project).
-- `projects/docs/patterns/` (legacy; existing files are read-only. New writes consolidate into the org side).
-
-When valuable generic patterns accumulate for potential upstreaming, open a separate PR against the `workato-toolkit` repository (out of scope here).
+The single write target is `org/docs/patterns/recipe-patterns/`; the generic / org-domain distinction lives in the pattern's "Scope" section (not by path). For the read-only kit catalog, the legacy `projects/docs/patterns/`, and upstreaming: see the `org-knowledge-overlay` rule (always-on).
 
 ## Output
 
@@ -150,12 +143,4 @@ After completion, report:
 
 ## Git management
 
-The write target is in the workspace repository's `org/docs/patterns/recipe-patterns/`:
-
-```bash
-cd <workspace-root>
-git add org/docs/patterns/recipe-patterns/
-git commit -m "docs(org): record pattern <pattern-name>"
-```
-
-**Never write to the plugin's bundled `docs/` — it is read-only.**
+Follow the `org-knowledge-overlay` rule (always-on) — commit `org/docs/patterns/recipe-patterns/` in the workspace repository.

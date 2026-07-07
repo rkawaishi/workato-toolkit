@@ -5,7 +5,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, mcp__Claude_in_Chr
 
 # /auto-learn
 
-Drive the Workato UI through Claude in Chrome and actively collect input / output fields for every operation (trigger / action) of the target connector, then append the results to the workspace `org/docs/connectors/<provider>.md`. (The kit's bundled `docs/` is read-only; read it for the skip-check via `workato_docs_lookup`, but never write there.)
+Drive the Workato UI through Claude in Chrome and actively collect input / output fields for every operation (trigger / action) of the target connector, then append the results to the workspace `org/docs/connectors/<provider>.md`. Write destinations, dedup, and git conventions: follow the `org-knowledge-overlay` rule (always-on).
 
 ## Prerequisites
 
@@ -153,7 +153,7 @@ Inside `processOperation`:
 
 ### Phase 4: Append to docs
 
-In the workspace `org/docs/connectors/<provider>.md` (create the directory with `mkdir -p org/docs/connectors` on first write), append each op's result to the `## Action details` / `## Trigger details` sections:
+In the workspace `org/docs/connectors/<provider>.md`, append each op's result to the `## Action details` / `## Trigger details` sections:
 
 ```markdown
 ### <op_name> (<Display Title>)
@@ -378,15 +378,7 @@ When the user asks for "give me follow-ups" / "list the skipped ops" / "tell me 
 
 ## Git management
 
-The write target is the workspace `org/docs/connectors/<provider>.md` (the plugin's bundled `docs/` is read-only). The skill itself does not commit (the user decides at the end):
-
-```bash
-cd <workspace-root>
-git add org/docs/connectors/<provider>.md
-git commit -m "auto-learn: <provider> N op (M ok / K failed)"
-```
-
-To upstream broadly-useful spec into the kit canonical docs, open a separate PR against the `workato-toolkit` repository.
+Follow the `org-knowledge-overlay` rule (always-on). The skill itself never commits — the user decides at the end (suggested message: `auto-learn: <provider> N op (M ok / K failed)`).
 
 ## Related skills / docs
 

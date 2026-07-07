@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 Analyze recipe JSON and append every finding directly into the **organization knowledge layer `org/docs/`**.
 We don't accumulate findings in an intermediate file — we grow each doc directly.
 
-All writes target `org/docs/<relative-path>`; the kit's `docs/` is left alone. See the `org-knowledge-overlay` rule (always-on).
+Write destinations, dedup, and git conventions: follow the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 
@@ -16,9 +16,9 @@ All writes target `org/docs/<relative-path>`; the kit's `docs/` is left alone. S
 - `/learn-recipe <project-name>` — analyze every recipe in a project
 - `/learn-recipe` — analyze every recipe across every project
 
-## What we learn and where it goes
+## What we learn
 
-Every write target is `org/docs/<relative-path>`. First call `workato_docs_lookup` with path `<relative-path>` (it returns the kit doc merged with any existing org overlay) and **skip** anything already documented there (only write differences, corrections, and org-specific additions).
+Where each finding goes is defined by the destination table in the `org-knowledge-overlay` rule (always-on).
 
 ### 1. Field info (most important)
 
@@ -32,8 +32,6 @@ Sources:
 - `result_schema_json` — Genie / Function result (JSON string)
 - `input.input.schema` — Custom Action request schema
 - `input.output` — Custom Action response schema
-
-**Destination**: the matching action / trigger section of `org/docs/connectors/<provider>.md`.
 
 Format:
 ```markdown
@@ -55,35 +53,21 @@ Format:
 
 When you find an unknown `provider`/`name` combination in a recipe (i.e. an action that doesn't appear in `workato_docs_lookup("connectors/<provider>.md")`).
 
-**Destination**:
-- Pre-built connectors → the trigger / action list table in `org/docs/connectors/<provider>.md`.
-- Workato-internal providers → `org/docs/platform/workflow-apps.md` or `org/docs/platform/agent-studio.md`.
-
 ### 3. JSON-structure findings
 
-New discoveries about recipe JSON structure (new keywords, unknown fields, unusual constructs, etc.) — anything observed within the org's recipes. Accumulate them in `org/docs/`.
-
-**Destination**:
-- General recipe-structure findings → `org/docs/learned-patterns.md` (file general findings you'd like to upstream to the kit later here).
-- Logic (if / loop / error) → the relevant file under `org/docs/logic/`.
+New discoveries about recipe JSON structure (new keywords, unknown fields, unusual constructs, etc.) — anything observed within the org's recipes.
 
 ### 4. Datapill patterns
 
 New datapill notations or reference patterns.
 
-**Destination**: `org/docs/logic/data-pills.md`.
-
 ### 5. Deploy-related findings
 
 New behavior observed on push/pull (field reset, schema expansion, version change, etc.).
 
-**Destination**: `org/docs/patterns/deployment-guide.md`.
-
 ### 6. Findings that don't fit elsewhere
 
 Anything that doesn't match the categories above.
-
-**Destination**: `org/docs/learned-patterns.md` (temporary holding; move to the right file later).
 
 ## Analysis procedure
 
@@ -93,19 +77,7 @@ Anything that doesn't match the categories above.
    a. Check whether `provider` and `name` are known (call `workato_docs_lookup` with path `connectors/<provider>.md` — it returns kit + org merged).
    b. If `extended_output_schema` / `extended_input_schema` is present, extract the field info.
    c. Record any new structural patterns.
-4. If the destination directory under `org/docs/<...>` doesn't exist, create it with `mkdir -p`.
-5. Read the destination file and check for duplicates.
-6. Call `workato_docs_lookup` with path `<relative-path>` too; if the info is already there, **do not write it**.
-7. Append only the new findings.
-
-## Duplicate check
-
-Before writing, compare against what already exists:
-- The destination `org/docs/<path>.md` (read it directly — it is in the workspace repo).
-- The kit canonical doc, via `workato_docs_lookup("<path>")` (it returns the bundled kit doc merged with any org overlay).
-
-- The kit already has field info for the same action → add only the diff (org-specific fields or corrections).
-- The same rule already exists → skip.
+4. Apply the dedup procedure from the `org-knowledge-overlay` rule (always-on), then append only the new findings.
 
 ## Output
 
@@ -149,12 +121,4 @@ Features still carrying unfinished Unlearned Actions:
 
 ## Git management
 
-Writes happen in the workspace repository, under `org/docs/` and `projects/<name>/specs/`:
-
-```bash
-cd <workspace-root>
-git add org/docs/ projects/<name>/specs/
-git commit -m "docs(org): learn from <project-name> recipes"
-```
-
-**Never write to the plugin's bundled `docs/` — it is read-only.** When you accumulate general findings worth upstreaming into the kit, open a separate PR against the `workato-toolkit` repository.
+Follow the `org-knowledge-overlay` rule (always-on). This skill additionally touches `projects/<name>/specs/` (Unlearned-Actions reconciliation) — include it in the same commit (`git add org/docs/ projects/<name>/specs/`).
