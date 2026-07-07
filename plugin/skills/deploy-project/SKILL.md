@@ -49,7 +49,9 @@ python3 scripts/workato-api.py deploy preview --to test   # folder_id from .work
 ```
 
 Show the user what the manifest would contain (recipes and assets in the resolved
-folder). For a test → prod preview, pass `--profile <org>-test`.
+folder). For a test → prod preview, pass `--profile <org>-test` **before the
+subcommand** (`workato-api.py --profile <org>-test deploy preview --to prod` —
+`--profile` is a global flag; placed after the subcommand it is rejected).
 
 ### 2. Pre-promotion checklist (print every time)
 
@@ -69,8 +71,9 @@ The manifest carries code, not runtime state. Confirm with the user, per
 python3 scripts/workato-api.py deploy run --to test --wait --description "<release note>"
 
 # test → prod (test profile + human sign-off; approval stays in the UI)
-python3 scripts/workato-api.py deploy run --to prod --yes --wait \
-    --profile <org>-test --description "<release note>"
+# NOTE: --profile is a GLOBAL flag — it must come before the subcommand.
+python3 scripts/workato-api.py --profile <org>-test deploy run --to prod --yes --wait \
+    --description "<release note>"
 ```
 
 `--wait` polls until the deployment reaches a terminal state. If the target requires

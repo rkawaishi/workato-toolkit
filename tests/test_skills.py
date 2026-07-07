@@ -6,7 +6,7 @@ from conftest import SKILLS
 
 EXPECTED_SKILLS = {
     "analyze", "auto-learn", "catalog", "deploy-project", "diagnose-jobs",
-    "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
+    "implement", "inspect-env", "issue-api-keys", "learn-pattern", "learn-recipe",
     "onboard", "ping", "plan", "pull-project", "push-project",
     "run-recipes", "setup-workspace", "spec", "sync-connectors", "tasks",
     "validate-recipe", "workato-create",
@@ -17,8 +17,9 @@ FORBIDDEN = re.compile(r"@(?:docs|org/docs|projects/docs)/")
 
 # Skills that DO consult the docs knowledge base and therefore must mention the MCP tool.
 SKILLS_WITH_DOC_REFS = {
-    "analyze", "auto-learn", "deploy-project", "diagnose-jobs", "issue-api-keys",
-    "learn-recipe", "plan", "push-project", "tasks", "workato-create",
+    "analyze", "auto-learn", "deploy-project", "diagnose-jobs", "inspect-env",
+    "issue-api-keys", "learn-recipe", "plan", "push-project", "tasks",
+    "workato-create",
 }
 
 
@@ -470,3 +471,101 @@ def test_diagnose_jobs_tail_is_bounded():
     text = _diagnose_jobs_text()
     assert "jobs tail" in text
     assert "--max-iterations" in text
+
+
+# ---- /inspect-env (operations-lifecycle spec 2026-07-07 §7; S8-1, S8-2, S8-5/6 検証, S7-3 prod 側) ----
+
+def _inspect_env_text():
+    return (SKILLS / "inspect-env" / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_inspect_env_declares_read_only_up_front():
+    """スキル冒頭で読取専用を宣言する（S8-2 AC）。"""
+    text = _inspect_env_text()
+    head = "\n".join(text.splitlines()[:20])
+    assert re.search(r"read[- ]only", head, re.IGNORECASE), \
+        "read-only declaration must appear at the top of the skill"
+
+
+def test_inspect_env_contains_no_write_commands():
+    """§7 全走査ガード: 本文のどこにも書込系コマンド
+    （push / recipes start・stop / deploy run / sdk push / properties set /
+    テーブル行の書込 / --restart-recipes）を含まない — コードブロックに限らない。"""
+    text = _inspect_env_text()
+    assert re.findall(r"```(?:bash|sh)?\n(.*?)```", text, re.DOTALL), \
+        "inspect-env should carry runnable read commands"
+    write_cmd = re.compile(
+        r"\bworkato push\b|\bsdk push\b|recipes (start|stop)\b"
+        r"|deploy run\b|properties set\b|rows (add|update|delete)\b"
+        r"|--restart-recipes"
+    )
+    offenders = [
+        f"{i}: {line.strip()}"
+        for i, line in enumerate(text.splitlines(), 1)
+        if write_cmd.search(line)
+    ]
+    assert not offenders, "write commands in inspect-env:\n" + "\n".join(offenders)
+
+
+def test_inspect_env_profile_flag_precedes_subcommand():
+    """ヘルパーの --profile はルートパーサ専用 — サブコマンド後置は argparse に
+    拒否される。本文の全コマンド行で --profile が subcommand より前に来ること。"""
+    text = _inspect_env_text()
+    for i, line in enumerate(text.splitlines(), 1):
+        if "workato-api.py" not in line or "--profile" not in line:
+            continue
+        after_helper = line.split("workato-api.py", 1)[1]
+        first_word = after_helper.strip().split()[0]
+        assert first_word == "--profile", (
+            f"line {i}: --profile must directly follow workato-api.py "
+            f"(global flag), got: {line.strip()}"
+        )
+
+
+def test_inspect_env_diffs_via_scratch_pull():
+    """S8-2: prod/test の定義は scratch（temp copy）へ pull して dev と diff —
+    ヘルパーの sdk diff-project（読取専用）を対象プロファイルで使う。
+    dev の .workatoenv を持ち込む既知ギャップの正直な注記も必須。"""
+    text = _inspect_env_text()
+    assert re.search(r"--profile <org>-<env> sdk diff-project", text), \
+        "diff must run under the target profile (global flag first)"
+    assert re.search(r"temp|scratch", text, re.IGNORECASE)
+    assert re.search(r"dev-vs-dev|\.workatoenv", text), \
+        "the folder-resolution gap must be stated honestly (spec §6 OQ)"
+
+
+def test_inspect_env_triage_and_honesty():
+    """§4 行の中核: 4 分類・activity log 照合・止血は /run-recipes の境界案内・
+    拒否された読取の報告・「推定で healthy にしない」。"""
+    text = _inspect_env_text()
+    assert re.search(r"[Tt]ransient", text), "4-class triage table missing"
+    assert "activity log" in text.lower()
+    assert "/run-recipes" in text, "containment routes via the prod-boundary guidance"
+    assert re.search(r"refused", text), "refused reads must be recorded/reported"
+    assert re.search(r"by\s+assumption", text), "never mark healthy by assumption"
+
+
+def test_inspect_env_distinguishes_deploy_success_from_running():
+    """S8-1 AC: 「deploy 成功 ≠ 業務が動いている」— レシピ停止中/初ジョブ未達を
+    区別して報告する。"""
+    text = _inspect_env_text()
+    assert re.search(r"deploy succ", text, re.IGNORECASE)
+    assert re.search(r"stopped", text, re.IGNORECASE)
+    assert re.search(r"first job", text, re.IGNORECASE)
+
+
+def test_inspect_env_verifies_env_config():
+    """S8-5/S8-6 検証: properties の欠落とテーブルのシード状況を環境差として
+    検知する（読取可否が未確認の間は人間への確認にフォールバック）。"""
+    text = _inspect_env_text()
+    assert "properties" in text
+    assert re.search(r"Lookup|Data Table", text)
+
+
+def test_inspect_env_prod_reclaim_and_consent():
+    """S7-3 prod 側: 回収対象の失敗ジョブ一覧 + UI 再実行手順（実行は人間）。
+    S8-1: prod への合成テストデータ投入は明示合意なしに提案しない。"""
+    text = _inspect_env_text()
+    assert re.search(r"rerun|re-run", text, re.IGNORECASE)
+    assert re.search(r"idempoten|double-process", text, re.IGNORECASE)
+    assert re.search(r"explicit consent|explicitly agree", text, re.IGNORECASE)
