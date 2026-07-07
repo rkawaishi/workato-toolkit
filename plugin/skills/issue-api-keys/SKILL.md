@@ -61,7 +61,7 @@ ask the user to create them under **Workspace admin > API clients > Roles**. Thi
 legitimate UI request — custom role creation has no documented API. Then fetch the IDs:
 
 ```bash
-python3 scripts/workato-api.py api-clients roles --profile <org>-admin
+python3 scripts/workato-api.py --profile <org>-admin api-clients roles
 ```
 
 If the endpoint is unavailable (404), ask the user to read the role IDs from the UI
@@ -74,7 +74,7 @@ Client issuance needs one admin-privileged Developer API client (chicken-and-egg
 - If an admin profile already exists (`workato profiles list`), use it.
 - Otherwise guide the user through creating one client in **Workspace admin > API
   clients** (UI) and registering it: `workato init --profile <org>-admin ...`.
-- Verify with `python3 scripts/workato-api.py profile show --profile <org>-admin`.
+- Verify with `python3 scripts/workato-api.py --profile <org>-admin profile show`.
 - Offer to revoke or shelve the admin client after issuance — agents never keep it.
 
 ### 4. Issue (one client per environment)
@@ -83,15 +83,15 @@ Dry-run first, then create. `--register-profile` stores the token directly in th
 keyring (service `workato-platform-cli`) and adds the CLI profile entry:
 
 ```bash
-python3 scripts/workato-api.py api-clients create --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients create \
   --name <org>-agent-dev  --environment DEV  --role-id <agent-dev-role-id> \
   --register-profile <org>-dev --dry-run   # then repeat without --dry-run
 
-python3 scripts/workato-api.py api-clients create --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients create \
   --name <org>-agent-test --environment TEST --role-id <agent-readonly-role-id> \
   --register-profile <org>-test
 
-python3 scripts/workato-api.py api-clients create --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients create \
   --name <org>-agent-prod --environment PROD --role-id <agent-readonly-role-id> \
   --register-profile <org>-prod
 ```
@@ -105,7 +105,7 @@ up" later, which is by design.
 ### 5. Verify
 
 - Read smoke on all three profiles:
-  `python3 scripts/workato-api.py profile show --profile <org>-<env>` (each env).
+  `python3 scripts/workato-api.py --profile <org>-<env> profile show` (each env).
 - Guard smoke: confirm the deployment-flow rule refuses a push on `<org>-test` /
   `<org>-prod` (the `workato-deployment-flow` rule, always-on) — the read-only role makes
   this physical, the profile-name check keeps it legible.
@@ -128,14 +128,14 @@ git commit -m "docs(org): record Developer API client issuance"
   same run. Update the record's issue/rotate-by dates afterward:
 
 ```bash
-python3 scripts/workato-api.py api-clients rotate --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients rotate \
   --name <org>-agent-<env> --register-profile <org>-<env> --yes
 ```
 
 - **revoke `<env>`** — delete the client, then mark it revoked in the record:
 
 ```bash
-python3 scripts/workato-api.py api-clients delete --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients delete \
   --client-id <id> --yes
 ```
 
@@ -143,7 +143,7 @@ python3 scripts/workato-api.py api-clients delete --profile <org>-admin \
   clients not in the record) and ghosts (recorded clients missing remotely):
 
 ```bash
-python3 scripts/workato-api.py api-clients list --profile <org>-admin
+python3 scripts/workato-api.py --profile <org>-admin api-clients list
 ```
 
 ## Rules to follow

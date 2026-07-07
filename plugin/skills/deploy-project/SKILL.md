@@ -18,6 +18,7 @@ environment to the next, never a direct write.
 - `/deploy-project run --to <test|prod>` — execute the deploy (guards below)
 - `/deploy-project status <id> [--wait]` — check / follow one deployment
 - `/deploy-project list` — deployment history (audit)
+- `/deploy-project rollback` — restore a prior release to the target (checklist below)
 
 ## Guards (mandatory, in this order)
 
@@ -53,15 +54,30 @@ folder). For a test → prod preview, pass `--profile <org>-test` **before the
 subcommand** (`workato-api.py --profile <org>-test deploy preview --to prod` —
 `--profile` is a global flag; placed after the subcommand it is rejected).
 
-### 2. Pre-promotion checklist (print every time)
+### 2. Pre-promotion checklist (print every time — as named lists, not yes/no)
 
-The manifest carries code, not runtime state. Confirm with the user, per
+The manifest carries code, not runtime state. Do not print bare "is it seeded?"
+items — **generate the actual list** the human must act on, per
 `platform/environments.md`:
 
 - [ ] Target-env **connection credentials** are entered (same connection names, different secrets)
-- [ ] **Environment properties** are seeded in the target env
-- [ ] **Lookup Table / Data Table rows** are seeded (schema deploys; records do not)
-- [ ] **Custom connectors** are released in the target env
+- [ ] **Environment properties** (S8-5): build the list from what the recipes
+      reference vs the target env —
+
+      ```bash
+      workato properties list --profile <org>-dev   # native CLI (flag after the subcommand); the helper has no properties subcommand
+      ```
+
+      Present name / dev value / a blank for the target value. The agent cannot
+      upsert test/prod properties (read-only keys); the human enters them in
+      Tools > Environment properties. Changed values need a recipe restart.
+- [ ] **Lookup Table / Data Table rows** (S8-6): schema deploys, records do not.
+      For each table the recipes depend on, classify the seed requirement —
+      **master** (carry all rows), **accumulating** (start empty), or
+      **environment-dependent** (values differ per env) — and produce the named
+      seed list (table / rows to carry). The human seeds test/prod; do not truncate
+      or bulk-copy accumulating tables.
+- [ ] **Custom connectors** are released in the target env (version matches)
 - [ ] List of **recipes to (re)start** after the deploy is agreed
 
 ### 3. Run and wait
@@ -94,6 +110,34 @@ python3 scripts/workato-api.py deploy list --environment-type test --limit 5
 - For extra assurance, offer a read-only pull of the target environment into a scratch
   directory and a diff against the local project (pull is allowed against any profile;
   see the `workato-deployment-flow` rule, always-on).
+
+## Rollback (S8-3)
+
+When a promoted version turns out to be the problem, roll back — never by patching
+the target env directly.
+
+- **git is the release ledger.** The sanctioned rollback is: restore the previous
+  release state into **dev** from git, then re-promote it through the normal guarded
+  path (dev → test → prod, same checklist, same approvals). There is no direct-to-env
+  shortcut, and prod approval stays human even for a rollback.
+- If the platform's Deploy API exposes re-applying a past deployment, it may serve as
+  a faster path to **test** — verify availability on a real workspace first (spec Open
+  Question). It does not change the prod-approval rule.
+- `packages` export/import, if used, is a **write** — only ever to restore **dev**;
+  test/prod still go through Deploy. Never import straight into test/prod.
+- **Recovery when git has no prior release** (a commit was missed): pull the target
+  env's current definitions into a scratch dir (read-only), reconstruct the last-good
+  state from there, and confirm with the user before promoting — this is the last
+  resort, and the fix for next time is to commit on every push.
+
+## Hotfix note (S8-4)
+
+A production defect is fixed in **dev** (`/diagnose-jobs`) and re-promoted through
+this same path — never edited in place in test/prod. **Emergencies run the exact
+same checklist**; urgency is when the connection-auth / properties / seed / connector-
+release steps are most likely to be skipped, so the checklist matters most then.
+Close the loop with `/inspect-env` (recovery confirmed) and the unreclaimed-job
+reclaim list.
 
 ## Report format
 

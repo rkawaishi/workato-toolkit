@@ -165,7 +165,7 @@ Push complete. Start the following recipes:
 - <recipe_name_1>
 - <recipe_name_2>
 
-Open each recipe in the Workato UI and click "Start recipe",
+Start them with /run-recipes start --all (or --id <id> for one),
 or re-run /push-project with --start / --test.
 ```
 
@@ -202,18 +202,49 @@ Workflow App UI verification checklist:
 
 ### 5. Start recipes (`--start` / `--test`)
 
-```bash
-# List recipes in the project (folder_id comes from .workatoenv)
-python3 scripts/workato-api.py recipes list --folder-id <folder_id>
+Recipe start/stop/restart is **`/run-recipes`**' job — it carries the dev guard, the
+`--all` loop, the restart ordering, and the prod-boundary handover. Do not re-teach
+raw `workato recipes start` here. After a successful push:
 
-# Start one recipe
-workato recipes start --id <recipe-id>
-
-# Start every recipe
-workato recipes start --all
+```
+Push complete. Start the recipes with:  /run-recipes start --all
+(or --id <recipe-id> for one). A start failure hands off to /diagnose-jobs.
 ```
 
-### 6. Job verification (`--test`)
+### 6. Inject a test job by trigger type (`--test`)
+
+`--test` verifies end-to-end, which means a job actually has to **run**. Pushing and
+starting does not create one — inject by trigger type (S5-1). This inline matrix is
+authoritative until it is factored into a shared reference:
+
+| Trigger type | How to make one job run | Who |
+|---|---|---|
+| **webhook** (realtime) | `curl -X POST` the recipe's webhook URL with a sample body | agent |
+| **polling** | ask for a source record that meets the trigger condition, then wait one interval | human seeds, agent waits |
+| **schedule** | wait for the next run, or temporarily shorten the interval and re-push (note to revert — dev only) | agent |
+| **Workflow App form** | ask the user to submit the form (give the URL) | human |
+| **MCP server / Genie** | ask the user to call the tool from the AI client | human |
+| **Data Table / Lookup Table trigger** | create/update a test record in the table (S5-4 below); for New/updated triggers, updating an existing row too | agent (dev; rows API permitting) |
+| **API endpoint** (API Platform) | `curl` the endpoint with a client token | agent (human provides token) |
+| **other** (Event Streams consume, Recipe Function invocation, …) | fire from the upstream recipe that publishes / calls it | depends (fire the caller; exact mechanism is a real-workspace open question) |
+
+When a step needs the user (form, polling seed, tool call), give a copy-pasteable
+instruction with concrete values, then wait for their signal before checking jobs.
+
+#### Data/Lookup Table–dependent recipes (S5-4)
+
+If the recipe reads or writes a table (via an adapter **or** a formula lookup):
+
+1. **Seed** the test records the recipe expects (Lookup Table rows via the Developer
+   API; Data Table rows where the rows API is available, else ask the user to add
+   them in the UI). Dev only — never seed test/prod tables.
+2. **Fire / verify** — a Data Table row trigger fires on the record you just created;
+   for a writing recipe, read the row back and compare to the expected values.
+3. **Clean up at the end** — delete the records you created (track their IDs across
+   any fix-loop iterations; delete at green, before the git commit). Remove only your
+   own records; never `Truncate` (it wipes existing data).
+
+Then check jobs:
 
 ```bash
 # Failed jobs for a recipe

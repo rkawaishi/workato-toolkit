@@ -37,6 +37,17 @@ see issue #10 / P6 Phase A).
   gate + this changelog (#25).
 
 ### Changed
+- Operations-lifecycle integration (#44): `/push-project --test` gains the
+  trigger-type injection matrix (webhook / polling / schedule / Workflow App /
+  MCP-Genie / table-trigger / API-endpoint) plus the table seed→verify→cleanup
+  cycle, and defers recipe start/stop to `/run-recipes`. `/deploy-project` gains
+  a rollback checklist (git as the release ledger) and hotfix note, and turns the
+  properties/table checklist items into generated named lists. `/workato-create`
+  recipes now reference Environment properties instead of hardcoding
+  environment-dependent values. The Developer API client permission matrix adds a
+  Lookup Tables write row (closing a ReadOnly-role gap) and explicit
+  table/connections/activity-log/properties read rows. `--profile` usages
+  corrected to precede the subcommand (it is a global flag).
 - **BREAKING**: the four asset-creation skills are consolidated into one —
   `/create-recipe`, `/create-genie`, `/create-workflow-app`,
   `/create-connector` are replaced by `/workato-create
