@@ -181,9 +181,9 @@ No, as long as each project's `.workatoignore` lists `specs/`. The `/spec` comma
 
 > Projects still using the legacy `DESIGN.md` can be converted to `specs/` via `/design migrate <project>`. `/design new` has been retired.
 
-### Q: Can I use this with Cursor?
+### Q: Can I use this with other editors?
 
-Yes. The same toolkit installs as a Cursor plugin and delivers the same skills and rules. See [QUICKSTART-CURSOR.md](quickstart-cursor.md) for details.
+Support for other editors is on hold — their assets remain in the plugin tree but are frozen (not maintained or verified). Claude Code is the only officially supported editor.
 
 ### Q: Can I use it offline?
 

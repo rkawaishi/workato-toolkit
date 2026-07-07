@@ -1,6 +1,6 @@
 # Workflow App build guide
 
-Steps and design points for building Workato Workflow Apps (approval workflows, etc.) in JSON. The same skills and steps work in both Claude Code and Cursor.
+Steps and design points for building Workato Workflow Apps (approval workflows, etc.) in JSON.
 
 ## What is a Workflow App
 

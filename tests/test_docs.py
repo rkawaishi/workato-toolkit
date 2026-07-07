@@ -30,7 +30,8 @@ def test_platform_logic_patterns_present():
 
 
 def test_guides_migrated():
-    assert len(list((DOCS / "guides").glob("*.md"))) >= 13
+    # 12 after quickstart-cursor.md was dropped with the CC-only sweep (#11).
+    assert len(list((DOCS / "guides").glob("*.md"))) >= 12
 
 
 def test_glossary_migrated():
@@ -55,7 +56,7 @@ def test_mcp_lists_connectors():
 
 def test_mcp_serves_a_guide():
     paths = overlay.list_docs(DOCS, None, "guides/")
-    assert len(paths) >= 13
+    assert len(paths) >= 12  # 12 after the CC-only sweep dropped quickstart-cursor
     # also verify a listed guide is actually readable through the overlay
     out = overlay.resolve_doc(DOCS, None, paths[0])
     assert "NOT FOUND" not in out

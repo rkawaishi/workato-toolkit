@@ -12,7 +12,7 @@ Workato recipe JSON has the following characteristics:
 
 These become clear as you develop, but tend to stay in individual memory. This toolkit accumulates that tacit knowledge as documentation so it can be applied to the next recipe generation.
 
-No matter which editor (Claude Code / Cursor / Codex CLI / Gemini CLI) you learn in, knowledge is accumulated under the plugin's bundled `docs/` (kit canonical, read-only) and your workspace `org/docs/` (organization-specific corrections and additions), merged on read by the docs-overlay MCP. Always-on rules ship inside the plugin and are delivered automatically per editor (SessionStart hook for CC/Codex, `.mdc` for Cursor, `GEMINI.md` for Gemini). Update the toolkit with your editor's plugin-update command — there is nothing to sync.
+Knowledge is accumulated under the plugin's bundled `docs/` (kit canonical, read-only) and your workspace `org/docs/` (organization-specific corrections and additions), merged on read by the docs-overlay MCP. Always-on rules ship inside the plugin and are injected automatically by the SessionStart hook. Update the toolkit with `/plugin update workato-toolkit` — there is nothing to sync.
 
 ## Structure of the knowledge base
 

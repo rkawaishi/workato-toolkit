@@ -2,7 +2,6 @@
 
 Steps and troubleshooting for deploying locally built assets to Workato.
 
-The same skills and the same flow apply whether you use Claude Code or Cursor.
 
 ## Basic flow
 

@@ -1,9 +1,9 @@
 #!/bin/bash
 # PostToolUse hook: after sdk push, remind AI to sync connector docs
 #
-# Compatible with both Claude Code and Cursor:
-#   Claude Code: tool_name="Bash", tool_response={exitCode,stdout,stderr}
-#   Cursor:      tool_name="Shell", tool_output="{\"exitCode\":0,...}" (JSON string)
+# Claude Code: tool_name="Bash", tool_response={exitCode,stdout,stderr}.
+# (The tool_output branch below parses the frozen Cursor variant's format —
+#  kept for a future revival, not verified.)
 #
 # When `sdk push` completes successfully, this hook detects the connector path
 # from the command and outputs a message to update connectors/docs/.
