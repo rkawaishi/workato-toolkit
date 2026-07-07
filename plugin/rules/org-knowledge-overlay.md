@@ -44,8 +44,9 @@ If you later want to upstream knowledge into the kit canonical docs, open a sepa
 To consult a knowledge-base document, call the docs-overlay MCP tool — do **not** read a local `docs/` path:
 
 1. Call `workato_docs_lookup("<path>")`. It returns the bundled kit doc merged with `org/docs/<path>` if present.
+   For a large doc, pass `section="<heading>"` to fetch only that section (e.g. `workato_docs_lookup("connectors/jira.md", section="Actions")`).
 2. When the two conflict, **the org version wins** (org overrides kit defaults); non-overlapping info is additive.
-3. Use `workato_docs_list("<prefix>")` to discover available documents under a prefix.
+3. Use `workato_docs_list("<prefix>")` to discover documents under a prefix, and `workato_docs_search("<keyword>")` to find which doc covers a topic (returns matching lines with paths).
 
 Examples:
 - Connector spec → `workato_docs_lookup("connectors/clearbit.md")`.
