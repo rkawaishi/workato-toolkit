@@ -41,9 +41,14 @@ Folder scope default: `all_folders: true` (agents create new projects). Narrow w
 | Recipes start / stop | ✅ | ❌ | ❌ |
 | Connections create / update | ✅ | ❌ | ❌ |
 | Data Tables create / change | ✅ | ❌ | ❌ |
+| Lookup Tables create / change | ✅ | ❌ | ❌ |
 | Environment properties upsert | ✅ | ❌ | ❌ |
 | Custom connector SDK push / release | ✅ | ❌ | ❌ |
 | Jobs read (monitoring, diagnosis) | ✅ | ✅ | ✅ |
+| Tables read (Data / Lookup rows, for `/inspect-env`) | ✅ | ✅ | ✅ |
+| Connections read (auth state, for diagnosis) | ✅ | ✅ | ✅ |
+| Environment properties read (seed verification) | ✅ | ✅ | ✅ |
+| Activity log read (who changed what) | ✅ | ✅ | ✅ |
 | Deployments read (status / history) | ✅ | ✅ | ✅ |
 | Deployments create (promote to next env) | Policy choice | Policy choice | ❌ always |
 | Developer API clients manage | ❌ | ❌ | ❌ (bootstrap admin key only) |
@@ -69,6 +74,9 @@ Workato release — match the categories, not the exact strings.
 - Recipes: read, write, start, stop
 - Connections: read, write
 - Data Tables: read, write
+- **Lookup Tables: read, write** (a distinct privilege scope from Data Tables —
+  omitting it and granting a broad "tables" write anyway is the gap the ReadOnly
+  role below must avoid)
 - Environment properties: read, write
 - Connector SDK: read, write, release
 - Jobs: read
@@ -78,9 +86,15 @@ Workato release — match the categories, not the exact strings.
 - Projects / folders: read (export)
 - Recipes: read
 - Jobs: read
+- Data Tables **read**, Lookup Tables **read** (rows, for `/inspect-env` seed
+  verification — read only, never write)
+- Connections **read** (auth state), Environment properties **read** (seed
+  verification), Activity log **read**
 - Deployments: read
-- Nothing else. In particular: no import/write, no recipe lifecycle, no connections,
-  no properties, no SDK.
+- Nothing else. In particular: **no table writes** (Data or Lookup), no
+  import/write, no recipe lifecycle, no connection writes, no property writes,
+  no SDK. If the platform bundles table read and write into one privilege,
+  prefer denying it and confirming seeds in the UI over granting write.
 
 ## Issuing (API helper)
 
@@ -88,13 +102,13 @@ Use `/issue-api-keys` — it drives these commands and records the result. Under
 
 ```bash
 # Discover role IDs (falls back to reading them in the UI if the endpoint 404s)
-python3 scripts/workato-api.py api-clients roles --profile <org>-admin
+python3 scripts/workato-api.py --profile <org>-admin api-clients roles
 
 # Dry-run, then issue one client per environment
-python3 scripts/workato-api.py api-clients create --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients create \
     --name <org>-agent-dev --environment DEV --role-id <agent-dev-role-id> \
     --register-profile <org>-dev --dry-run
-python3 scripts/workato-api.py api-clients create --profile <org>-admin \
+python3 scripts/workato-api.py --profile <org>-admin api-clients create \
     --name <org>-agent-dev --environment DEV --role-id <agent-dev-role-id> \
     --register-profile <org>-dev
 ```
@@ -123,7 +137,7 @@ an explicit `--profile` for exactly this reason.
 ## Rotation, revocation, audit
 
 - **Rotate** (periodic or on suspicion of exposure):
-  `python3 scripts/workato-api.py api-clients rotate --profile <org>-admin
+  `python3 scripts/workato-api.py --profile <org>-admin api-clients rotate
   --name <org>-agent-dev --register-profile <org>-dev --yes` — delete + same-name
   re-create; the old token dies immediately and the new one lands in the keyring in the
   same run.

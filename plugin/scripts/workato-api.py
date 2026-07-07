@@ -55,14 +55,14 @@ Usage:
   python3 scripts/workato-api.py api-clients roles
     (GET /api/developer_api_client_roles; falls back to reading role IDs
      from the UI when the endpoint is unavailable)
-  python3 scripts/workato-api.py api-clients create --profile <admin>
+  python3 scripts/workato-api.py --profile <admin> api-clients create
     --name <org>-agent-<env> --environment <DEV|TEST|PROD> --role-id <id>
     [--all-folders | --folder-ids <ids>] [--ip-allow-list <cidrs>]
     [--register-profile <name>] [--dry-run]
     (token is stored in the OS keyring / a chmod-600 file, never printed)
-  python3 scripts/workato-api.py api-clients delete --profile <admin>
+  python3 scripts/workato-api.py --profile <admin> api-clients delete
     --client-id <id> --yes [--dry-run]
-  python3 scripts/workato-api.py api-clients rotate --profile <admin>
+  python3 scripts/workato-api.py --profile <admin> api-clients rotate
     --name <client-name> [--register-profile <name>] --yes [--dry-run]
 
 Global options:
@@ -2508,7 +2508,7 @@ def main():
             "  # Start a recipe in the dev workspace\n"
             "  python3 scripts/workato-api.py recipes start 12345\n\n"
             "  # Refused: profile is not `<org>-dev`\n"
-            "  python3 scripts/workato-api.py recipes start 12345 --profile acme-prod\n"
+            "  python3 scripts/workato-api.py --profile acme-prod recipes start 12345\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -3053,10 +3053,10 @@ def main():
         epilog=(
             "Examples:\n"
             "  # Dry-run first:\n"
-            "  python3 scripts/workato-api.py api-clients create --profile acme-admin \\\n"
+            "  python3 scripts/workato-api.py --profile acme-admin api-clients create \\\n"
             "      --name acme-agent-dev --environment DEV --role-id 547 --dry-run\n"
             "  # Issue and register as the CLI profile 'acme-dev':\n"
-            "  python3 scripts/workato-api.py api-clients create --profile acme-admin \\\n"
+            "  python3 scripts/workato-api.py --profile acme-admin api-clients create \\\n"
             "      --name acme-agent-dev --environment DEV --role-id 547 \\\n"
             "      --register-profile acme-dev\n"
         ),

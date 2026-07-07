@@ -599,14 +599,17 @@ def test_push_project_table_seed_and_cleanup():
 
 def test_push_project_defers_start_to_run_recipes():
     """§4: 起動系の記述は /run-recipes への参照に置換（重複を持たない）—
-    raw CLI の recipes start/stop を手順として残さない。"""
+    raw CLI の recipes start/stop を**実行手順（コードブロック）**として残さない
+    （hook の挙動説明や「raw を書かない」旨の散文は対象外）。"""
     text = (SKILLS / "push-project" / "SKILL.md").read_text(encoding="utf-8")
     assert "/run-recipes" in text
+    blocks = re.findall(r"```(?:bash|sh)?\n(.*?)```", text, re.DOTALL)
     offenders = [
-        line.strip() for line in text.splitlines()
+        line.strip()
+        for block in blocks for line in block.splitlines()
         if re.search(r"\bworkato recipes (start|stop)\b", line)
     ]
-    assert not offenders, "raw CLI start/stop remains:\n" + "\n".join(offenders)
+    assert not offenders, "raw CLI start/stop in a code block:\n" + "\n".join(offenders)
 
 
 def test_deploy_project_rollback_and_hotfix():

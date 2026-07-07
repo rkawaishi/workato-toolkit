@@ -181,6 +181,30 @@ Follow the `workato-project-structure` rule (always-on):
 - `<project>/Connections/<prefix>_<provider>.connection.json` — connection (only if it doesn't exist yet).
 - Make sure `zip_name` / `folder` inside the JSON match the subfolder path.
 
+## Environment-dependent values — never hardcode (S8-5)
+
+Any value that differs per environment — an endpoint URL, a tenant ID, an account
+identifier, a notification target — must **not** be baked into the recipe JSON.
+Reference **Environment properties** instead, so the same recipe runs unchanged in
+dev / test / prod and only the property value changes:
+
+- In the recipe, read the value from the `Properties` datatree (it appears
+  automatically in every recipe) rather than writing the literal.
+- Set the **dev** value yourself so the recipe is testable now:
+
+  ```bash
+  python3 scripts/workato-api.py profile show            # confirm the -dev profile
+  workato properties set <NAME> <dev-value>
+  ```
+
+- The test/prod values are seeded by a human at promotion time — `/deploy-project`
+  generates the named list, `/inspect-env` verifies it. Do not attempt to set
+  test/prod properties (the read-only keys and the deploy-only rule forbid it).
+- Property values freeze at job start, so a changed value needs a recipe restart.
+
+Hardcoding an environment-dependent value forces a recipe edit on every promotion —
+the whole point of the property indirection is to avoid that.
+
 ## Generation rules
 
 - `number` starts at 0 for the trigger; subsequent steps are 1, 2, 3, ...
