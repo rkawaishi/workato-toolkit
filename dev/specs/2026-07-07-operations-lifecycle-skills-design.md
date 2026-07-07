@@ -10,7 +10,8 @@ status: draft
   ストーリーを S5-3 / S6-3 / S7-3 / S8-4 として追加。r2.1: ユーザレビュー指摘
   「push したレシピが起動時にエラーになるシナリオが無い」を受け S6-4 を追加。
   r2.2: 同じく「LLM が書ききれず人間が UI で直し、それを pull で取り込む流れが無い」を
-  受け S7-4 を追加）
+  受け S7-4 を追加。r2.3: 「環境ごとの接続先切り替えに properties を使う設定が無い」を
+  受け S8-5 を追加）
 - 状態: **draft — ユーザレビュー待ち**（承認まで status を上げない）
 - 背景: ユーザ指摘「レシピのスタート、ジョブログ取得などが不足。開発して本番に乗せる
   までのユーザストーリーを描いたか」。既存ストーリー（前 spec
@@ -74,7 +75,11 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
 4. `/spec` → `/plan` → `/tasks` → `/implement`（小さければ直接 `/workato-create recipe`）。
    産物: `projects/billing-sync/` にレシピ JSON + コネクション JSON 3 本。
    spec には**期待入出力**（商談レコード → 請求書ドラフトのフィールド対応表）が書かれている
-   — Phase 2 のテスト照合（S5-2）はこれを期待値として使う
+   — Phase 2 のテスト照合（S5-2）はこれを期待値として使う。
+   **設計規約（S8-5）**: 会計 SaaS のエンドポイント URL・テナント ID など**環境で変わる値は
+   レシピにハードコードせず Environment properties を参照**する（dev の値はエージェントが
+   `workato properties set` で設定できる。これを守らないと Phase 3 以降、環境切替のたびに
+   レシピ本体の書き換えが必要になる）
 
 ### Phase 2 — dev へ push してテスト（開発者）【本 spec の中心 1/3】
 
@@ -114,6 +119,9 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
 10. `/deploy-project preview` → `run --to test` → 昇格チェックリスト
     （test 側コネクション認証・environment properties・**test でのレシピ起動 — いずれも
     人間の UI 作業**。Deploy が稼働状態を引き継ぐかは §6 OQ）→ `status --wait`。
+    **properties は「seeded ですか」の一言でなく、エージェントが dev の properties 一覧から
+    「test で設定すべき名前 + dev での値 + 記入欄」の設定リストを生成して人間に渡す（S8-5 —
+    test/prod への upsert はエージェントの権限外）**。
     分岐: deploy が failed で終端 → マニフェスト内容とエラーを報告し、dev へ差し戻す
 11. **`/inspect-env test`（S8-1）**: レシピが test で稼働しているか、ジョブが流れて成功して
     いるかを読取専用で確認。ここで test 用のテストデータ投入が再度必要なら手順 6 を test の
@@ -403,6 +411,39 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
   - [ ] 回復確認（S8-1）と取りこぼし回収（S7-3）まで含めて「完了」とする
 - **現状**: △ 各部品はあるが、経路として文書化されていない
 
+### S8-5 環境ごとの接続先・設定値を properties で切り替えたい【新設】
+
+- **アクター**: 開発者（設計・dev 値の設定）+ 運用担当/管理者（test/prod 値の設定は人間）
+- **前提**: 接続先エンドポイント URL・テナント ID・通知先など、**環境で値が変わる設定**が
+  レシピにある（kit doc `platform/environment-properties.md` の用途例そのもの）
+- **トリガー**: ビルド時（設計規約として）と昇格時（target env の値の用意）
+- **主フロー**:
+  1. **ビルド時（規約）**: 環境依存値はハードコードせず Environment properties 参照で生成する
+     （`/workato-create` の生成リファレンスに規約として明記）。dev の値はエージェントが
+     `workato properties set` で設定する
+  2. **昇格時**: dev の `workato properties list` から、レシピが参照している名前を突き合わせ、
+     **target env 用の設定リスト**（名前 / dev の値 / target の値の記入欄）を生成して人間へ。
+     test/prod への upsert は読取専用キーの権限外（前 spec §5 マトリクス: upsert は dev のみ ✅）
+     — 設定は人間が UI（Tools > Environment properties）で行う
+  3. **検証**: `/inspect-env` が「properties 未設定/名前欠落」を環境差として検知する
+     （S8-2 の環境差分類の具体化。読取専用キーで properties list が通るかは §6 OQ）
+  4. **注意の伝達**: properties の値は**ジョブ開始時に凍結**され実行中ジョブに反映されない
+     （kit doc）— 値を変えたら該当レシピの再起動が必要（dev は `/run-recipes restart`、
+     test/prod は人間の UI 操作）
+- **AC**:
+  - [ ] 生成されるレシピに環境依存値のハードコードがない（properties 参照になっている）
+  - [ ] 昇格チェックリストの properties 項目が「seeded ですか」の一言でなく、**名前つきの
+        設定リスト**として出力される
+  - [ ] test/prod の値設定を人間の作業として明示し、エージェントは upsert を試みない
+  - [ ] 値変更後の再起動要否が案内される
+- **失敗・分岐**: target env で properties 未設定のままレシピを起動 → 誤った接続先に接続 or
+  ジョブ失敗 → S8-1 の稼働確認が「環境差」として検知し、設定リストへ差し戻す
+- **現状**: △ kit doc と deploy チェックリストの 1 行（"Environment properties are seeded"）
+  のみ。設計規約（ハードコード禁止）・設定リスト生成・切替検証のワークフローが未整備
+  （ユーザレビュー指摘 2026-07-07）。前 spec の「/properties スキルは CLI で充足のため
+  見送り」は維持 — 独立スキルにせず、`/workato-create`（規約）・`/deploy-project`（リスト
+  生成）・`/inspect-env`（検証）に織り込む
+
 ## 4. ギャップ → 追加・変更するもの
 
 ### 新スキル（3）
@@ -411,14 +452,15 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
 |---|---|---|
 | **`/run-recipes`** | S6-1, S6-2, S6-3 | `status`（既定・稼働一覧）/ `start` / `stop` / `restart`、`--id <id>` / `--all` / `--project <name>`。実行はヘルパー `recipes start/stop`（dev ガード内蔵）経由。**start がエラーを返したらエラー本文を表示し S6-4 のループ（`/diagnose-jobs`）へ接続**。**test/prod プロファイル下では実行前に検知して S6-3 の案内（理由 + レシピ特定情報 + UI URL + hotfix 経路）に切替える**（hook #10 は最終防衛線であり UX ではない） |
 | **`/diagnose-jobs`** | S7-1, S7-2, S7-3（dev 側）, S7-4, S6-4, S5-2 | **入口は 2 つ**: (a) 失敗ジョブ収集（フォルダ→`recipes list`→レシピごと `jobs list --status failed`）、(b) **起動エラー（S6-4）— ジョブが 1 件も無くても、起動失敗のエラー本文/「起動しているべきなのに停止中」を入口にする** → `jobs get` → 原因分類（S7-1 の表）→ **既定で修正→再 push（`--restart-recipes`）→再投入・再照合を green までループ**（dev 限定・上限つき。**起動エラー入口 (b) では 修正→再 push→再起動 を起動成功まで回してから (a) の投入・照合へ進む**）。`--no-fix` で診断・提案のみ。ループ記録・空回り検知・同一原因の束ね報告。**green 後に未回収の失敗ジョブ（S7-3）を必ず指摘**。ループ上限到達・生成不能箇所は **UI 修正へ引き渡し（疑わしい箇所を添える）→ 修正完了後 `/pull-project` で取り込み → diff 提示 → commit → `/learn-recipe` へ接続。引き渡しから pull 完了まで push を封じる**（S7-4）。`tail` モードで追従監視（セッション内・終了条件つき） |
-| **`/inspect-env`** | S8-1, S8-2, S7-3（prod 側） | `<test\|prod>` を対象に**読取専用**で: レシピ稼働状態、直近 N 件ジョブ健全性、失敗のエラー本文要約、prod 定義を **scratch へ pull** → dev と diff、原因の 4 分類（定義差・レシピ欠陥/環境差/外部仕様変更/外部一時障害）と次アクション提示。障害復旧後は**回収対象の失敗ジョブ一覧 + UI 再実行手順**を提示（S7-3 の prod 側 — 実行は常に人間）。書込系コマンド不使用をスキル冒頭で宣言。読取専用キー（/issue-api-keys の test/prod キー）前提 |
+| **`/inspect-env`** | S8-1, S8-2, S8-5（検証）, S7-3（prod 側） | `<test\|prod>` を対象に**読取専用**で: レシピ稼働状態、直近 N 件ジョブ健全性、失敗のエラー本文要約、prod 定義を **scratch へ pull** → dev と diff、原因の 4 分類（定義差・レシピ欠陥/環境差/外部仕様変更/外部一時障害）と次アクション提示。障害復旧後は**回収対象の失敗ジョブ一覧 + UI 再実行手順**を提示（S7-3 の prod 側 — 実行は常に人間）。書込系コマンド不使用をスキル冒頭で宣言。読取専用キー（/issue-api-keys の test/prod キー）前提 |
 
-### 既存の変更（2）
+### 既存の変更（3）
 
 | 対象 | 変更 |
 |---|---|
 | `/push-project` | `--test` を S5-1/S5-2/S5-3 対応に強化: **トリガー型別テスト投入マトリクス**（§3 S5-1 の表）、人間依頼テンプレート（具体値つき）、投入→照合（期待値突合）→`/diagnose-jobs` への接続。起動系の記述は `/run-recipes` への参照に置換（重複を持たない） |
-| `/deploy-project` | S8-3 の**ロールバック checklist** を追加（git 台帳前提の明記、API ロールバックの有無は §6 OQ、commit 漏れ時のリカバリ）。S8-4 の hotfix 経路を注記（「緊急時もチェックリストを省略しない」） |
+| `/deploy-project` | S8-3 の**ロールバック checklist** を追加（git 台帳前提の明記、API ロールバックの有無は §6 OQ、commit 漏れ時のリカバリ）。S8-4 の hotfix 経路を注記（「緊急時もチェックリストを省略しない」）。**S8-5: properties チェック項目を「dev の properties 一覧 × レシピ参照の突合 → target env 用の名前つき設定リスト生成」に強化** |
+| `/workato-create` | **S8-5: 生成規約を追加** — 環境依存値（接続先 URL・テナント ID 等）はハードコードせず Environment properties 参照で生成し、dev の値設定（`workato properties set`）まで含める |
 
 ### ヘルパー拡張（候補 — §6 OQ の回答次第）
 
@@ -432,7 +474,9 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
 
 - 常駐監視・定期ヘルスチェック — プラグインはオンデマンド実行が前提（§1.3）。恒常監視は
   Workato 側のアラート/外部監視の領分（`/inspect-env` を人間が定期に叩く運用は可）
-- connection 管理 / properties — 前 spec の判断を維持（CLI で充足）
+- connection 管理 / properties の**独立スキル** — 前 spec の判断を維持（CLI で充足）。
+  ただし properties は S8-5 のとおり既存スキル 3 つ（workato-create / deploy-project /
+  inspect-env）に規約・リスト生成・検証として織り込む（スキルを増やさずワークフローを埋める）
 - テストデータ生成の自動化（外部 SaaS への書込） — S5-3 の境界の外。ソース側 SaaS の
   MCP/ツールが別途あればユーザがそれで行う。本プラグインは依頼の具体化まで
 
@@ -473,6 +517,8 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
       含まれるか（S6-4 — 含まれないなら UI のエラー表示を人間に読んでもらう分岐が要る）
 - [ ] リモート側の変更（人間の UI 修正）を機械的に検知できるか（recipe の updated_at 等 —
       S7-4 の「pull 忘れ push」をヘルパー/hook で物理的に防げるかの判断材料）
+- [ ] `workato properties list` が test/prod の読取専用キーで通るか（S8-5 の検証 —
+      通らないなら「設定リストの消化を人間に確認する」運用に固定）
 
 ## 7. テスト戦略（AC → ガードの写像）
 
@@ -487,7 +533,10 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
 - `/inspect-env`: 「書込系コマンド（push / recipes start・stop / deploy run / sdk push）を
   含まない」全走査ガード + **scratch へ pull する記述**の存在
 - `/push-project`: **トリガー型マトリクス（5 型）の存在**ガード
-- `/deploy-project`: **ロールバック checklist（「git」台帳前提の文言）と hotfix 注記の存在**ガード
+- `/deploy-project`: **ロールバック checklist（「git」台帳前提の文言）と hotfix 注記の存在** +
+  **properties 設定リスト生成（「properties」と「一覧/リスト」の言及）**ガード
+- `/workato-create`: 生成リファレンスに**「ハードコードせず Environment properties 参照」規約の
+  存在**ガード（S8-5）
 - ヘルパー拡張が入る場合（rerun / poll-now / `deploy status --wait`）は tests/helper/ にユニット追加
 - ストーリーの AC のうち実行時挙動（ループ記録・上限、束ね報告、`tail` の終了条件等）は
   静的ガード不能 — issue #32 Phase A の実機チェックリストに転記する
