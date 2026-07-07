@@ -407,40 +407,61 @@ def test_diagnose_jobs_collects_per_recipe_via_helper():
 
 def test_diagnose_jobs_has_start_error_entrance():
     """S6-4: 入口は失敗ジョブだけでなく起動エラーも — ジョブが 1 件も無くても
-    診断に入れる（「起動しているべきなのに停止中」を含む）。"""
+    診断に入れ、起動成功→テスト投入の順序を保証する。"""
     text = _diagnose_jobs_text()
-    assert re.search(r"^#+ .*[Ss]tart[- ]error", text, re.MULTILINE), \
+    assert re.search(r"^#+ .*\bStart errors?\b", text, re.MULTILINE), \
         "start-error entrance needs its own section"
     assert re.search(r"no jobs", text, re.IGNORECASE), \
         "must state it works even when zero jobs exist"
+    assert re.search(r"start success", text, re.IGNORECASE), \
+        "S6-4 AC: entrance (b) exits on start success, then proceeds to injection"
 
 
 def test_diagnose_jobs_loop_discipline():
-    """S7-2 AC: 周回記録・同一修正の再提案禁止（空回り検知）・上限（既定 5 周）で
-    停止してエスカレート。"""
+    """S7-2 AC: 周回記録・同一修正の再提案禁止・上限（既定 5 周）・途中の再分類
+    停止・green での commit 促し。"""
     text = _diagnose_jobs_text()
     assert re.search(r"same fix twice|再提案", text), "no-same-fix-twice rule missing"
     assert re.search(r"\b5\b.*(iteration|round|loop)|(iteration|round|loop).*\b5\b",
                      text, re.IGNORECASE), "iteration cap (default 5) missing"
+    assert re.search(r"one line per iteration|per iteration", text, re.IGNORECASE), \
+        "S7-2 AC: per-iteration trail missing"
+    assert "git commit" in text, "S7-2 AC: commit prompt on green missing"
+    assert re.search(r"mid-loop|flips to", text), \
+        "S7-2: mid-loop reclassification must stop the loop"
+
+
+def test_diagnose_jobs_verifies_values_not_just_status():
+    """S5-2 AC: 「ジョブ成功 = 合格」にしない — 値まで照合し、期待値が無ければ
+    ユーザに確認してから照合する（勝手に green 宣言しない）。"""
+    text = _diagnose_jobs_text()
+    assert re.search(r"output values", text, re.IGNORECASE)
+    assert re.search(r"never self-declare green|ask the user for them", text), \
+        "S5-2 AC: with no expected values, ask — do not self-pass"
 
 
 def test_diagnose_jobs_flags_unreclaimed_failed_jobs():
     """S7-3: green で終わらせない — 修正前に失敗したジョブ（未回収の業務データ）を
-    必ず指摘し、再実行の段取り（UI 手順 + 対象一覧）を出す。"""
+    必ず指摘し、再実行の段取り + 非冪等（二重処理）警告を出す。"""
     text = _diagnose_jobs_text()
     assert re.search(r"failed before|before the fix", text, re.IGNORECASE)
     assert re.search(r"rerun|re-run", text, re.IGNORECASE)
+    assert re.search(r"idempoten|double-process", text, re.IGNORECASE), \
+        "S7-3 AC: warn about double-processing on rerun"
 
 
 def test_diagnose_jobs_ui_handover_roundtrip():
-    """S7-4: 直せないものは疑わしい箇所を添えて UI 修正へ引き渡し、完了後
-    /pull-project → diff → commit → /learn-recipe。引き渡しから pull 完了まで
-    push を封じる（人の修正の上書き防止）。"""
+    """S7-4: 直せないものは診断結果（疑わしい箇所）を添えて UI 修正へ引き渡し、
+    完了後 /pull-project → diff → commit → /learn-recipe。引き渡しから pull 完了
+    まで push を封じる（人の修正の上書き防止）。"""
     text = _diagnose_jobs_text()
     assert "/pull-project" in text
     assert "/learn-recipe" in text
-    assert re.search(r"[Dd]o not push|push is forbidden|no push", text), \
-        "push must be frozen from handover until the pull completes"
+    assert re.search(r"diagnosis attached", text), \
+        "S7-4 AC: handover carries the diagnosis (suspected steps/settings)"
+    assert re.search(r"until the pull completes", text), \
+        "S7-4 AC: push frozen from handover until the pull completes"
+    assert re.search(r"diff", text), "S7-4: present what the human changed"
 
 
 def test_diagnose_jobs_tail_is_bounded():

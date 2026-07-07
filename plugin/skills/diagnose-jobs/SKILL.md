@@ -52,7 +52,9 @@ Enter diagnosis from either signal:
 - a start error just returned by `/push-project --start|--test` or `/run-recipes`
   (use the error output verbatim), or
 - the run-state list shows a recipe **stopped that should be running** — treat it as
-  a suspected start failure and try a start via the helper to capture the error.
+  a suspected start failure and try a start via the helper to capture the error
+  (dev only — on a test/prod profile switch to `/run-recipes`' prod-boundary
+  guidance instead of attempting the start).
 
 For entrance (b) the loop exit is **start success** (then proceed to test injection
 and verification); for entrance (a) it is green verification.
@@ -82,11 +84,17 @@ For ✅ classes, loop until green (entrance (a)) or until the start succeeds
 1. Apply the fix to the local JSON.
 2. Re-push: `workato push --restart-recipes` (covers the restart; do not route
    through a separate start).
-3. Re-inject a test job using the trigger-type matrix in `/push-project --test`
-   (webhook POST, table record, form submission request, polling wait — ask the
-   user when the injection is a human action, and wait for their signal).
-4. Re-verify: job outcome **and** output values against the expected values (a
-   successful job with wrong data is a failure — S5-2).
+3. Re-inject a test job per trigger type: webhook → curl POST, Data/Lookup Table
+   trigger → create/update a test record, Workflow App → ask for a form submission,
+   polling → ask for a source record and wait out the interval. Ask the user when
+   the injection is a human action, and wait for their signal. (`/push-project
+   --test` will carry the full trigger-type matrix once its planned update lands —
+   until then this inline list is the authoritative one.)
+4. Re-verify: job outcome **and** output values (a successful job with wrong data
+   is a failure — S5-2). Expected values come from the project's spec / the user's
+   request (the field-mapping table). **If no expected values exist, ask the user
+   for them before verifying — never self-declare green.** If `jobs get` output is
+   masked or unavailable, say so and hand the user the UI steps to verify instead.
 
 **Loop discipline** (report this trail at the end):
 
@@ -97,7 +105,11 @@ For ✅ classes, loop until green (entrance (a)) or until the start succeeds
   the user a test-data request, so the cap is not negotiable upward without asking).
 - If the classification flips to a ❌ class mid-loop (e.g. it was an expired
   connection all along), stop the loop and hand over.
-- On green, prompt for `git commit` of the fixed JSON (push does not touch git).
+- **Track seeded test records across iterations**: each round that injects a table
+  record adds one — keep the record IDs. On green, delete the records you created
+  (own records only — never truncate) **before** prompting for commit.
+- On green (and after the cleanup), prompt for `git commit` of the fixed JSON
+  (push does not touch git).
 
 ## 4. Handover — what the agent cannot fix (S7-4)
 
