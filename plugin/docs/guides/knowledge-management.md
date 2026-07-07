@@ -74,19 +74,10 @@ Run this after pulling a recipe that was adjusted in the UI.
 /learn-recipe <project-name>   # Learn from the entire project
 ```
 
-**What gets learned:**
-
-| Finding | Destination | Example |
-|---|---|---|
-| Field definition | `org/docs/connectors/<provider>.md` | The Salesforce Account has a `BillingCity` field |
-| New action | `org/docs/connectors/<provider>.md` | Jira has a `Create sprint` action |
-| datapill pattern | `org/docs/logic/data-pills.md` | A new reference pattern `#{_('data.xxx.yyy')}` |
-| JSON structure | `org/docs/learned-patterns.md` | A new way to use `toggle_cfg` |
-| Deployment insight | `org/docs/patterns/deployment-guide.md` | Cases where push fails under specific conditions |
+**What gets learned:** field definitions (e.g. the Salesforce Account has a `BillingCity` field), new actions (e.g. Jira has a `Create sprint` action), datapill patterns, JSON-structure findings, and deployment insights.
 
 **Key points:**
-- All write destinations live under `org/docs/` (do not touch the kit canonical `docs/`)
-- Deduplicate: do not append information already known in the kit version or the org version
+- Every finding is routed to a file under `org/docs/` — the destination table and the dedup procedure live in the `org-knowledge-overlay` rule (always-on)
 - `org/docs/learned-patterns.md` is a temporary staging area, a holding spot until items are routed to the right destination
 
 ### 2. `/learn-pattern` — record a construction pattern
@@ -182,6 +173,6 @@ From the second time on, steps 1, 4, 5, and 6 are unnecessary, and a correct rec
 ## Keeping the knowledge high quality
 
 - **Avoid duplication**: every skill checks existing content before appending
-- **Place items in the right location**: `docs/learned-patterns.md` is a staging area; write discoveries directly into the proper document
+- **Place items in the right location**: `org/docs/learned-patterns.md` is a staging area; write discoveries directly into the proper document
 - **Update stale information**: when a connector's spec changes, overwrite it with `/sync-connectors`
 - **Distinguish organization-specific from generic**: consolidate patterns under `org/docs/patterns/recipe-patterns/`, and express generic vs. org-domain in the body's "Scope" section (used to decide whether to upstream into the kit)

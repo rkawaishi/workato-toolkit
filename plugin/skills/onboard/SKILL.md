@@ -160,4 +160,4 @@ git commit -m "onboard: bootstrap knowledge base from existing Workato assets"
 git push origin
 ```
 
-All connector knowledge (pre-built and custom) is written to the workspace repo (`org/docs/connectors/` and `connectors/docs/`); the plugin's bundled `docs/` is read-only. To upstream broadly-useful spec into the kit canonical docs, open a separate PR against `workato-toolkit` (see `/sync-connectors`).
+Write destinations, dedup, and git conventions: follow the `org-knowledge-overlay` rule (always-on).

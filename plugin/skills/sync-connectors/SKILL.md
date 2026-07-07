@@ -7,8 +7,10 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 
 Collect connector metadata and update the documentation.
 
-- **Pre-built connectors**: fetched from the Workato API → updates the workspace `org/docs/connectors/`. (The kit's bundled `docs/` is read-only; read it for diffing via `workato_docs_lookup`, but never write there.)
+- **Pre-built connectors**: fetched from the Workato API → updates the workspace `org/docs/connectors/`.
 - **Custom connectors**: parsed from `connector.rb` → updates `connectors/docs/`.
+
+Write destinations, dedup, and git conventions: follow the `org-knowledge-overlay` rule (always-on).
 
 ## Usage
 
@@ -159,7 +161,7 @@ python3 scripts/workato-api.py connectors list-platform --provider <name>
 
 2. Parse the JSON and extract triggers/actions.
 
-3. Read the existing merged doc with `workato_docs_lookup("connectors/<name>.md")` (kit + org overlay) to see what is already documented, then create or update the workspace file `org/docs/connectors/<name>.md` (create the directory with `mkdir -p org/docs/connectors` on first write). Write only triggers/actions not already present in the merged result:
+3. Read the existing merged doc with `workato_docs_lookup("connectors/<name>.md")` (kit + org overlay) to see what is already documented, then create or update the workspace file `org/docs/connectors/<name>.md`. Write only triggers/actions not already present in the merged result:
 
 ```markdown
 # <Title> connector
@@ -237,17 +239,4 @@ After update, report:
 
 ## Git management
 
-This skill writes to **two workspace-repo locations** (the plugin's bundled `docs/` is read-only and is never written):
-
-- `org/docs/connectors/*.md` → pre-built connector knowledge in the org overlay.
-- `connectors/docs/*.md` → the workspace repository's custom-connector knowledge.
-
-Commit after running:
-
-```bash
-cd <workspace-root>
-git add org/docs/connectors/ connectors/docs/
-git commit -m "docs: update connector info (pre-built + custom)"
-```
-
-To upstream pre-built spec into the kit canonical docs, open a separate PR against the `workato-toolkit` repository (out of scope here).
+Follow the `org-knowledge-overlay` rule (always-on). This skill also writes `connectors/docs/*.md` (the custom-connector exception) — include it in the same workspace commit (`git add org/docs/connectors/ connectors/docs/`).

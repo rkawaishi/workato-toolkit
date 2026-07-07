@@ -228,3 +228,37 @@ def test_builder_resolves_references_via_asset_path():
     assert "workato_asset_path" in agent, (
         "builder must resolve references/<type>.md via workato_asset_path"
     )
+
+
+# --- Knowledge-convention single-sourcing (issue #21) ---
+LEARNING_FAMILY = {"learn-recipe", "learn-pattern", "auto-learn", "sync-connectors", "onboard"}
+
+# Distinctive header rows of the routing tables that must live ONLY in the
+# org-knowledge-overlay rule (re-inlined copies drifted — issue #21).
+_ROUTING_TABLE_MARKERS = (
+    "| Type of finding | Destination |",
+    "| Type of knowledge | Where it lives |",
+)
+
+
+def test_learning_family_defers_to_overlay_rule():
+    files = _skill_files()
+    for name in LEARNING_FAMILY:
+        text = files[name].read_text(encoding="utf-8")
+        assert "org-knowledge-overlay" in text, (
+            f"{name}: must defer to the org-knowledge-overlay rule by name "
+            "instead of re-stating the write/dedup conventions"
+        )
+
+
+def test_routing_tables_only_in_the_rule():
+    offenders = []
+    scan = list(SKILLS.rglob("*.md")) + list((SKILLS.parent / "docs" / "guides").glob("*.md"))
+    for p in scan:
+        text = p.read_text(encoding="utf-8")
+        for marker in _ROUTING_TABLE_MARKERS:
+            if marker in text:
+                offenders.append(f"{p.relative_to(SKILLS.parent)}: {marker}")
+    assert not offenders, (
+        "destination-routing tables re-inlined outside the rule:\n" + "\n".join(offenders)
+    )

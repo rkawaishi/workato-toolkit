@@ -61,27 +61,40 @@ All knowledge obtained from the org's own recipes / projects goes to `org/docs/<
 
 | Type of finding | Destination |
 |---|---|
-| Connector field info (input/output) | `org/docs/connectors/<provider>.md` |
-| New provider / action discoveries | `org/docs/connectors/<provider>.md` |
-| Workato-internal providers | `org/docs/platform/<topic>.md` |
-| Logic step specifics | `org/docs/logic/<topic>.md` |
+| Connector field info (input/output) | `org/docs/connectors/<provider>.md` (the matching action / trigger section) |
+| New provider / action discoveries | `org/docs/connectors/<provider>.md` (the trigger / action list table) |
+| Workato-internal providers | `org/docs/platform/<topic>.md` (e.g. `workflow-apps.md`, `agent-studio.md`) |
+| Logic step specifics (if / loop / error) | `org/docs/logic/<topic>.md` |
 | Datapill patterns | `org/docs/logic/data-pills.md` |
-| Deployment findings | `org/docs/patterns/deployment-guide.md` |
+| Deployment findings (push/pull behavior) | `org/docs/patterns/deployment-guide.md` |
 | Recipe construction patterns (`/learn-pattern`) | `org/docs/patterns/recipe-patterns/<name>.md` |
-| Unclassifiable findings | `org/docs/learned-patterns.md` |
+| General recipe-JSON structure findings | `org/docs/learned-patterns.md` (file general findings you'd like to upstream to the kit later here) |
+| Unclassifiable findings | `org/docs/learned-patterns.md` (temporary holding; move to the right file later) |
 
 **Legacy**: an older convention used `projects/docs/patterns/` for org-domain patterns.
 The read side still consults `projects/docs/patterns/` when it exists, but **all new writes go to `org/docs/patterns/recipe-patterns/`**.
 Distinguish "generic" vs "org-domain" within the pattern body (e.g. a "Scope" section), not by path.
 
-Before writing, call `workato_docs_lookup("<same-relative-path>")` and skip anything the kit already documents. Only write **differences, corrections, and org-specific additions** to `org/docs/`.
-
 ### Sync skills (`/sync-connectors`, `/auto-learn`)
 
 These collect information from Workato official sources (API / UI). Because the kit's bundled `docs/` is
 read-only under plugin distribution, they write to the workspace **`org/docs/connectors/<name>.md`**
-(the same file `/learn-recipe` grows). Custom-connector docs go to `connectors/docs/<name>.md`.
+(the same file `/learn-recipe` grows). Custom-connector docs go to `connectors/docs/<name>.md` (see the exception below).
 To promote broadly-useful spec into the kit canonical docs, open a separate PR against `workato-toolkit`.
+
+## Dedup procedure (canonical)
+
+Before writing a finding:
+
+1. Call `workato_docs_lookup("<same-relative-path>")` — it returns the bundled kit doc merged with any existing org overlay.
+2. If `org/docs/<same-relative-path>` exists, also read it directly (it is in the workspace repo).
+3. Append only **differences, corrections, and org-specific additions**. Never duplicate what the kit or the org side already documents; if the same information is already there, do not write it.
+
+## Exception: custom connectors
+
+Custom-connector docs live at **`connectors/docs/<name>.md`** in the workspace — **outside** the `org/docs/` overlay.
+They are read and written **directly** (not via the docs-overlay MCP), and are maintained by `/sync-connectors`
+and the `sdk push` hook reminder (which keeps `connector_id` frontmatter in sync).
 
 ## Git management
 

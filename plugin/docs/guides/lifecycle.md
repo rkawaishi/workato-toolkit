@@ -133,7 +133,7 @@ The kit canonical `docs/` is **written only by kit maintainers** (via PRs to the
 | `docs/patterns/shared-assets.md` | Manual | `/workato-create recipe`, `/catalog`, `/plan` | Shared asset design policy |
 | `docs/patterns/workspace-management.md` | Manual | `/plan`, `/catalog` | Workspace structure and naming conventions |
 | Always-on rules | Manual | All skills | JSON format, per-path rules |
-| `docs/learned-patterns.md` | Manual (kit maintainers' temporary buffer) | Manual (triage work) | Kit canonical buffer. Users use `org/docs/learned-patterns.md` |
+| `learned-patterns.md` (kit bundle) | Manual (kit maintainers' temporary buffer) | Manual (triage work) | Kit canonical buffer. Users use `org/docs/learned-patterns.md` |
 
 ### Organization side (`connectors/`, `projects/`, `org/`)
 
