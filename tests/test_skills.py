@@ -8,8 +8,8 @@ EXPECTED_SKILLS = {
     "analyze", "auto-learn", "catalog", "deploy-project",
     "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
     "onboard", "ping", "plan", "pull-project", "push-project",
-    "setup-workspace", "spec", "sync-connectors", "tasks", "validate-recipe",
-    "workato-create",
+    "run-recipes", "setup-workspace", "spec", "sync-connectors", "tasks",
+    "validate-recipe", "workato-create",
 }
 
 # @-prefixed doc references that must be gone after the rewrite (READ refs → MCP).
@@ -325,3 +325,45 @@ def test_spec_single_argument_grammar():
         "spec must use the slash form <project>/<NNN>-<slug> like every "
         "downstream skill (single argument grammar)"
     )
+
+
+# ---- /run-recipes (operations-lifecycle spec 2026-07-07 §7; S6-1〜S6-4) ----
+
+def _run_recipes_text():
+    return (SKILLS / "run-recipes" / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_run_recipes_uses_helper_not_raw_cli():
+    """S6-1: 実行はヘルパー `recipes start/stop`（dev ガード内蔵）経由。
+    raw CLI の `workato recipes start|stop` を手順として書かない。"""
+    text = _run_recipes_text()
+    assert "workato-api.py recipes list" in text, "status must go through the helper"
+    assert re.search(r"workato-api\.py recipes (start|stop)", text), \
+        "start/stop must go through the helper (built-in dev guard)"
+    offenders = [
+        line.strip() for line in text.splitlines()
+        if re.search(r"(?<!workato-api\.py )\bworkato recipes (start|stop)\b", line)
+    ]
+    assert not offenders, "raw CLI start/stop in run-recipes:\n" + "\n".join(offenders)
+
+
+def test_run_recipes_has_prod_boundary_section():
+    """S6-3: test/prod プロファイル検知時は実行せず案内へ切替える —
+    「UI」と hotfix 経路への言及が必須（hook は最終防衛線であって UX ではない）。"""
+    text = _run_recipes_text()
+    assert "-dev" in text, "must resolve/check the profile suffix before any mutation"
+    assert re.search(r"\bUI\b", text), "prod boundary guidance must point at the Workato UI"
+    assert "hotfix" in text.lower(), "prod boundary guidance must include the hotfix path"
+    assert "/deploy-project" in text, "the sanctioned fix path for test/prod is deploy"
+
+
+def test_run_recipes_connects_start_failures_to_diagnose():
+    """S6-4: start がエラーを返したらエラー本文を表示し /diagnose-jobs へ接続する。"""
+    text = _run_recipes_text()
+    assert "/diagnose-jobs" in text
+
+
+def test_run_recipes_restart_orders_stop_then_start():
+    """S6-1 AC: restart は stop → start の順序保証つき。"""
+    text = _run_recipes_text()
+    assert "stop → start" in text or "stop then start" in text
