@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Workato Platform API helper.
 
+Requires Python 3.11+ (stdlib only; runs on the workspace's python3).
+
 Complements the official Workato Platform CLI with API calls for features
 not available in the CLI (jobs, connectors metadata, recipes list as JSON).
 

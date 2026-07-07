@@ -31,3 +31,20 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Run tests
         run: python3 -m pytest tests/ -q
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dev deps
+        run: pip install -r requirements-dev.txt
+      - name: Ruff (python)
+        run: ruff check scripts/ tests/ plugin/scripts/ plugin/mcp/
+      - name: ShellCheck (bash hooks + scripts)
+        # shellcheck is preinstalled on ubuntu-latest runners.
+        run: |
+          shellcheck plugin/bin/*.sh plugin/bin/session-start-rules \
+            plugin/scripts/*.sh scripts/*.sh

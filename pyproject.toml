@@ -1,0 +1,10 @@
+# Dev tooling configuration only — this repository is not a Python package.
+# (The plugin ships as files; the helper and MCP server run from source.)
+
+[tool.ruff]
+# Matches the documented Python floor (CLAUDE.md "Dev session prerequisites"
+# and the helper's module docstring).
+target-version = "py311"
+
+[tool.ruff.lint]
+# Default E/F rules. Add rule families deliberately, not by accident.

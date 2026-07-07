@@ -4,3 +4,4 @@
 # The docs-overlay dev MCP additionally needs `uv` (it runs with
 # `uv run --with fastmcp`, so fastmcp itself is not listed here).
 pytest
+ruff
