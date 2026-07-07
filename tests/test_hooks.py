@@ -1,10 +1,23 @@
 """Hook guards: scripts under plugin/bin/, hooks.json wiring (CC + frozen
-per-editor variants), and stdin-driven behavior checks."""
+per-editor variants), and stdin-driven behavior checks (fixture matrix)."""
 import json
 import os
+import shutil
 import subprocess
 
+import pytest
+
 from conftest import BIN, HOOKS, PLUGIN
+
+
+def _run_hook(script, payload, env=None):
+    e = dict(os.environ)
+    if env:
+        e.update(env)
+    return subprocess.run(
+        ["bash", str(BIN / script)],
+        input=json.dumps(payload), capture_output=True, text=True, env=e,
+    )
 
 PATTERNS = PLUGIN / "credential-patterns.txt"
 
@@ -35,18 +48,98 @@ def test_block_hook_resolves_patterns_from_repo_root():
     assert "/../../credential-patterns.txt" not in src, "old framework/ relative path still present"
 
 
-def test_block_hook_blocks_cat_master_key():
-    payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "cat master.key"}})
-    r = subprocess.run(["bash", str(BIN / "block-credential-read.sh")],
-                       input=payload, capture_output=True, text=True)
-    assert r.returncode == 2, f"expected block (exit 2), got {r.returncode}: {r.stderr}"
+# Credential-guard behavior matrix (issue #28). Encodes the SURFACING model
+# documented in plugin/credential-patterns.txt: block only what would emit a
+# credential file's CONTENT into context; naming/feeding-as-argument is allowed.
+# Path-based checks (Read/Grep/Edit/Write) are default-deny.
+CRED_GUARD_MATRIX = [
+    # (tool_name, tool_input, expected_exit, why)
+    ("Bash", {"command": "cat master.key"}, 2, "cat surfaces content"),
+    ("Bash", {"command": "cat settings.yaml"}, 2, "cat surfaces content"),
+    ("Bash", {"command": "head .env"}, 2, "head surfaces content"),
+    ("Bash", {"command": "grep key master.key"}, 2, "grep surfaces content"),
+    ("Bash", {"command": "base64 master.key"}, 2, "encode+emit surfaces content"),
+    ("Bash", {"command": "echo master.key"}, 0, "names the file, no content"),
+    ("Bash", {"command": "git add master.key"}, 0, "feeds as argument (surfacing model)"),
+    ("Bash", {"command": "ls -la"}, 0, "unrelated command"),
+    ("Bash", {"command": "workato push"}, 0, "unrelated command"),
+    ("Read", {"file_path": "/w/master.key"}, 2, "path default-deny"),
+    ("Read", {"file_path": "docs/readme.md"}, 0, "non-credential path"),
+    ("Grep", {"path": ".env"}, 2, "path default-deny"),
+    ("Write", {"file_path": "a/settings.yaml"}, 2, "path default-deny"),
+]
 
 
-def test_block_hook_allows_plain_command():
-    payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "ls -la"}})
-    r = subprocess.run(["bash", str(BIN / "block-credential-read.sh")],
-                       input=payload, capture_output=True, text=True)
-    assert r.returncode == 0, f"expected allow (exit 0), got {r.returncode}: {r.stderr}"
+@pytest.mark.parametrize(
+    "tool_name,tool_input,expected,why",
+    CRED_GUARD_MATRIX,
+    ids=[f"{c[0]}:{next(iter(c[1].values()))}" for c in CRED_GUARD_MATRIX],
+)
+def test_credential_guard_matrix(tool_name, tool_input, expected, why):
+    r = _run_hook("block-credential-read.sh",
+                  {"tool_name": tool_name, "tool_input": tool_input})
+    assert r.returncode == expected, (
+        f"{tool_name} {tool_input}: expected exit {expected} ({why}), "
+        f"got {r.returncode}: {r.stderr}"
+    )
+
+
+# validate-before-push behavior (issue #28): fixture project driven via
+# CLAUDE_PROJECT_DIR; the workato-CLI validation step degrades gracefully
+# when the CLI is absent, so these cover the hook's own checks.
+def _project_fixture(tmp_path, recipe_json):
+    proj = tmp_path / "projects" / "p1"
+    proj.mkdir(parents=True)
+    (proj / ".workatoenv").write_text("project_id=1\n", encoding="utf-8")
+    (proj / "bad.recipe.json").write_text(recipe_json, encoding="utf-8")
+    return tmp_path
+
+
+def test_validate_hook_blocks_broken_recipe_json(tmp_path):
+    ws = _project_fixture(tmp_path, "{broken")
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws)})
+    assert r.returncode == 2, f"broken recipe JSON must block push: {r.stderr}"
+
+
+@pytest.mark.skipif(shutil.which("workato") is not None,
+                    reason="workato CLI present — hook would call the real validator")
+def test_validate_hook_passes_clean_project(tmp_path):
+    ws = _project_fixture(tmp_path, '{"name": "r", "code": {}}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws)})
+    assert r.returncode == 0, f"clean project must pass: {r.stderr}"
+
+
+def test_validate_hook_ignores_non_push_commands():
+    r = _run_hook("validate-before-push.sh", {"tool_input": {"command": "ls"}})
+    assert r.returncode == 0
+
+
+# sync-docs-after-sdk-push behavior (issue #28).
+def test_sync_docs_hook_reminds_after_successful_sdk_push():
+    r = _run_hook("sync-docs-after-sdk-push.sh", {
+        "tool_input": {"command":
+                       "python3 scripts/workato-api.py sdk push --connector connectors/foo/connector.rb"},
+        "tool_response": {"exitCode": 0},
+    })
+    assert r.returncode == 0
+    assert "connectors/docs/foo.md" in r.stdout, "reminder must name the doc to update"
+
+
+def test_sync_docs_hook_silent_on_failure_and_non_sdk():
+    failed = _run_hook("sync-docs-after-sdk-push.sh", {
+        "tool_input": {"command":
+                       "python3 scripts/workato-api.py sdk push --connector connectors/foo/connector.rb"},
+        "tool_response": {"exitCode": 1},
+    })
+    assert failed.returncode == 0 and failed.stdout.strip() == ""
+    unrelated = _run_hook("sync-docs-after-sdk-push.sh",
+                          {"tool_input": {"command": "workato push"},
+                           "tool_response": {"exitCode": 0}})
+    assert unrelated.returncode == 0 and unrelated.stdout.strip() == ""
 
 
 def test_session_start_rules_emits_context():

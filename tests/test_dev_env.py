@@ -12,6 +12,7 @@ to run the test suite and the derived-file sync without manual setup:
 import json
 import os
 import re
+import subprocess
 
 from conftest import REPO
 REQS = REPO / "requirements-dev.txt"
@@ -222,4 +223,39 @@ def test_python_floor_documented():
     assert "Python 3.11" in helper_head, (
         "the shipped helper must declare its Python floor in the module docstring "
         "(it runs on the user's python3, not CI's)"
+    )
+
+
+# --- Verification harness (issue #28) ---
+
+def test_self_install_smoke_script():
+    p = REPO / "scripts" / "self-install-smoke.sh"
+    assert p.is_file(), "scripts/self-install-smoke.sh missing (semi-automated smoke)"
+    assert os.access(p, os.X_OK), "smoke script must be executable"
+    r = subprocess.run(["bash", "-n", str(p)], capture_output=True, text=True)
+    assert r.returncode == 0, f"smoke script has syntax errors: {r.stderr}"
+    text = p.read_text(encoding="utf-8")
+    for needle, why in [
+        ("marketplace add", "claude-CLI install section"),
+        ("plugin install", "claude-CLI install section"),
+        ("session-start-rules", "structural preflight"),
+        ("block-credential-read", "credential-guard preflight"),
+        ("dev/verifications", "tells the runner where to record results"),
+    ]:
+        assert needle in text, f"smoke script must cover: {why} ({needle!r})"
+
+
+def test_verifications_convention_documented():
+    readme = REPO / "dev" / "verifications" / "README.md"
+    assert readme.is_file(), "dev/verifications/README.md (recording convention) missing"
+    text = readme.read_text(encoding="utf-8")
+    assert "YYYY-MM-DD" in text, "must state the file-naming convention"
+    dev_readme = (REPO / "dev" / "README.md").read_text(encoding="utf-8")
+    assert "verifications" in dev_readme, "dev/README.md must mention verifications/"
+    claude_md = (REPO / "CLAUDE.md").read_text(encoding="utf-8")
+    assert "self-install-smoke.sh" in claude_md, (
+        "CLAUDE.md's verification section must point at the smoke script"
+    )
+    assert "dev/verifications" in claude_md, (
+        "CLAUDE.md must say where verification results are recorded"
     )
