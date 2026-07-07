@@ -5,10 +5,9 @@ manifests の個別形状は test_manifests.py が見る。ここは「配布物
 検証が test_manifests.py と一部重複するのは意図的な二重化)。
 """
 import json
-from pathlib import Path
+import re
 
-REPO = Path(__file__).resolve().parent.parent
-PLUGIN = REPO / "plugin"
+from conftest import PLUGIN, REPO
 
 # 配布ツリーは plugin/ 配下に一本化。root に残っていたら境界違反。
 MOVED_DIRS = ["skills", "docs", "rules", "agents", "bin", "hooks", "mcp"]
@@ -61,6 +60,21 @@ def test_dev_mcp_json_targets_plugin_server():
     # 設定が指す実体の存在まで確認する（server.py の rename を沈黙させない）
     assert (REPO / "plugin" / "mcp" / "docs-overlay" / "server.py").is_file(), \
         ".mcp.json points at a missing server script"
+
+
+def test_no_phase_named_test_files():
+    """テストは対象別に組織する(issue #27)。移行フェーズ名(P5 等)や
+    '一度きりのイベント'名(migration)のファイルに恒久ガードを置かない —
+    どこに何を足すかは tests/README.md の表が正。"""
+    offenders = [
+        p.name
+        for p in (REPO / "tests").rglob("test_*.py")
+        if re.search(r"_p\d+|migration", p.name)
+    ]
+    assert not offenders, (
+        f"phase-named test files found: {offenders} — rename by subject "
+        "(see tests/README.md)"
+    )
 
 
 def test_plugin_mcp_json_uses_plugin_root_var():

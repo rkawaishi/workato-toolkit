@@ -1,8 +1,6 @@
 import subprocess
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-PLUGIN = REPO / "plugin"
+from conftest import PLUGIN, REPO
 
 
 def _run_generator():

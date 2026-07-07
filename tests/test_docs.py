@@ -1,10 +1,9 @@
+"""Knowledge-base tree guards (plugin/docs/) + docs served through the overlay."""
 import sys
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-DOCS = REPO / "plugin" / "docs"
+from conftest import DOCS, PLUGIN
 
-sys.path.insert(0, str(REPO / "plugin" / "mcp" / "docs-overlay"))
+sys.path.insert(0, str(PLUGIN / "mcp" / "docs-overlay"))
 import overlay  # noqa: E402
 
 
