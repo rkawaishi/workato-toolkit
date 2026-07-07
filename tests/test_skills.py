@@ -5,7 +5,7 @@ import re
 from conftest import SKILLS
 
 EXPECTED_SKILLS = {
-    "analyze", "auto-learn", "catalog", "deploy-project",
+    "analyze", "auto-learn", "catalog", "deploy-project", "diagnose-jobs",
     "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
     "onboard", "ping", "plan", "pull-project", "push-project",
     "run-recipes", "setup-workspace", "spec", "sync-connectors", "tasks",
@@ -17,8 +17,8 @@ FORBIDDEN = re.compile(r"@(?:docs|org/docs|projects/docs)/")
 
 # Skills that DO consult the docs knowledge base and therefore must mention the MCP tool.
 SKILLS_WITH_DOC_REFS = {
-    "analyze", "auto-learn", "deploy-project", "issue-api-keys", "learn-recipe",
-    "plan", "push-project", "tasks", "workato-create",
+    "analyze", "auto-learn", "deploy-project", "diagnose-jobs", "issue-api-keys",
+    "learn-recipe", "plan", "push-project", "tasks", "workato-create",
 }
 
 
@@ -379,3 +379,94 @@ def test_run_recipes_restart_orders_stop_then_start():
     assert "stop → start" in text or "stop then start" in text
     assert re.search(r"Re-run `?status`?", text), \
         "S6-1 AC: after any operation the resulting state is re-displayed"
+
+
+# ---- /diagnose-jobs (operations-lifecycle spec 2026-07-07 §7; S7-1〜S7-4, S6-4, S5-2) ----
+
+def _diagnose_jobs_text():
+    return (SKILLS / "diagnose-jobs" / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_diagnose_jobs_fix_cycle_is_dev_only():
+    """S7-2/§5: 修正サイクルは dev 限定 — test/prod には触れず、修正の反映は
+    常に deploy 経由。--no-fix で診断・提案のみに抑制できる。"""
+    text = _diagnose_jobs_text()
+    assert "-dev" in text, "must resolve/check the profile before the fix loop"
+    assert "--no-fix" in text
+    assert "/deploy-project" in text, "test/prod fixes travel via deploy, never directly"
+
+
+def test_diagnose_jobs_collects_per_recipe_via_helper():
+    """S7-1: ヘルパーの jobs list はレシピ単位（--recipe-id 必須）。フォルダ対象は
+    recipes list --folder-id でレシピ列挙してから照会する。"""
+    text = _diagnose_jobs_text()
+    assert "workato-api.py recipes list" in text and "--folder-id" in text
+    assert "workato-api.py jobs list" in text and "--recipe-id" in text
+    assert "workato-api.py jobs get" in text
+
+
+def test_diagnose_jobs_has_start_error_entrance():
+    """S6-4: 入口は失敗ジョブだけでなく起動エラーも — ジョブが 1 件も無くても
+    診断に入れ、起動成功→テスト投入の順序を保証する。"""
+    text = _diagnose_jobs_text()
+    assert re.search(r"^#+ .*\bStart errors?\b", text, re.MULTILINE), \
+        "start-error entrance needs its own section"
+    assert re.search(r"no jobs", text, re.IGNORECASE), \
+        "must state it works even when zero jobs exist"
+    assert re.search(r"start success", text, re.IGNORECASE), \
+        "S6-4 AC: entrance (b) exits on start success, then proceeds to injection"
+
+
+def test_diagnose_jobs_loop_discipline():
+    """S7-2 AC: 周回記録・同一修正の再提案禁止・上限（既定 5 周）・途中の再分類
+    停止・green での commit 促し。"""
+    text = _diagnose_jobs_text()
+    assert re.search(r"same fix twice|再提案", text), "no-same-fix-twice rule missing"
+    assert re.search(r"\b5\b.*(iteration|round|loop)|(iteration|round|loop).*\b5\b",
+                     text, re.IGNORECASE), "iteration cap (default 5) missing"
+    assert re.search(r"one line per iteration|per iteration", text, re.IGNORECASE), \
+        "S7-2 AC: per-iteration trail missing"
+    assert "git commit" in text, "S7-2 AC: commit prompt on green missing"
+    assert re.search(r"mid-loop|flips to", text), \
+        "S7-2: mid-loop reclassification must stop the loop"
+
+
+def test_diagnose_jobs_verifies_values_not_just_status():
+    """S5-2 AC: 「ジョブ成功 = 合格」にしない — 値まで照合し、期待値が無ければ
+    ユーザに確認してから照合する（勝手に green 宣言しない）。"""
+    text = _diagnose_jobs_text()
+    assert re.search(r"output values", text, re.IGNORECASE)
+    assert re.search(r"never self-declare green|ask the user for them", text), \
+        "S5-2 AC: with no expected values, ask — do not self-pass"
+
+
+def test_diagnose_jobs_flags_unreclaimed_failed_jobs():
+    """S7-3: green で終わらせない — 修正前に失敗したジョブ（未回収の業務データ）を
+    必ず指摘し、再実行の段取り + 非冪等（二重処理）警告を出す。"""
+    text = _diagnose_jobs_text()
+    assert re.search(r"failed before|before the fix", text, re.IGNORECASE)
+    assert re.search(r"rerun|re-run", text, re.IGNORECASE)
+    assert re.search(r"idempoten|double-process", text, re.IGNORECASE), \
+        "S7-3 AC: warn about double-processing on rerun"
+
+
+def test_diagnose_jobs_ui_handover_roundtrip():
+    """S7-4: 直せないものは診断結果（疑わしい箇所）を添えて UI 修正へ引き渡し、
+    完了後 /pull-project → diff → commit → /learn-recipe。引き渡しから pull 完了
+    まで push を封じる（人の修正の上書き防止）。"""
+    text = _diagnose_jobs_text()
+    assert "/pull-project" in text
+    assert "/learn-recipe" in text
+    assert re.search(r"diagnosis attached", text), \
+        "S7-4 AC: handover carries the diagnosis (suspected steps/settings)"
+    assert re.search(r"until the pull completes", text), \
+        "S7-4 AC: push frozen from handover until the pull completes"
+    assert re.search(r"diff", text), "S7-4: present what the human changed"
+
+
+def test_diagnose_jobs_tail_is_bounded():
+    """S7-1 AC: tail は常駐監視ではない — セッション内・明示的な終了条件つき
+    （ヘルパーの --max-iterations を使う）。"""
+    text = _diagnose_jobs_text()
+    assert "jobs tail" in text
+    assert "--max-iterations" in text

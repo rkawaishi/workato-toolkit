@@ -225,17 +225,22 @@ python3 scripts/workato-api.py jobs get --recipe-id <recipe-id> --job-id <job-id
 
 ### 7. Fix-error cycle
 
-If a job fails:
+If a job fails, hand the cycle to **`/diagnose-jobs`** — it carries the full cause
+classification (six classes, including external spec changes vs transient external
+failures), the loop discipline (5-iteration cap, no same fix twice, per-iteration
+trail), and the handover/round-trip rules. Inline summary for quick cases:
 
 1. Run `python3 scripts/workato-api.py jobs get` to read the error.
 2. Diagnose:
    - **Datapill reference error**: wrong `path` → fix the recipe JSON.
    - **Connection not configured**: guide the user through connection auth in the UI.
    - **Field mapping error**: fix the field name / UUID in `input`.
-   - **External API error**: ask the user to verify the connection target configuration.
+   - **External API error**: distinguish a provider spec change (adapt the recipe)
+     from a transient failure (hand over and wait) — `/diagnose-jobs` §2.
 3. Apply the fix and re-push.
 4. Restart the recipe and verify the next job.
-5. Repeat until success.
+5. Repeat until success — **bounded**: same cap and no-repeat rule as
+   `/diagnose-jobs` (do not loop indefinitely).
 
 ### 8. Report
 

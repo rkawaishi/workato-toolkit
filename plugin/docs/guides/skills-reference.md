@@ -303,6 +303,28 @@ recipe (`--id`) or the whole project (`--all`) through the API helper's guarded
 - A recipe that fails to start produces no jobs; start errors are handed to
   `/diagnose-jobs` instead of being retried blindly.
 
+### /diagnose-jobs — detect, classify, and fix failures in a loop (dev)
+
+The dev-side diagnosis-and-fix loop. Two entrances — failed jobs and start errors
+(a recipe that never starts produces no jobs, so job checks alone stay silent) —
+classified into six cause classes; what the agent can fix it fixes by default,
+looping fix → re-push (`--restart-recipes`) → re-inject → re-verify until green,
+with a 5-iteration cap, a no-same-fix-twice rule, and a one-line-per-iteration trail.
+
+```
+/diagnose-jobs                    # Diagnose the project, fix loop by default
+/diagnose-jobs --recipe-id <id>   # One recipe
+/diagnose-jobs --no-fix           # Diagnose and propose only
+/diagnose-jobs tail               # Follow new failures (bounded window)
+```
+
+- The fix cycle is **dev-only**; test/prod fixes travel dev → `/deploy-project`.
+- What it cannot fix is handed over **with the diagnosis attached**; after a human
+  fixes in the Workato UI, the round-trip is `/pull-project` → diff → commit →
+  `/learn-recipe`, and **push is frozen from handover until the pull completes**.
+- Green is not the finish line: jobs that failed before the fix are listed with a
+  rerun plan (unprocessed business data does not vanish by fixing the recipe).
+
 ---
 
 ## Promotion phase
