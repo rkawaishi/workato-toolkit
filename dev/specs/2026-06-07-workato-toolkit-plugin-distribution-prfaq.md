@@ -1,3 +1,7 @@
+---
+status: done
+---
+
 # PR/FAQ レビュー: workato-toolkit — plugin/extension 配布への移行
 
 - 日付: 2026-06-07

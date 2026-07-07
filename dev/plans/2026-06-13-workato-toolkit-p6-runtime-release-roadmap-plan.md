@@ -1,3 +1,8 @@
+---
+status: superseded
+superseded_by: https://github.com/rkawaishi/workato-toolkit/issues/32
+---
+
 # P6 Runtime-Verification → Release Roadmap (consolidated)
 
 > **For workers:** This is a ROADMAP plan, not a pure TDD plan. Phases A–B are mostly **manual runtime verification** across editors (install the plugin, observe) with pass/fail criteria + an on-fail action; Phases C–E are execution. Steps use checkbox (`- [ ]`). Each step is tagged **[manual]** (a human must run an editor), **[code]** (an automatable change), or **[ops]** (git/GitHub/release action). Execute A → B → C → D; E is independent.
