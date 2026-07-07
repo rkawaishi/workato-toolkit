@@ -1,6 +1,6 @@
 # Shared asset management guide
 
-Workspace structure, naming conventions, and how to design and operate shared assets. In both Claude Code and Cursor, the `/catalog` skill generates and references the catalog.
+Workspace structure, naming conventions, and how to design and operate shared assets. The `/catalog` skill generates and references the catalog.
 
 ## Workspace structure
 

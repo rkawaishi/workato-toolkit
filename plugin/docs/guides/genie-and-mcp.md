@@ -1,6 +1,6 @@
 # Genie and MCP build guide
 
-Steps for building and deploying Workato's AI agents (Genie) and MCP servers. The same skills and the same steps work in both Claude Code and Cursor.
+Steps for building and deploying Workato's AI agents (Genie) and MCP servers.
 
 ## Overview
 

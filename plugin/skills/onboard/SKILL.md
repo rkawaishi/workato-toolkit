@@ -141,7 +141,7 @@ Compute "most-used built-in actions" by tallying `provider` / action keywords ac
 
 ## Editor support
 
-`/onboard` is **CLI / API only** — it does not require a browser, so it runs in every editor (Claude Code, Cursor, Codex CLI, Gemini CLI). Browser-based deep collection is intentionally out of scope; the summary suggests `/auto-learn` (Claude Code + Chrome extension) as an optional follow-up for heavily-used connectors.
+`/onboard` is **CLI / API only** — it does not require a browser. Browser-based deep collection is intentionally out of scope; the summary suggests `/auto-learn` (requires the Chrome extension) as an optional follow-up for heavily-used connectors.
 
 ## Rules to follow
 

@@ -115,7 +115,7 @@ For example, for `[recipe] approval_main`:
 
 Dispatch the task to its owning skill. `/implement` itself never generates JSON.
 
-- **`[recipe]` / `[function]` / `[handler]`** — dispatch directly to the **`workato-builder` subagent** (asset type `recipe`), invoked through your editor's subagent mechanism. `plan.md` already holds the finalized design, so no interview is needed: pass the recipe definition, Resource Inventory and Reused Assets from Step 4b plus the target file paths. The subagent keeps the ~1000-line JSON out of this orchestrator's context, returning a short summary. (This is the generation half of `/create-recipe` Steps 7–9.) Only if your editor has no subagent support, invoke `/create-recipe <project>/<NNN>-<slug>` instead.
+- **`[recipe]` / `[function]` / `[handler]`** — dispatch directly to the **`workato-builder` subagent** (asset type `recipe`), invoked via Claude Code's subagent mechanism. `plan.md` already holds the finalized design, so no interview is needed: pass the recipe definition, Resource Inventory and Reused Assets from Step 4b plus the target file paths. The subagent keeps the ~1000-line JSON out of this orchestrator's context, returning a short summary. (This is the generation half of `/create-recipe` Steps 7–9.) Only if subagent dispatch is unavailable, invoke `/create-recipe <project>/<NNN>-<slug>` instead.
 - **Other tags** — invoke the owning skill from the tag → skill table. `/create-workflow-app`, `/create-genie` and `/create-connector` each dispatch their own generation step to `workato-builder` internally.
 
 > **Important**: `/implement` must not generate JSON itself. The `workato-builder` subagent and the owning skills own all implementation.

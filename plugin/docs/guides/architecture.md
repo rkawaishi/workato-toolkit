@@ -10,26 +10,17 @@ Workato automation development is normally done in the web UI, but this has seve
 - **No reviewability** — diffing JSON is difficult
 - **Knowledge does not accumulate** — know-how like "this field takes this value" stays in individual memory
 
-This toolkit uses AI editors like Claude Code and Cursor to perform **Recipe JSON generation, validation, deployment, and learning** from the codebase.
+This toolkit uses Claude Code to perform **Recipe JSON generation, validation, deployment, and learning** from the codebase.
 
-### Supported editors
+### Supported editor
 
-The toolkit is a **shared-tree plugin**: one set of `skills/`, `docs/`, `bin/`, `agents/`, and `rules/` is read by every editor — there is no per-editor copy. Each editor's manifest points at the same shared tree. The only per-editor files are small derived sidecars (manifests, the three `hooks/*.json` variants, Cursor `.mdc` rules, and the context files).
+**Claude Code is the only officially supported editor.** The plugin is one shared tree — `skills/`, `docs/`, `bin/`, `agents/`, `rules/` — read directly from the installed plugin: skills as `SKILL.md`, always-on rules injected by the SessionStart hook (`bin/session-start-rules` delivers the generated `AGENTS.md`), hooks wired through `hooks/hooks.json`.
 
-| Element | Shared (one copy) | Per-editor (small, irreducible) |
-|---|---|---|
-| skills (`SKILL.md`) | ✅ every editor reads the same files | — |
-| docs / `bin/` hook scripts | ✅ | — |
-| agents | `.md` shared | Codex also gets `.toml` |
-| hooks | scripts shared | `hooks.json` × 3 (plugin-root var / event casing differ) |
-| always-on rules | body shared | Cursor `.mdc`, Gemini `GEMINI.md`, CC/Codex via SessionStart hook |
-| manifest / marketplace | — | one per editor |
+Per-editor assets for Cursor / Codex / Gemini (`.mdc` rules, `.toml` agents, `GEMINI.md`, alternate hooks/manifests) remain in the tree but are **frozen** — not generated, maintained, or verified.
 
-> **Knowledge-base reads go through the docs-overlay MCP** (`workato_docs_lookup` / `workato_docs_list`), not local file paths. The MCP is the same across all editors and resolves the plugin's bundled docs via each editor's plugin-root variable, so a single shared `SKILL.md` works everywhere.
+> **Knowledge-base reads go through the docs-overlay MCP** (`workato_docs_lookup` / `workato_docs_list`), not local file paths. The MCP resolves the plugin's bundled docs from its own location, and merges in your workspace's `org/docs/` overlay.
 
-Every editor invokes the same skills (`/create-recipe`, `/push-project`, etc.) with the same form. For setup instructions, see each quickstart guide:
-- [Claude Code quickstart](quickstart-claude-code.md)
-- [Cursor quickstart](quickstart-cursor.md)
+For setup instructions, see the [Claude Code quickstart](quickstart-claude-code.md).
 
 ## Repository structure
 
@@ -47,7 +38,7 @@ my-org-workato/               ← organization's workspace repository (working r
 └── org/docs/                 ← organization's accumulated knowledge (overlay; git-shared with your team)
 ```
 
-The plugin itself bundles the shared tree (`skills/`, `docs/`, `bin/`, `agents/`, `rules/`, hooks, and the docs-overlay MCP) and is updated with your editor's plugin-update command.
+The plugin itself bundles the shared tree (`skills/`, `docs/`, `bin/`, `agents/`, `rules/`, hooks, and the docs-overlay MCP) and is updated with `/plugin update workato-toolkit`.
 
 ### Separation of framework and organization data
 
@@ -156,11 +147,11 @@ The toolkit's always-on rules are auto-applied according to path patterns:
 | `workato-project-structure.md` | `projects/**` | Project structure rules (including criteria for shared assets) |
 | `workato-cli.md` | (during CLI operations) | CLI command reference |
 
-Both Claude Code and Cursor automatically reference the matching rule when editing a file and generate correct JSON structure. In Cursor the rules are delivered as `.mdc` files and auto-applied by the same path patterns.
+Claude Code automatically references the matching rule when editing a file and generates the correct JSON structure.
 
 ### Notes for toolkit developers (derived files)
 
-The canonical sources are `rules/*.md` and `agents/*.md`. A small set of derived sidecars must stay in sync with them: Cursor `rules/*.mdc` (+ the aggregate `workato-project.mdc`), Codex `agents/*.toml`, the context files `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`, and the three `hooks/*.json` variants. After editing a canonical source, regenerate:
+The canonical sources are `rules/*.md`. The single generated file is `AGENTS.md` (the SessionStart payload); frozen per-editor sidecars are never regenerated. After editing a canonical source, regenerate:
 
 ```bash
 python3 scripts/sync_derived.py

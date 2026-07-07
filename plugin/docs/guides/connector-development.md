@@ -1,6 +1,6 @@
 # Custom connector development guide
 
-Development flow for custom connectors using the Workato Connector SDK. Both Claude Code and Cursor can develop with the same steps via the `/create-connector` skill.
+Development flow for custom connectors using the Workato Connector SDK, via the `/create-connector` skill.
 
 ## When to build a custom connector
 
@@ -155,7 +155,7 @@ After pushing, create a Connection in the Workato UI and run the authentication 
 /sync-connectors --custom
 ```
 
-Parses `connector.rb` and auto-generates a list of actions/triggers/fields into `connectors/docs/<name>.md`. This lets `/create-recipe` reference field information for custom connectors (works the same in Claude Code and Cursor).
+Parses `connector.rb` and auto-generates a list of actions/triggers/fields into `connectors/docs/<name>.md`. This lets `/create-recipe` reference field information for custom connectors.
 
 ## Authentication methods
 

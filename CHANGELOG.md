@@ -25,6 +25,12 @@ see issue #10 / P6 Phase A).
 - Development: dev-session bootstrap (#24), CI lint jobs + release version
   gate + this changelog (#25).
 
+### Changed
+- User-facing docs and skills now state Claude Code–only support everywhere;
+  the Cursor quickstart guide was removed (other-editor assets remain frozen
+  in-tree). A test guard keeps multi-editor support claims out of shipped
+  content. (#11)
+
 ### Fixed
 - docs-overlay MCP server failed to start whenever the workspace (or this
   repo) contains a `pyproject.toml` — `uv run` tried to adopt it as the

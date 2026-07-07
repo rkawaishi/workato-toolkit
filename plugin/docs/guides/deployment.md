@@ -2,8 +2,6 @@
 
 Steps and troubleshooting for deploying locally built assets to Workato.
 
-The same skills and the same flow apply whether you use Claude Code or Cursor.
-
 ## Basic flow
 
 All deployments go through the `/push-project` skill. You should not need to run `workato push` manually.

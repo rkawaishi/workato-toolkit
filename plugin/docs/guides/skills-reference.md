@@ -9,11 +9,8 @@ A reference summarizing the purpose, usage, and options of every skill.
 | Editor | How to invoke |
 |---|---|
 | **Claude Code** | Type `/skill-name` in the prompt |
-| **Cursor** | Type `/skill-name` in Agent mode |
-| **Codex CLI** | Type `$skill-name` in the prompt |
-| **Gemini CLI** *(coming soon)* | Type `/skill-name` in the prompt |
 
-Skills ship inside the plugin and load automatically in every editor; update them with your editor's plugin-update command.
+Skills ship inside the plugin and load automatically from the installed plugin; update them with `/plugin update workato-toolkit`.
 
 ## Setup phase (once per workspace)
 
@@ -64,7 +61,7 @@ For a workspace that already has Workato projects and custom connectors before t
 
 - Sequences `/pull-project --all` → `/sync-connectors --all` → `/learn-recipe` (per project) → `/learn-pattern` → `/catalog scan`. It never reimplements them.
 - Resumable: progress is tracked per step / per project in `org/onboarding-report.md`, which also becomes the final summary.
-- CLI / API only — runs in every editor. Use `/auto-learn` afterward for browser-based deep dives on heavily-used connectors.
+- CLI / API only — no browser required. Use `/auto-learn` afterward for browser-based deep dives on heavily-used connectors.
 
 ## Specification and design phases
 
