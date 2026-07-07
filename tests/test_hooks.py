@@ -439,6 +439,20 @@ def test_session_start_warns_on_stale_workspace_helper(tmp_path):
     assert "/setup-workspace --update" in ctx.split("Toolkit notice:")[1]
 
 
+def test_session_start_survives_undecodable_workspace_helper(tmp_path):
+    """A corrupt/non-UTF-8 helper must degrade to no-nudge — not crash the
+    heredoc and drop the entire rules injection."""
+    ws = tmp_path / "ws"
+    (ws / "scripts").mkdir(parents=True)
+    (ws / "scripts" / "workato-api.py").write_bytes(b"__version__ = \xff\xfe garbage")
+    env = dict(os.environ, CLAUDE_PLUGIN_ROOT=str(PLUGIN), CLAUDE_PROJECT_DIR=str(ws))
+    r = subprocess.run(["bash", str(BIN / "session-start-rules")],
+                       input="{}", capture_output=True, text=True, env=env)
+    ctx = json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Workato Recipe JSON Format" in ctx, "rules payload must survive"
+    assert "Toolkit notice:" not in ctx
+
+
 def test_session_start_quiet_when_helper_current_or_absent(tmp_path):
     bundled = (PLUGIN / "scripts" / "workato-api.py").read_text(encoding="utf-8")
     import re as _re

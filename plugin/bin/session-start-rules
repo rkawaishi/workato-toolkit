@@ -40,7 +40,9 @@ def version_of(path):
         with open(path, encoding="utf-8") as f:
             m = re.search(r'^__version__ = "([^"]+)"', f.read(), re.M)
         return m.group(1) if m else None
-    except OSError:
+    except (OSError, UnicodeError):
+        # unreadable or undecodable helper: degrade to no-nudge — never let
+        # this check take down the whole rules injection.
         return None
 
 
