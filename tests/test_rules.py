@@ -38,3 +38,40 @@ def test_overlay_rule_reflects_plugin_distribution():
     # The official-spec write target is now org/docs (not the read-only bundled docs/).
     assert "`docs/` (kit) | `/sync-connectors`" not in text, \
         "overlay rule still routes sync skills to the read-only kit docs/"
+
+
+def test_rules_use_no_at_path_references():
+    """Rules ship inside the plugin: `@docs/...` / `@.claude/...` paths never
+    resolve for users. Docs go through workato_docs_lookup; other rules are
+    referenced by name ("the `workato-cli` rule (always-on)")."""
+    offenders = []
+    for p in sorted(RULES.glob("*.md")):
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if re.search(r"@(?:docs|org/docs)/|@\.claude/", line):
+                offenders.append(f"{p.name}:{i}: {line.strip()}")
+    assert not offenders, "@-path references in rules:\n" + "\n".join(offenders)
+
+
+# The helper-command table in workato-cli.md must not silently lag the helper.
+# Each entry here must exist in BOTH the helper source and the rule's table —
+# extend this list when adding a helper subcommand.
+HELPER_COMMANDS_DOCUMENTED = [
+    "jobs list", "jobs get", "jobs tail",
+    "recipes list", "recipes start", "recipes stop",
+    "connectors list-platform", "connectors list-custom",
+    "sdk push", "sdk pull", "sdk pull-project", "sdk diff-project",
+    "sdk test", "sdk edit", "sdk decrypt", "sdk generate-schema",
+    "oauth-profiles",
+    "deploy", "api-clients", "profile show",
+]
+
+
+def test_helper_command_table_in_sync():
+    from conftest import PLUGIN
+    rule = (RULES / "workato-cli.md").read_text(encoding="utf-8")
+    helper = (PLUGIN / "scripts" / "workato-api.py").read_text(encoding="utf-8")
+    for cmd in HELPER_COMMANDS_DOCUMENTED:
+        assert cmd in helper, f"{cmd!r} listed here but gone from the helper"
+        assert cmd.split()[-1] in rule, (
+            f"helper subcommand {cmd!r} missing from workato-cli.md's table"
+        )

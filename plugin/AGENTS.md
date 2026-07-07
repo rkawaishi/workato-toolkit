@@ -380,7 +380,7 @@ Go through them in order. Stop at the first one that applies. Only ask the user 
 | List custom connectors | `python3 scripts/workato-api.py connectors list-custom` |
 | Push a custom connector (recommended) | `python3 scripts/workato-api.py sdk push --connector <path> [--connector-id <id>]` |
 | Manage OAuth profiles | `workato oauth-profiles ...` |
-| Manage API clients | `workato api-clients ...` |
+| Manage **API Platform** clients (external API consumers) | `workato api-clients ...` — NOT the same system as Developer API clients; agent keys go through `python3 scripts/workato-api.py api-clients` / `/issue-api-keys` |
 | Create an API collection from OpenAPI | `workato api-collections create` |
 | AI-friendly CLI doc search | `workato guide search/topics/content` |
 
@@ -431,7 +431,8 @@ Pick the right one of three tools:
 Install: `pipx install workato-platform-cli`
 
 Common commands:
-- Init: `workato init --non-interactive --profile <profile> --project-id <id> --folder-name "projects/<name>"`
+- Init (bind an EXISTING Workato project to a local dir): `workato init --non-interactive --profile <profile> --project-id <id> --folder-name "projects/<name>"`
+- Init (create a NEW project): `workato init --non-interactive --profile <profile> --project-name "<name>" --folder-name "projects/<name>"`
 - Pull: `workato projects use "<name>" && workato pull`
 - Push: `workato push`
 - Push (with restart): `workato push --restart-recipes`
@@ -453,11 +454,17 @@ python3 scripts/workato-api.py <command>
 |---|---|
 | `jobs list --recipe-id <id> [--status <s>]` | List jobs |
 | `jobs get --recipe-id <id> --job-id <id>` | Job detail |
+| `jobs tail --recipe-id <id>` | Follow a recipe's jobs (poll loop) |
 | `connectors list-platform [--provider <name>]` | Pre-built connector info |
 | `connectors list-custom` | List custom connectors |
 | `recipes list [--folder-id <id>]` | List recipes (JSON) |
+| `recipes start <id>` / `recipes stop <id>` | Start/stop with the dev-profile guard |
+| `oauth-profiles list/get` | Custom OAuth profiles |
 | `sdk push --connector <path> [--connector-id <id>]` | Push a custom connector (**recommended**) |
 | `sdk pull (--connector-id <id> \| --name <name>)` | Pull a custom connector's source into `connectors/<name>/` |
+| `sdk pull-project` / `sdk diff-project` | Pull / diff every custom connector in the project |
+| `sdk test <connector.rb>` | Run the connector's local test |
+| `sdk edit` / `sdk decrypt` / `sdk generate-schema` | settings.yaml editing / decrypt / schema from a JSON/CSV sample |
 | `deploy preview/run/status/list` | Promote a project via the Deploy feature (dev→test→prod). Use through `/deploy-project` |
 | `api-clients list/roles/create/delete/rotate` | Developer API clients — per-environment agent keys. Use through `/issue-api-keys` |
 | `profile show` | Show the resolved profile |
@@ -529,9 +536,10 @@ Writes to `connectors/<name>/connector.rb` and stores `connector_id` in `connect
 #### Pre-pull checks
 
 - [ ] Check for uncommitted changes with `git status`.
-  - Pull overwrites (silently) and deletes (with a y/N prompt) local files.
+  - Pull overwrites and can delete local files — treat both as silent and
+    unrecoverable; commit or stash before pulling.
   - Commit or stash any uncommitted edits before pulling.
-- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); `/pull-project` places it automatically. Add any further project-specific exclusions to that file.
+- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); the skills that need it (`/setup-workspace`, `/pull-project`, `/spec`, `/design`) place it automatically. Add any further project-specific exclusions to that file.
 
 #### Running `workato init` against an existing directory
 
@@ -641,7 +649,7 @@ Steps:
 - If `settings.yaml` contains real credentials, add it to `.gitignore`.
 - `connectors/` lives in the organization's workspace repository.
 
-Details: `@docs/connector-sdk/connector-rb.md`.
+Details: `workato_docs_lookup("connector-sdk/connector-rb.md")`.
 
 
 ## Workato deployment flow (inviolable)
@@ -701,7 +709,7 @@ Direct push to prod is not allowed. To release to prod:
 4. Promote test → prod: /deploy-project run --to prod from a <org>-test profile,
    or the UI. The release manager's approval happens in the Workato UI and stays manual.
 
-See @docs/platform/environments.md for the full Deploy flow.
+See `workato_docs_lookup("platform/environments.md")` for the full Deploy flow.
 ```
 
 ### When you must read from test or prod
@@ -730,10 +738,10 @@ workato push --profile <org>-prod
 
 ### Related
 
-- `@docs/platform/environments.md` — environment roles and the Deploy feature
-- `@docs/platform/cli-profiles.md` — profile naming and push/pull matrix
-- `@.claude/rules/workato-cli.md` — Platform CLI commands
-- `@.claude/rules/workato-cli-autonomy.md` — when the CLI is the right answer
+- `workato_docs_lookup("platform/environments.md")` — environment roles and the Deploy feature
+- `workato_docs_lookup("platform/cli-profiles.md")` — profile naming and push/pull matrix
+- the `workato-cli` rule (always-on) — Platform CLI commands
+- the `workato-cli-autonomy` rule (always-on) — when the CLI is the right answer
 
 
 ## Workato Page Component JSON Format
@@ -1038,8 +1046,8 @@ Place the asset in a `Shared` project and reference it via `folder`:
 
 #### Details
 
-- Naming conventions, Recipe Function interface design, and caveats are in `@docs/patterns/shared-assets.md`.
-- Workspace layout, asset naming, and connection management are in `@docs/patterns/workspace-management.md`.
+- Naming conventions, Recipe Function interface design, and caveats: `workato_docs_lookup("patterns/shared-assets.md")`.
+- Workspace layout, asset naming, and connection management: `workato_docs_lookup("patterns/workspace-management.md")`.
 
 
 ## Workato Recipe JSON Format
@@ -1269,7 +1277,7 @@ Data references use the `_dp()` function:
 }
 ```
 
-`operand` values (the literal string in JSON, verified against a recipe exercising all 14 operators — see `@docs/logic/if-conditions.md` for the supported types, edge cases, and the full investigation):
+`operand` values (the literal string in JSON, verified against a recipe exercising all 14 operators — see `workato_docs_lookup("logic/if-conditions.md")` for the supported types, edge cases, and the full investigation):
 
 > The public Workato docs page ([conditions.html](https://docs.workato.com/en/features/conditions.html)) lists short forms such as `eq`, `not_eq`, `gt`, `lt`, `not_present`. **Recipe JSON does not use these.** Use the values in the table below.
 

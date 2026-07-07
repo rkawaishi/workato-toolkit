@@ -18,7 +18,7 @@ Knowledge is accumulated under the plugin's bundled `docs/` (kit canonical, read
 
 ```
 docs/
-├── connectors/             # Connector-specific specs (316 + custom)
+├── connectors/             # Connector-specific specs (300+ and custom)
 │   ├── _index.md           # Connector index
 │   ├── salesforce.md       # Salesforce triggers / actions / fields
 │   ├── jira.md             # Jira triggers / actions / fields

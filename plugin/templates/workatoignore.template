@@ -2,7 +2,7 @@
 #
 # Listed paths are NOT overwritten or deleted by `workato pull`, and NOT
 # deployed by `workato push`. This file is created (and topped up) by
-# /pull-project, /spec, /design and /catalog. Edit it freely — the kit only
+# /setup-workspace, /pull-project, /spec and /design. Edit it freely — the kit only
 # ever APPENDS missing entries, it never removes lines you added or deleted.
 
 # Spec-driven development artifacts (requirements / plan / tasks)

@@ -53,7 +53,7 @@ Go through them in order. Stop at the first one that applies. Only ask the user 
 | List custom connectors | `python3 scripts/workato-api.py connectors list-custom` |
 | Push a custom connector (recommended) | `python3 scripts/workato-api.py sdk push --connector <path> [--connector-id <id>]` |
 | Manage OAuth profiles | `workato oauth-profiles ...` |
-| Manage API clients | `workato api-clients ...` |
+| Manage **API Platform** clients (external API consumers) | `workato api-clients ...` — NOT the same system as Developer API clients; agent keys go through `python3 scripts/workato-api.py api-clients` / `/issue-api-keys` |
 | Create an API collection from OpenAPI | `workato api-collections create` |
 | AI-friendly CLI doc search | `workato guide search/topics/content` |
 

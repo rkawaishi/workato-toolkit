@@ -92,5 +92,5 @@ Place the asset in a `Shared` project and reference it via `folder`:
 
 ### Details
 
-- Naming conventions, Recipe Function interface design, and caveats are in `@docs/patterns/shared-assets.md`.
-- Workspace layout, asset naming, and connection management are in `@docs/patterns/workspace-management.md`.
+- Naming conventions, Recipe Function interface design, and caveats: `workato_docs_lookup("patterns/shared-assets.md")`.
+- Workspace layout, asset naming, and connection management: `workato_docs_lookup("patterns/workspace-management.md")`.

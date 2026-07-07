@@ -14,7 +14,8 @@ Pick the right one of three tools:
 Install: `pipx install workato-platform-cli`
 
 Common commands:
-- Init: `workato init --non-interactive --profile <profile> --project-id <id> --folder-name "projects/<name>"`
+- Init (bind an EXISTING Workato project to a local dir): `workato init --non-interactive --profile <profile> --project-id <id> --folder-name "projects/<name>"`
+- Init (create a NEW project): `workato init --non-interactive --profile <profile> --project-name "<name>" --folder-name "projects/<name>"`
 - Pull: `workato projects use "<name>" && workato pull`
 - Push: `workato push`
 - Push (with restart): `workato push --restart-recipes`
@@ -36,11 +37,17 @@ python3 scripts/workato-api.py <command>
 |---|---|
 | `jobs list --recipe-id <id> [--status <s>]` | List jobs |
 | `jobs get --recipe-id <id> --job-id <id>` | Job detail |
+| `jobs tail --recipe-id <id>` | Follow a recipe's jobs (poll loop) |
 | `connectors list-platform [--provider <name>]` | Pre-built connector info |
 | `connectors list-custom` | List custom connectors |
 | `recipes list [--folder-id <id>]` | List recipes (JSON) |
+| `recipes start <id>` / `recipes stop <id>` | Start/stop with the dev-profile guard |
+| `oauth-profiles list/get` | Custom OAuth profiles |
 | `sdk push --connector <path> [--connector-id <id>]` | Push a custom connector (**recommended**) |
 | `sdk pull (--connector-id <id> \| --name <name>)` | Pull a custom connector's source into `connectors/<name>/` |
+| `sdk pull-project` / `sdk diff-project` | Pull / diff every custom connector in the project |
+| `sdk test <connector.rb>` | Run the connector's local test |
+| `sdk edit` / `sdk decrypt` / `sdk generate-schema` | settings.yaml editing / decrypt / schema from a JSON/CSV sample |
 | `deploy preview/run/status/list` | Promote a project via the Deploy feature (dev→test→prod). Use through `/deploy-project` |
 | `api-clients list/roles/create/delete/rotate` | Developer API clients — per-environment agent keys. Use through `/issue-api-keys` |
 | `profile show` | Show the resolved profile |
@@ -112,9 +119,10 @@ Writes to `connectors/<name>/connector.rb` and stores `connector_id` in `connect
 ### Pre-pull checks
 
 - [ ] Check for uncommitted changes with `git status`.
-  - Pull overwrites (silently) and deletes (with a y/N prompt) local files.
+  - Pull overwrites and can delete local files — treat both as silent and
+    unrecoverable; commit or stash before pulling.
   - Commit or stash any uncommitted edits before pulling.
-- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); `/pull-project` places it automatically. Add any further project-specific exclusions to that file.
+- [ ] Ensure the project has a `.workatoignore`. The kit ships a base template at `templates/workatoignore.template` (covers `specs/`, `DESIGN.md`, `DESIGN.md.legacy.*`, catalog files, and `*.custom_adapter.{rb,json}`); the skills that need it (`/setup-workspace`, `/pull-project`, `/spec`, `/design`) place it automatically. Add any further project-specific exclusions to that file.
 
 ### Running `workato init` against an existing directory
 
