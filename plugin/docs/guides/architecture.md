@@ -38,7 +38,7 @@ my-org-workato/               ← organization's workspace repository (working r
 └── org/docs/                 ← organization's accumulated knowledge (overlay; git-shared with your team)
 ```
 
-The plugin itself bundles the shared tree (`skills/`, `docs/`, `bin/`, `agents/`, `rules/`, hooks, and the docs-overlay MCP) and is updated with your editor's plugin-update command.
+The plugin itself bundles the shared tree (`skills/`, `docs/`, `bin/`, `agents/`, `rules/`, hooks, and the docs-overlay MCP) and is updated with `/plugin update workato-toolkit`.
 
 ### Separation of framework and organization data
 

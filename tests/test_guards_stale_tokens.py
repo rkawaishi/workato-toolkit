@@ -42,7 +42,14 @@ def test_no_legacy_distribution_refs_in_docs():
 # Editor names may appear in shipped content ONLY as freeze/constraint
 # statements ("frozen", "on hold", "Claude Code only", ...), never as active
 # support claims ("works the same in every editor", per-editor how-tos).
-EDITOR_TOKEN = re.compile(r"\b(Cursor|Codex|Gemini)\b")
+# Also catch token-free multi-editor phrasings ("per editor", "your
+# editor's", ...) — review found claims that name no editor at all.
+# Editor names are matched case-sensitively ("cursor management" is SDK
+# pagination vocabulary); the phrase patterns are case-insensitive.
+EDITOR_TOKEN = re.compile(
+    r"\b(Cursor|Codex|Gemini)\b"
+    r"|(?i:\b(?:every|per|each|any) editor\b|your editor'?s?\b)"
+)
 ALLOWED_CONTEXT = re.compile(
     r"frozen|on hold|only (officially )?support|Claude Code only"
     r"|Claude Code is the only|cannot run|no Chrome MCP|not maintained"

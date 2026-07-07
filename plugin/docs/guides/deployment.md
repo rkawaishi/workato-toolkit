@@ -2,7 +2,6 @@
 
 Steps and troubleshooting for deploying locally built assets to Workato.
 
-
 ## Basic flow
 
 All deployments go through the `/push-project` skill. You should not need to run `workato push` manually.

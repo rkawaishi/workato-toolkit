@@ -8,7 +8,7 @@ This toolkit officially supports **Claude Code** only. Assets for other editors 
 |---|---|
 | [Claude Code quickstart](quickstart-claude-code.md) | Setup and first development session with Claude Code |
 
-> **Note:** Skills, rules, and the knowledge base ship inside the plugin. Always-on rules are delivered automatically per editor; knowledge-base docs are served on demand through the docs-overlay MCP (`workato_docs_lookup` / `workato_docs_list`). See [Design and architecture](architecture.md) for details.
+> **Note:** Skills, rules, and the knowledge base ship inside the plugin. Always-on rules are injected automatically by the SessionStart hook; knowledge-base docs are served on demand through the docs-overlay MCP (`workato_docs_lookup` / `workato_docs_list`). See [Design and architecture](architecture.md) for details.
 
 ## Design
 
