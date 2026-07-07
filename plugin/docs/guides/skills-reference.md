@@ -281,6 +281,30 @@ See [Deployment procedure guide](deployment.md) for details.
 
 ---
 
+## Operations phase (dev)
+
+### /run-recipes — start/stop/restart recipes and view run state
+
+Recipe run control independent of push. `status` (the default) lists every recipe in
+the project with its running/stopped state; `start` / `stop` / `restart` operate one
+recipe (`--id`) or the whole project (`--all`) through the API helper's guarded
+`recipes start/stop` commands.
+
+```
+/run-recipes                       # Run-state overview (read-only)
+/run-recipes start --id <id>       # Start one recipe
+/run-recipes stop --all            # Stop every recipe in the project
+/run-recipes restart --id <id>     # stop → start, order guaranteed
+```
+
+- Mutations are **dev-only**. On a test/prod profile the skill does not execute —
+  it prints the recipe IDs, the Workato UI steps to operate them, and the hotfix
+  path (fix in dev → `/deploy-project`).
+- A recipe that fails to start produces no jobs; start errors are handed to
+  `/diagnose-jobs` instead of being retried blindly.
+
+---
+
 ## Promotion phase
 
 ### /deploy-project — promote between environments
