@@ -25,6 +25,9 @@ superseded_by: <issue URL or doc path>   # required when superseded
   Superseded docs are kept, not deleted — they are the decision record.
 
 `handovers/` files are point-in-time records; they never get a status.
+`verifications/` records runtime-verification results (self-install smokes,
+release checks, subagent probes) — see `verifications/README.md`; also
+point-in-time, no status.
 
 ## Issue vs spec — where does a decision go?
 

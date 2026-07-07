@@ -52,6 +52,17 @@ def test_dev_docs_home_committed():
         assert d.is_dir() and list(d.glob("*.md")), f"dev/{sub}/ empty or missing"
 
 
+def test_mcp_launches_ignore_ambient_pyproject():
+    """`uv run` adopts any pyproject.toml it finds in the cwd (this repo has
+    one for ruff config; user workspaces may have their own) and then fails or
+    syncs the wrong environment. Both MCP launch definitions must pass
+    --no-project so the docs-overlay server starts regardless."""
+    for path, server in ((REPO / ".mcp.json", "workato-docs-dev"),
+                         (PLUGIN / ".mcp.json", "workato-docs")):
+        args = json.loads(path.read_text(encoding="utf-8"))["mcpServers"][server]["args"]
+        assert "--no-project" in args, f"{path}: uv run needs --no-project"
+
+
 def test_dev_mcp_json_targets_plugin_server():
     d = json.loads((REPO / ".mcp.json").read_text(encoding="utf-8"))
     args = " ".join(d["mcpServers"]["workato-docs-dev"]["args"])

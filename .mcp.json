@@ -2,7 +2,7 @@
   "mcpServers": {
     "workato-docs-dev": {
       "command": "uv",
-      "args": ["run", "--with", "fastmcp", "python", "plugin/mcp/docs-overlay/server.py"]
+      "args": ["run", "--no-project", "--with", "fastmcp", "python", "plugin/mcp/docs-overlay/server.py"]
     }
   }
 }
