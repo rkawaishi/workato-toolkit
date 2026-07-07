@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Amazon S3 secondary connector
 
 Provider: `amazon_s3_secondary`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workbot for Workplace connector
 
 Provider: `workplace_bot`

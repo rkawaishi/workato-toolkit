@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # EDI tools by Workato connector
 
 Provider: `edi_parser`

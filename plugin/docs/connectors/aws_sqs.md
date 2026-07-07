@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Amazon SQS connector
 
 Provider: `aws_sqs`

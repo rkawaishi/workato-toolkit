@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Google Workspace connector
 
 Provider: `google_workspace`

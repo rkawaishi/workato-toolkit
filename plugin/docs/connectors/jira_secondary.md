@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Jira secondary connector
 
 Provider: `jira_secondary`

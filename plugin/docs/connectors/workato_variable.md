@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Variables by Workato connector
 
 Provider: `workato_variable`

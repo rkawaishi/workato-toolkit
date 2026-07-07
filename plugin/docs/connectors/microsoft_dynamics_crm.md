@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Microsoft Dynamics 365 connector
 
 Provider: `microsoft_dynamics_crm`

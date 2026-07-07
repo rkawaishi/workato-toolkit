@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # AirREGI connector
 
 Provider: `air_regi`

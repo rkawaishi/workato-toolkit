@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # PipelineOps by Workato connector
 
 Provider: `data_pipelines`

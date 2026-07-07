@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Zendesk Demo connector
 
 Provider: `zendesk_demo`

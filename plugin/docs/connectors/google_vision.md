@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Google Vision connector
 
 Provider: `google_vision`

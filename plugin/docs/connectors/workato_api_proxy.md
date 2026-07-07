@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # API proxy by Workato connector
 
 Provider: `workato_api_proxy`

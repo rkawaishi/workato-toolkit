@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Mapper by Workato connector
 
 Provider: `workato_mapper`

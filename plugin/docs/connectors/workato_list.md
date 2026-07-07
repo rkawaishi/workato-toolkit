@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Lists by Workato connector
 
 Provider: `workato_list`

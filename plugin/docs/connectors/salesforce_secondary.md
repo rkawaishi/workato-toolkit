@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Salesforce secondary connector
 
 Provider: `salesforce_secondary`

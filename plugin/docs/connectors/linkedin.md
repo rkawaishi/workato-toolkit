@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # LinkedIn connector
 
 Provider: `linkedin`

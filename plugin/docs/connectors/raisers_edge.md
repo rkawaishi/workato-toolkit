@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Raiser's Edge NXT connector
 
 Provider: `raisers_edge`

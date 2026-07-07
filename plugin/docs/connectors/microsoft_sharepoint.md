@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Microsoft Sharepoint connector
 
 Provider: `microsoft_sharepoint`

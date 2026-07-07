@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Azure Blob Storage secondary connector
 
 Provider: `azure_blob_storage_secondary`

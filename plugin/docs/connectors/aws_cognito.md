@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Amazon Cognito connector
 
 Provider: `aws_cognito`

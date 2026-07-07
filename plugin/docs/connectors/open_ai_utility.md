@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # AI by Workato connector
 
 Provider: `open_ai_utility`

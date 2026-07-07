@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Veeva CRM connector
 
 Provider: `veeva`

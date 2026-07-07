@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # CSV tools by Workato connector
 
 Provider: `csv_parser`

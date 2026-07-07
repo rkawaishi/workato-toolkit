@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # FreshBooks connector
 
 Provider: `fresh_books`

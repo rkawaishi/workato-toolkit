@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Lookup tables by Workato connector
 
 Provider: `lookup_table`

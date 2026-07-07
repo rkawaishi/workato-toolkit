@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # HipChat connector
 
 Provider: `hipchat`

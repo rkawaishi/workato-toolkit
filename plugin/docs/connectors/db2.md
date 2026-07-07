@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # IBM Db2 connector
 
 Provider: `db2`

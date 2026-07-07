@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Citrix Podio connector
 
 Provider: `podio`

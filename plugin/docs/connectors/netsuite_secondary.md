@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # NetSuite SOAP secondary connector
 
 Provider: `netsuite_secondary`

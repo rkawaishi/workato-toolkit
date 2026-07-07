@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # ServiceNow secondary connector
 
 Provider: `service_now_secondary`

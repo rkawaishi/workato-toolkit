@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # GotoWebinar connector
 
 Provider: `goto_webinar`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # SAP OData connector
 
 Provider: `sap_s4_hana_cloud`

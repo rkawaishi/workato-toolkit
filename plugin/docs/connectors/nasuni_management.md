@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Nasuni Management Console connector
 
 Provider: `nasuni_management`

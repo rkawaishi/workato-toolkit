@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Zoho CRM connector
 
 Provider: `zohocrm`

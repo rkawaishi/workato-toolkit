@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workday Web Services connector
 
 Provider: `workday_oauth`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # API platform by Workato connector
 
 Provider: `workato_api_platform`

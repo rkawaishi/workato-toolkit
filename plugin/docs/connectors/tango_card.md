@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Tango Card connector
 
 Provider: `tango_card`

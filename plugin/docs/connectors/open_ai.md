@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # OpenAI connector
 
 Provider: `open_ai`

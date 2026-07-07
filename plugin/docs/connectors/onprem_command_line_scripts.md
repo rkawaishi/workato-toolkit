@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # On-prem command-line scripts connector
 
 Provider: `onprem_command_line_scripts`

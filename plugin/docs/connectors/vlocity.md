@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Vlocity connector
 
 Provider: `vlocity`

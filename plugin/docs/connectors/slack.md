@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Slack connector
 
 Provider: `slack`

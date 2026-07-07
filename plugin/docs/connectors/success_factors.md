@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # SAP SuccessFactors OData connector
 
 Provider: `success_factors`

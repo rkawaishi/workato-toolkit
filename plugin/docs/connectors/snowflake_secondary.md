@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Snowflake secondary connector
 
 Provider: `snowflake_secondary`

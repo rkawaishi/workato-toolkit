@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Xero Practice Manager connector
 
 Provider: `xero_practice_manager`

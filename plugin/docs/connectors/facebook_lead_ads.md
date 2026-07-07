@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Facebook Lead Ads connector
 
 Provider: `facebook_lead_ads`

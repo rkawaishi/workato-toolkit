@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Nimble CRM connector
 
 Provider: `nimblecrm`

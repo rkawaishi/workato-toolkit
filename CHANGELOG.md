@@ -35,6 +35,14 @@ see issue #10 / P6 Phase A).
   post-recovery reclaim list.
 - Development: dev-session bootstrap (#24), CI lint jobs + release version
   gate + this changelog (#25).
+- Knowledge-base value density (#12, Phase 1): every kit connector doc carries
+  frontmatter (`source` / `synced_at` / `tier`) so freshness and quality are
+  detectable. Tier/source are derived from content (shared rules in
+  `scripts/connector_doc_meta.py`, backfilled by
+  `scripts/backfill_connector_frontmatter.py`), and a test guard keeps the
+  recorded values matching the body. The docs-overlay MCP strips frontmatter
+  from served bodies, shows a one-line provenance banner instead, and omits
+  frontmatter lines from search results.
 
 ### Changed
 - Operations-lifecycle integration (#44): `/push-project --test` gains the

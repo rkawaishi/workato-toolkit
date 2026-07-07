@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Watson Tone Analyzer connector
 
 Provider: `watson_tone_analyzer`

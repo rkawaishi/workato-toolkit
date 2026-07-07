@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Message template by Workato connector
 
 Provider: `workato_template`

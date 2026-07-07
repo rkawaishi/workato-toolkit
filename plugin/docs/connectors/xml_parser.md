@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # XML tools by Workato connector
 
 Provider: `xml_parser`
