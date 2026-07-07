@@ -83,3 +83,93 @@ def test_list_docs_dedup(tmp_path):
     (org / "connectors" / "slack.md").write_text("o", encoding="utf-8")
     paths = overlay.list_docs(kit, org)
     assert paths.count("connectors/slack.md") == 1
+
+
+# --- search + section lookup (issue #14) ---
+
+def test_search_docs_across_kit_and_org(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "slack.md").write_text(
+        "# Slack\npost_message action\n", encoding="utf-8")
+    (org / "connectors" / "internal.md").write_text(
+        "our internal post_message wrapper\n", encoding="utf-8")
+    (kit / "connectors" / "jira.md").write_text("# Jira\ncreate_issue\n", encoding="utf-8")
+    hits = overlay.search_docs(kit, org, "post_message")
+    joined = "\n".join(hits)
+    assert "connectors/slack.md" in joined and "connectors/internal.md" in joined
+    assert "connectors/jira.md" not in joined
+    # case-insensitive
+    assert overlay.search_docs(kit, org, "POST_MESSAGE")
+
+
+def test_search_docs_prefix_and_cap(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "logic").mkdir()
+    (kit / "logic" / "loops.md").write_text("repeat while\n", encoding="utf-8")
+    (kit / "connectors" / "slack.md").write_text("repeat here too\n", encoding="utf-8")
+    hits = overlay.search_docs(kit, org, "repeat", prefix="logic/")
+    assert any("logic/loops.md" in h for h in hits)
+    assert not any("connectors/" in h for h in hits)
+    # cap: one doc with many matching lines must not flood the result
+    (kit / "logic" / "big.md").write_text("hit\n" * 500, encoding="utf-8")
+    hits = overlay.search_docs(kit, org, "hit")
+    assert len(hits) <= overlay.SEARCH_MAX_RESULTS + 1  # + truncation notice
+
+
+def test_lookup_section_extracts_heading_block(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "slack.md").write_text(
+        "# Slack\nintro\n## Triggers\ntrig body\n## Actions\nact body\n## Notes\nnote\n",
+        encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/slack.md", section="Actions")
+    assert "act body" in out
+    assert "trig body" not in out and "note" not in out
+
+
+def test_lookup_section_miss_lists_available_headings(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "slack.md").write_text(
+        "# Slack\n## Triggers\nt\n## Actions\na\n", encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/slack.md", section="Nope")
+    assert "SECTION NOT FOUND" in out
+    assert "Triggers" in out and "Actions" in out  # discoverability
+
+
+def test_list_docs_posix_paths(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "slack.md").write_text("x", encoding="utf-8")
+    paths = overlay.list_docs(kit, org, "")
+    assert all("\\" not in p for p in paths)
+    assert "connectors/slack.md" in paths
+
+
+def test_section_ignores_fenced_code_hashes(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "sdk.md").write_text(
+        "# Doc\n## Upload\nintro\n```bash\n# Push: create new\ncmd --x\n```\ntail\n## Next\nn\n",
+        encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/sdk.md", section="Upload")
+    assert "cmd --x" in out and "tail" in out, "fence comment must not end the section"
+    assert "## Next" not in out
+    miss = overlay.resolve_doc(kit, org, "connectors/sdk.md", section="Zzz")
+    assert "Push: create new" not in miss, "fence comments must not appear as headings"
+
+
+def test_section_header_honest_when_one_side_lacks_it(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "jira.md").write_text("# Jira\n## Triggers\nt\n", encoding="utf-8")
+    (org / "connectors" / "jira.md").write_text("## Actions\norg act\n", encoding="utf-8")
+    out = overlay.resolve_doc(kit, org, "connectors/jira.md", section="Actions")
+    assert "org act" in out
+    assert "no kit baseline" not in out, "kit doc exists — must not claim org-only doc"
+    assert "kit doc has no matching section" in out
+
+
+def test_search_cap_cannot_starve_org_hits(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "big.md").write_text("pagination\n" * 200, encoding="utf-8")
+    (org / "connectors" / "ours.md").write_text("org pagination guidance\n", encoding="utf-8")
+    hits = overlay.search_docs(kit, org, "pagination")
+    assert any("org/docs/connectors/ours.md" in h for h in hits), (
+        "org (authoritative) hits must survive the result cap"
+    )

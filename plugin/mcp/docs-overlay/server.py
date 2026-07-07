@@ -38,14 +38,16 @@ mcp = FastMCP("workato-docs")
 
 
 @mcp.tool()
-def workato_docs_lookup(path: str) -> str:
+def workato_docs_lookup(path: str, section: str | None = None) -> str:
     """Look up a Workato knowledge-base doc by relative path (e.g. 'connectors/slack.md').
 
     Returns the kit doc merged with the organization overlay (org/docs) when present;
     the organization version overrides the kit baseline on conflict. Use this instead
-    of reading docs files directly.
+    of reading docs files directly. Pass `section` (a heading substring, e.g.
+    'Actions') to fetch only that section of a large doc — a miss lists the
+    available headings.
     """
-    return overlay.resolve_doc(KIT_DOCS, _find_org_docs(), path)
+    return overlay.resolve_doc(KIT_DOCS, _find_org_docs(), path, section)
 
 
 @mcp.tool()
@@ -53,6 +55,14 @@ def workato_docs_list(prefix: str = "") -> list:
     """List available Workato doc paths (kit + org overlay), optionally filtered by prefix
     (e.g. 'connectors/')."""
     return overlay.list_docs(KIT_DOCS, _find_org_docs(), prefix)
+
+
+@mcp.tool()
+def workato_docs_search(query: str, prefix: str = "") -> list:
+    """Search the knowledge base (kit + org overlay) for a case-insensitive
+    substring; returns 'path:line: text' matches (capped). Use to find which
+    doc covers a keyword (e.g. 'pagination', 'human_review') before a lookup."""
+    return overlay.search_docs(KIT_DOCS, _find_org_docs(), query, prefix)
 
 
 @mcp.tool()
