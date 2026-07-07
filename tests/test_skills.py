@@ -340,30 +340,42 @@ def test_run_recipes_uses_helper_not_raw_cli():
     assert "workato-api.py recipes list" in text, "status must go through the helper"
     assert re.search(r"workato-api\.py recipes (start|stop)", text), \
         "start/stop must go through the helper (built-in dev guard)"
+    # ヘルパー行は "workato-api.py recipes start" であり、この部分文字列
+    # "workato recipes start" を含まないので、素朴なパターンで誤検知しない。
     offenders = [
         line.strip() for line in text.splitlines()
-        if re.search(r"(?<!workato-api\.py )\bworkato recipes (start|stop)\b", line)
+        if re.search(r"\bworkato recipes (start|stop)\b", line)
     ]
     assert not offenders, "raw CLI start/stop in run-recipes:\n" + "\n".join(offenders)
 
 
 def test_run_recipes_has_prod_boundary_section():
-    """S6-3: test/prod プロファイル検知時は実行せず案内へ切替える —
-    「UI」と hotfix 経路への言及が必須（hook は最終防衛線であって UX ではない）。"""
+    """S6-3 AC: test/prod プロファイル検知時は実行せず案内へ切替える。案内には
+    レシピ特定情報 + **URL** + hotfix 経路が揃うこと（hook は最終防衛線であって UX ではない）。"""
     text = _run_recipes_text()
     assert "-dev" in text, "must resolve/check the profile suffix before any mutation"
     assert re.search(r"\bUI\b", text), "prod boundary guidance must point at the Workato UI"
+    assert "URL" in text, "S6-3 AC: guidance must include the direct recipe URL(s)"
+    assert re.search(r"recipe name\(s\) and ID\(s\)|recipe ID", text), \
+        "S6-3 AC: guidance must carry recipe-identifying info"
     assert "hotfix" in text.lower(), "prod boundary guidance must include the hotfix path"
     assert "/deploy-project" in text, "the sanctioned fix path for test/prod is deploy"
 
 
 def test_run_recipes_connects_start_failures_to_diagnose():
-    """S6-4: start がエラーを返したらエラー本文を表示し /diagnose-jobs へ接続する。"""
+    """S6-4: 起動エラー専用節があり、エラー本文をそのまま示し、盲目的リトライを
+    禁じ、/diagnose-jobs（起動エラー入口）へ接続する。"""
     text = _run_recipes_text()
+    assert re.search(r"^#+ .*Start failures", text, re.MULTILINE), \
+        "S6-4 needs its own section — a stray /diagnose-jobs mention elsewhere is not enough"
+    assert "verbatim" in text, "S6-4: show the start error output verbatim"
+    assert re.search(r"not retry blindly|Do not retry", text), "S6-4: no blind retries"
     assert "/diagnose-jobs" in text
 
 
 def test_run_recipes_restart_orders_stop_then_start():
-    """S6-1 AC: restart は stop → start の順序保証つき。"""
+    """S6-1 AC: restart は stop → start の順序保証つき。操作後は状態を再表示する。"""
     text = _run_recipes_text()
     assert "stop → start" in text or "stop then start" in text
+    assert re.search(r"Re-run `?status`?", text), \
+        "S6-1 AC: after any operation the resulting state is re-displayed"

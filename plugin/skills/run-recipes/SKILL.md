@@ -40,8 +40,11 @@ Recipe control in test/prod is **always a human action in the Workato UI**
    test/prod changes go through the Deploy feature.
 2. **What to operate**: the exact recipe name(s) and ID(s) (from `status`, which
    still works read-only).
-3. **Where**: the Workato UI navigation — open the target environment → project →
-   recipe → *Stop recipe* / *Start recipe*.
+3. **Where**: the direct recipe URL(s) built from the ID — e.g.
+   `https://app.workato.com/recipes/<id>` (adjust the host for the org's region and
+   pick the target environment in the UI's environment switcher) — plus the
+   navigation fallback: target environment → project → recipe → *Stop recipe* /
+   *Start recipe*.
 4. **What comes next**: if this is incident containment, the fix itself follows the
    hotfix path — fix in dev (`/diagnose-jobs`), then re-promote via `/deploy-project`
    (dev→test→prod, checklists included). There is no shortcut that edits prod directly.
@@ -53,7 +56,10 @@ Recipe control in test/prod is **always a human action in the Workato UI**
 python3 scripts/workato-api.py recipes list --folder-id <folder_id>
 ```
 
-Present a table: `ID / name / running|stopped`. Then flag anything suspicious:
+Present a table: `ID / name / running|stopped / last job outcome`. For the last-job
+column, query per recipe (`jobs list --recipe-id <id> --limit 1`) — on a large project
+this is one call per recipe, so fetch it for the recipes the user cares about (or when
+the list is small) and say when the column was skipped. Then flag anything suspicious:
 
 - **Stopped but should be running** (e.g. it was pushed and started earlier, or other
   recipes in the same project run): call it out as a possible start failure and offer
