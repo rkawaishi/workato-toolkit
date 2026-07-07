@@ -413,3 +413,39 @@ def test_per_editor_hook_script_set():
             "sync-docs-after-sdk-push.sh", "session-start-rules",
         ) if s in blob}
         assert got == want, f"{name}: hook set {got} != expected {want}"
+
+
+# Helper-version staleness (issue #15): the SessionStart hook compares the
+# workspace's materialized scripts/workato-api.py against the plugin's bundled
+# copy and injects an update nudge when they diverge.
+def _session_start(tmp_path, ws_version=None):
+    ws = tmp_path / "ws"
+    (ws / "scripts").mkdir(parents=True, exist_ok=True)
+    if ws_version is not None:
+        (ws / "scripts" / "workato-api.py").write_text(
+            f'__version__ = "{ws_version}"\n', encoding="utf-8")
+    env = dict(os.environ,
+               CLAUDE_PLUGIN_ROOT=str(PLUGIN),
+               CLAUDE_PROJECT_DIR=str(ws))
+    return subprocess.run(["bash", str(BIN / "session-start-rules")],
+                          input="{}", capture_output=True, text=True, env=env)
+
+
+def test_session_start_warns_on_stale_workspace_helper(tmp_path):
+    r = _session_start(tmp_path, ws_version="0.0.1")
+    ctx = json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Toolkit notice:" in ctx, "stale helper must trigger the update nudge"
+    assert "v0.0.1" in ctx, "the nudge should name the workspace version"
+    assert "/setup-workspace --update" in ctx.split("Toolkit notice:")[1]
+
+
+def test_session_start_quiet_when_helper_current_or_absent(tmp_path):
+    bundled = (PLUGIN / "scripts" / "workato-api.py").read_text(encoding="utf-8")
+    import re as _re
+    current = _re.search(r'^__version__ = "([^"]+)"', bundled, _re.M).group(1)
+    same = _session_start(tmp_path, ws_version=current)
+    ctx = json.loads(same.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Toolkit notice:" not in ctx, "matching versions must not nudge"
+    absent = _session_start(tmp_path, ws_version=None)
+    ctx = json.loads(absent.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Toolkit notice:" not in ctx, "no workspace helper -> no nudge"
