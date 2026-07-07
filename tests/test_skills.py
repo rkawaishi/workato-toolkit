@@ -1,8 +1,8 @@
+"""Skill guards (plugin/skills/): presence, frontmatter, and the MCP-reference /
+bare-path sweeps that keep skill bodies on the docs-overlay read convention."""
 import re
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-SKILLS = REPO / "plugin" / "skills"
+from conftest import SKILLS
 
 EXPECTED_SKILLS = {
     "analyze", "auto-learn", "catalog", "clarify", "create-connector",

@@ -12,9 +12,8 @@ to run the test suite and the derived-file sync without manual setup:
 import json
 import os
 import re
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+from conftest import REPO
 REQS = REPO / "requirements-dev.txt"
 SETTINGS = REPO / ".claude" / "settings.json"
 BOOTSTRAP = REPO / "scripts" / "dev-session-bootstrap.sh"
@@ -193,6 +192,23 @@ def test_changelog_exists_with_unreleased_section():
     assert changelog.is_file(), "CHANGELOG.md missing (release notes need a curated home)"
     text = changelog.read_text(encoding="utf-8")
     assert "## [Unreleased]" in text, "CHANGELOG.md must keep an [Unreleased] section"
+
+
+# sync-check.yml 側(tests/test_derived_sync.py の DRIFT_SCOPE)と同一の
+# スコープ全文。substring ではリストの一部欠落を検知できない。
+_DRIFT_SCOPE = (
+    "git diff --exit-code -- "
+    "plugin/rules/ plugin/agents/ plugin/AGENTS.md plugin/GEMINI.md CLAUDE.md"
+)
+
+
+def test_release_workflow_shape():
+    wf = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "on:" in wf and "tags:" in wf, "release.yml must trigger on tags"
+    assert "scripts/sync_derived.py" in wf, "release.yml must verify derived sync"
+    assert "pytest" in wf, "release.yml must run the test suite"
+    assert "release" in wf.lower(), "release.yml must publish a release"
+    assert _DRIFT_SCOPE in wf, "drift scope must pin the full derived+frozen path list"
 
 
 def test_python_floor_documented():

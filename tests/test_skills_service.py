@@ -1,9 +1,6 @@
-"""Guards for the service-integration skills added with the p6 work:
+"""Sentinel guards for the service-integration skills:
 /setup-workspace, /issue-api-keys, /deploy-project."""
-from pathlib import Path
-
-REPO = Path(__file__).resolve().parent.parent
-SKILLS = REPO / "plugin" / "skills"
+from conftest import DOCS, SKILLS
 
 
 def _read(name):
@@ -59,7 +56,7 @@ def test_deploy_project_reads_environments_doc():
 
 
 def test_kit_doc_for_developer_api_clients_exists():
-    doc = REPO / "plugin" / "docs" / "platform" / "developer-api-clients.md"
+    doc = DOCS / "platform" / "developer-api-clients.md"
     assert doc.exists()
     text = doc.read_text(encoding="utf-8")
     for token in ("api_privilege_group_id", "DEV", "TEST", "PROD", "all_folders"):

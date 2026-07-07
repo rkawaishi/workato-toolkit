@@ -8,7 +8,7 @@ sys.path.insert(
 
 import assets  # noqa: E402
 
-PLUGIN = Path(__file__).resolve().parent.parent / "plugin"
+from conftest import PLUGIN  # noqa: E402
 
 
 def test_known_assets_resolve_to_existing_files():

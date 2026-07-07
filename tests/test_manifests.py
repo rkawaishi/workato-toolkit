@@ -1,8 +1,10 @@
+"""Plugin / marketplace manifest shape and version guards."""
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-PLUGIN = ROOT / "plugin"
+from conftest import PLUGIN, REPO as ROOT
+
+EXPECTED_VERSION = "0.1.0"
 
 
 def load_json(p: Path):
@@ -68,6 +70,15 @@ def test_cursor_manifest_declares_rules_hooks():
 def test_cc_manifest_declares_hooks():
     p = load_json(PLUGIN / ".claude-plugin" / "plugin.json")
     assert p.get("hooks") == "./hooks/hooks.json"
+
+
+def test_manifest_versions_bumped_and_consistent():
+    cc = load_json(PLUGIN / ".claude-plugin" / "plugin.json")["version"]
+    codex = load_json(PLUGIN / ".codex-plugin" / "plugin.json")["version"]
+    cursor = load_json(PLUGIN / ".cursor-plugin" / "plugin.json")["version"]
+    assert cc == EXPECTED_VERSION, f"CC version {cc} != {EXPECTED_VERSION}"
+    assert codex == EXPECTED_VERSION, f"Codex version {codex} != {EXPECTED_VERSION}"
+    assert cursor == EXPECTED_VERSION, f"Cursor version {cursor} != {EXPECTED_VERSION}"
 
 
 def test_sample_skill_present():
