@@ -45,9 +45,9 @@ python3 scripts/workato-api.py <command>
 | `oauth-profiles list/get` | Custom OAuth profiles |
 | `sdk push --connector <path> [--connector-id <id>]` | Push a custom connector (**recommended**) |
 | `sdk pull (--connector-id <id> \| --name <name>)` | Pull a custom connector's source into `connectors/<name>/` |
-| `sdk pull-project` / `sdk diff-project` | Pull / diff every custom connector in the project |
-| `sdk test <connector.rb>` | Run the connector's local test |
-| `sdk edit` / `sdk decrypt` / `sdk generate-schema` | settings.yaml editing / decrypt / schema from a JSON/CSV sample |
+| `sdk pull-project` / `sdk diff-project` | Pull / diff the WHOLE project via `workato pull` (all assets, not just connectors) |
+| `sdk test <connector.rb>` | Lint a connector locally (`ruby -c` + structure check; runs no tests, no API call) |
+| `sdk edit <file.enc>` / `sdk decrypt <file.enc>` / `sdk generate-schema` | Edit / decrypt any encrypted `.enc` file / schema from a JSON/CSV sample |
 | `deploy preview/run/status/list` | Promote a project via the Deploy feature (dev→test→prod). Use through `/deploy-project` |
 | `api-clients list/roles/create/delete/rotate` | Developer API clients — per-environment agent keys. Use through `/issue-api-keys` |
 | `profile show` | Show the resolved profile |

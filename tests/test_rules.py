@@ -71,12 +71,15 @@ def test_helper_command_table_in_sync():
     rule = (RULES / "workato-cli.md").read_text(encoding="utf-8")
     helper = (PLUGIN / "scripts" / "workato-api.py").read_text(encoding="utf-8")
     for cmd in HELPER_COMMANDS_DOCUMENTED:
-        # argparse declares group and subcommand as separate strings — check
-        # the subcommand token is declared somewhere in the helper source.
+        # Helper side: the subcommand token must be declared via add_parser
+        # (group and sub are separate strings in argparse; add_parser calls
+        # can be multiline).
         sub = cmd.split()[-1]
-        assert f'"{sub}"' in helper or f"'{sub}'" in helper, (
-            f"{cmd!r} listed here but {sub!r} is not declared in the helper"
+        assert re.search(r"add_parser\(\s*['\"]" + re.escape(sub) + r"['\"]", helper), (
+            f"{cmd!r} listed here but {sub!r} has no add_parser in the helper"
         )
-        assert sub in rule, (
+        # Rule side: the FULL command phrase must appear (a bare last-token
+        # check passes on unrelated words like '--restart-recipes').
+        assert cmd in rule, (
             f"helper subcommand {cmd!r} missing from workato-cli.md's table"
         )
