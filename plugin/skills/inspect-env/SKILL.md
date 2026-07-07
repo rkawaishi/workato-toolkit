@@ -6,11 +6,12 @@ disable-model-invocation: true
 
 # /inspect-env
 
-**Read-only.** This skill never runs a write command — no push, no `sdk push`, no
-recipe start/stop, no `deploy run`, no property or table writes. It inspects a
-promoted environment through the org's **read-only** test/prod API keys
-(`/issue-api-keys` matrix) and turns what it sees into a classified diagnosis and a
-next action. Deploy success is where this skill starts, not where verification ends.
+**Read-only.** This skill never mutates anything — it does not push, does not
+release connectors, does not start or stop recipes, does not run deployments, and
+does not write properties or table rows. It inspects a promoted environment through
+the org's **read-only** test/prod API keys (`/issue-api-keys` matrix) and turns what
+it sees into a classified diagnosis and a next action. Deploy success is where this
+skill starts, not where verification ends.
 
 ## Usage
 
@@ -21,10 +22,12 @@ next action. Deploy success is where this skill starts, not where verification e
 ## 0. Resolve the target (read-only)
 
 ```bash
-python3 scripts/workato-api.py profile show --profile <org>-<env>
+python3 scripts/workato-api.py --profile <org>-<env> profile show
 ```
 
-Every helper call below carries `--profile <org>-<env>`. If a call is refused by the
+Every helper call below carries `--profile <org>-<env>` — **it is a global flag and
+must come before the subcommand** (placed after it, argparse rejects the call). If a
+call is refused by the
 read-only key, record which read was refused (that feeds the issuance-record review)
 and fall back to asking the user to check that item in the UI. Consult
 `workato_docs_lookup("platform/environments.md")` for the environment model when the
@@ -33,43 +36,56 @@ org's tier naming is unclear.
 ## 1. Recipe run state (S8-1)
 
 ```bash
-python3 scripts/workato-api.py recipes list --folder-id <folder_id> --profile <org>-<env>
+python3 scripts/workato-api.py --profile <org>-<env> recipes list --folder-id <folder_id>
 ```
 
 The target-env folder ID is not the dev `.workatoenv` value — take it from the
-deployment record (`deploy status <id> --profile ...` / `deploy list`) or ask the
-user once and note it. Report three states distinctly — **deploy success does not
-mean the business is running**:
+deployment record (`--profile <org>-<env> deploy status <id>` / `deploy list`) or
+ask the user once and note it. Report three states distinctly — **deploy success
+does not mean the business is running**:
 
 1. **Running with jobs flowing** — healthy; go to step 2 for the success rate.
 2. **Stopped** — deploy carries code, not run state. Starting a recipe in test/prod
    is a human UI action; list the recipes and where to click.
 3. **Running but no first job yet** — the trigger hasn't fired. Explain what would
-   fire it (per trigger type). Injection in test/prod is a human action; in **prod**,
-   synthetic test data means creating real records in production business systems —
-   do not propose it unless the user **explicitly agrees**; prefer waiting for real
-   business traffic.
+   fire it using the trigger-type injection matrix (per trigger type: webhook POST,
+   table record, form submission, polling wait — the inline list in `/diagnose-jobs`
+   §3 is the authoritative one until `/push-project --test` carries the full matrix).
+   Injection in test/prod is a human action; in **prod**, synthetic test data means
+   creating real records in production business systems — do not propose it unless
+   the user **explicitly agrees**; prefer waiting for real business traffic.
 
 ## 2. Job health summary
 
 ```bash
-python3 scripts/workato-api.py jobs list --recipe-id <id> --limit 20 --profile <org>-<env>
-python3 scripts/workato-api.py jobs get --recipe-id <id> --job-id <job-id> --profile <org>-<env>
+python3 scripts/workato-api.py --profile <org>-<env> jobs list --recipe-id <id> --limit 20
+python3 scripts/workato-api.py --profile <org>-<env> jobs get --recipe-id <id> --job-id <job-id>
 ```
 
 Per recipe: last N job outcomes, failure rate, and — for failures — the error body.
 Establish the **range**: since when, how many, which recipes. Bundle same-cause
-failures into one finding.
+failures into one finding. **If everything is failing at once, suspect unfinished
+promotion-checklist items (auth, properties, seeds — step 5) before any per-recipe
+diagnosis** — a wholesale failure is almost never N independent recipe defects.
 
 ## 3. Definition diff against dev (S8-2)
 
 ```bash
-python3 scripts/workato-api.py sdk diff-project --project-dir projects/<name> --profile <org>-<env>
+python3 scripts/workato-api.py --profile <org>-<env> sdk diff-project --project-dir projects/<name>
 ```
 
-This copies the project to a **temp directory**, pulls the target environment's
-state into the copy, and diffs — read-only, the dev workspace is never modified.
-Do not run a plain `workato pull` in the workspace for this.
+This copies the project to a **temp directory**, pulls into the copy under the
+target profile, and diffs — read-only, the dev workspace is never modified (never
+run a bare in-workspace pull for this).
+
+**Known gap (verify on a real workspace — spec §6 OQ):** the temp copy carries the
+dev `.workatoenv`, so the pull may resolve dev's folder ID instead of the target
+environment's. If the diff output looks like "no differences" against a clearly
+divergent env, or the pull errors on the folder: re-point the scratch copy first
+(`workato projects use "<name>"` **inside the temp copy**, under the target
+profile), or fall back to comparing the specific recipe definitions from the UI.
+Report which mechanism was actually used — do not present a dev-vs-dev diff as a
+dev-vs-prod one.
 
 ## 4. Classify (S8-2)
 
@@ -98,6 +114,9 @@ The promotion checklist's two data items, verified rather than assumed:
 - **Lookup / Data Table seeding**: deploy moves schema, not rows. Check the tables
   the recipes depend on for presence/row counts where a read is possible; otherwise
   ask the human to confirm against the seeding list from `/deploy-project`.
+  (`/deploy-project` today prints one-line checklist items; the named
+  properties/seed **lists** are its planned upgrade — until that lands, build the
+  list here from what the recipes reference.)
 
 An unset property or an empty master table is an **environment difference** (class 2)
 and routes back to the promotion checklist, not to a recipe fix.

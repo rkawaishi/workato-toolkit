@@ -487,31 +487,62 @@ def test_inspect_env_declares_read_only_up_front():
         "read-only declaration must appear at the top of the skill"
 
 
-def test_inspect_env_code_blocks_contain_no_write_commands():
-    """§7 全走査ガード: コードブロックに書込系コマンド
-    （push / recipes start・stop / deploy run / sdk push / properties set）を含まない。"""
+def test_inspect_env_contains_no_write_commands():
+    """§7 全走査ガード: 本文のどこにも書込系コマンド
+    （push / recipes start・stop / deploy run / sdk push / properties set /
+    テーブル行の書込 / --restart-recipes）を含まない — コードブロックに限らない。"""
     text = _inspect_env_text()
-    blocks = re.findall(r"```(?:bash|sh)?\n(.*?)```", text, re.DOTALL)
-    assert blocks, "inspect-env should carry runnable read commands"
+    assert re.findall(r"```(?:bash|sh)?\n(.*?)```", text, re.DOTALL), \
+        "inspect-env should carry runnable read commands"
     write_cmd = re.compile(
         r"\bworkato push\b|\bsdk push\b|recipes (start|stop)\b"
-        r"|deploy run\b|properties set\b|--restart-recipes"
+        r"|deploy run\b|properties set\b|rows (add|update|delete)\b"
+        r"|--restart-recipes"
     )
     offenders = [
-        line.strip()
-        for block in blocks for line in block.splitlines()
+        f"{i}: {line.strip()}"
+        for i, line in enumerate(text.splitlines(), 1)
         if write_cmd.search(line)
     ]
-    assert not offenders, "write commands in inspect-env code blocks:\n" + "\n".join(offenders)
+    assert not offenders, "write commands in inspect-env:\n" + "\n".join(offenders)
+
+
+def test_inspect_env_profile_flag_precedes_subcommand():
+    """ヘルパーの --profile はルートパーサ専用 — サブコマンド後置は argparse に
+    拒否される。本文の全コマンド行で --profile が subcommand より前に来ること。"""
+    text = _inspect_env_text()
+    for i, line in enumerate(text.splitlines(), 1):
+        if "workato-api.py" not in line or "--profile" not in line:
+            continue
+        after_helper = line.split("workato-api.py", 1)[1]
+        first_word = after_helper.strip().split()[0]
+        assert first_word == "--profile", (
+            f"line {i}: --profile must directly follow workato-api.py "
+            f"(global flag), got: {line.strip()}"
+        )
 
 
 def test_inspect_env_diffs_via_scratch_pull():
     """S8-2: prod/test の定義は scratch（temp copy）へ pull して dev と diff —
-    ヘルパーの sdk diff-project（読取専用）を対象プロファイルで使う。"""
+    ヘルパーの sdk diff-project（読取専用）を対象プロファイルで使う。
+    dev の .workatoenv を持ち込む既知ギャップの正直な注記も必須。"""
     text = _inspect_env_text()
-    assert "sdk diff-project" in text
-    assert "--profile" in text
+    assert re.search(r"--profile <org>-<env> sdk diff-project", text), \
+        "diff must run under the target profile (global flag first)"
     assert re.search(r"temp|scratch", text, re.IGNORECASE)
+    assert re.search(r"dev-vs-dev|\.workatoenv", text), \
+        "the folder-resolution gap must be stated honestly (spec §6 OQ)"
+
+
+def test_inspect_env_triage_and_honesty():
+    """§4 行の中核: 4 分類・activity log 照合・止血は /run-recipes の境界案内・
+    拒否された読取の報告・「推定で healthy にしない」。"""
+    text = _inspect_env_text()
+    assert re.search(r"[Tt]ransient", text), "4-class triage table missing"
+    assert "activity log" in text.lower()
+    assert "/run-recipes" in text, "containment routes via the prod-boundary guidance"
+    assert re.search(r"refused", text), "refused reads must be recorded/reported"
+    assert re.search(r"by\s+assumption", text), "never mark healthy by assumption"
 
 
 def test_inspect_env_distinguishes_deploy_success_from_running():
