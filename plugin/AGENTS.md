@@ -664,6 +664,13 @@ This rule applies to AI agents and human developers alike. It exists because:
 
 Run these in order. **Abort the push if any check fails. There is no confirmation-prompt escape hatch — the rule is inviolable.**
 
+> **Mechanical enforcement (Claude Code):** the plugin's `validate-before-push`
+> PreToolUse hook resolves the profile itself (`--profile` flag → `.workatoenv`
+> `workspace_id` → `current_profile`) and refuses `workato push` and
+> `workato recipes start|stop` with exit 2 when the resolved profile does not
+> end in `-dev`. The steps below explain the reasoning and remain the manual
+> procedure where hooks are unavailable.
+
 1. **Read `.workatoenv`** and extract `workspace_id`.
 2. **Resolve the profile** via `python3 scripts/workato-api.py profile show`.
 3. **Confirm the profile name ends with `-dev`.** Anything else — `-test`, `-prod`, `-production`, `-staging`, `-qa`, or any non-`-dev` suffix — is a hard stop. Abort and tell the user:

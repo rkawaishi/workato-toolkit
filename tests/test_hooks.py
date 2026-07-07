@@ -86,20 +86,41 @@ def test_credential_guard_matrix(tool_name, tool_input, expected, why):
 
 # validate-before-push behavior (issue #28): fixture project driven via
 # CLAUDE_PROJECT_DIR; the workato-CLI validation step degrades gracefully
-# when the CLI is absent, so these cover the hook's own checks.
-def _project_fixture(tmp_path, recipe_json, filename="a.recipe.json"):
+# when the CLI is absent, so these cover the hook's own checks. HOME is
+# isolated per test so a real ~/.workato/profiles never leaks in.
+def _project_fixture(tmp_path, recipe_json, filename="a.recipe.json", workatoenv=None):
     proj = tmp_path / "projects" / "p1"
     proj.mkdir(parents=True)
-    (proj / ".workatoenv").write_text("project_id=1\n", encoding="utf-8")
+    (proj / ".workatoenv").write_text(
+        json.dumps(workatoenv if workatoenv is not None else {"project_id": 1}),
+        encoding="utf-8",
+    )
     (proj / filename).write_text(recipe_json, encoding="utf-8")
     return tmp_path
+
+
+def _home_with_profiles(tmp_path, current, profiles):
+    """profiles: {name: workspace_id_or_None} — mirrors ~/.workato/profiles."""
+    home = tmp_path / "home"
+    (home / ".workato").mkdir(parents=True)
+    (home / ".workato" / "profiles").write_text(json.dumps({
+        "current_profile": current,
+        "profiles": {n: {"workspace_id": ws} for n, ws in profiles.items()},
+    }), encoding="utf-8")
+    return home
+
+
+def _empty_home(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir(exist_ok=True)
+    return home
 
 
 def test_validate_hook_blocks_broken_recipe_json(tmp_path):
     ws = _project_fixture(tmp_path, "{broken", filename="broken.recipe.json")
     r = _run_hook("validate-before-push.sh",
                   {"tool_input": {"command": "workato push"}},
-                  env={"CLAUDE_PROJECT_DIR": str(ws)})
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(_empty_home(tmp_path))})
     assert r.returncode == 2, f"broken recipe JSON must block push: {r.stderr}"
 
 
@@ -109,13 +130,174 @@ def test_validate_hook_passes_clean_project(tmp_path):
     ws = _project_fixture(tmp_path, '{"name": "r", "code": {}}')
     r = _run_hook("validate-before-push.sh",
                   {"tool_input": {"command": "workato push"}},
-                  env={"CLAUDE_PROJECT_DIR": str(ws)})
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(_empty_home(tmp_path))})
     assert r.returncode == 0, f"clean project must pass: {r.stderr}"
 
 
 def test_validate_hook_ignores_non_push_commands():
     r = _run_hook("validate-before-push.sh", {"tool_input": {"command": "ls"}})
     assert r.returncode == 0
+
+
+# Environment guard (issue #10): workato push / recipes start|stop must be
+# refused unless the RESOLVED profile is a -dev profile. Resolution mirrors
+# the helper's resolve_profile(): --profile flag > .workatoenv workspace_id
+# match > current_profile. No profiles file -> fail open (the CLI itself
+# cannot run without one). This is the deterministic layer under the
+# workato-deployment-flow rule.
+def test_env_guard_blocks_push_on_non_dev_profile(tmp_path):
+    home = _home_with_profiles(tmp_path, "acme-prod",
+                               {"acme-prod": 1, "acme-dev": 2})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "push on acme-prod must be blocked"
+    assert "-dev" in r.stderr and "acme-prod" in r.stderr, r.stderr
+
+
+def test_env_guard_blocks_explicit_profile_flag(tmp_path):
+    home = _home_with_profiles(tmp_path, "acme-dev",
+                               {"acme-dev": 1, "acme-test": 2})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push --profile acme-test"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "--profile acme-test must override current and block"
+
+
+@pytest.mark.skipif(shutil.which("workato") is not None,
+                    reason="workato CLI present — hook would call the real validator")
+def test_env_guard_workspace_id_resolves_to_dev(tmp_path):
+    """.workatoenv binding to the dev workspace wins over a prod current_profile."""
+    home = _home_with_profiles(tmp_path, "acme-prod",
+                               {"acme-prod": 1, "acme-dev": 2})
+    ws = _project_fixture(tmp_path, '{"name": "r", "code": {}}',
+                          workatoenv={"project_id": 9, "workspace_id": 2})
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 0, f"workspace-bound dev profile must pass: {r.stderr}"
+
+
+def test_env_guard_blocks_raw_recipes_start(tmp_path):
+    """The raw-CLI recipes start path (used by /push-project --start) is guarded
+    too — previously only the helper-mediated path checked the profile."""
+    home = _home_with_profiles(tmp_path, "acme-prod", {"acme-prod": 1})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato recipes start --all"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "recipes start on prod profile must be blocked"
+
+
+def _multi_project_fixture(tmp_path, bindings):
+    """bindings: {project_dir_name: workatoenv_dict}"""
+    for pname, envd in bindings.items():
+        proj = tmp_path / "projects" / pname
+        proj.mkdir(parents=True)
+        (proj / ".workatoenv").write_text(json.dumps(envd), encoding="utf-8")
+        (proj / "a.recipe.json").write_text('{"name": "r"}', encoding="utf-8")
+    return tmp_path
+
+
+def test_env_guard_blocks_whitespace_variant(tmp_path):
+    """The fast-exit gate must never be stricter than the guard regex —
+    'workato  push' (two spaces) still runs and must still be guarded."""
+    home = _home_with_profiles(tmp_path, "acme-prod", {"acme-prod": 1})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato  push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "double-space variant must not bypass the guard"
+
+
+def test_env_guard_blocks_chained_profile_switch(tmp_path):
+    """TOCTOU: `profiles use <prod>` in the same command rewrites
+    current_profile BEFORE the push runs — the guard must judge the
+    switched-to profile, not the stale file state."""
+    home = _home_with_profiles(tmp_path, "acme-dev",
+                               {"acme-dev": 1, "acme-prod": 2})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command":
+                                  "workato profiles use acme-prod && workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "chained profile switch to prod must be blocked"
+
+
+def test_env_guard_blocks_sdk_push_on_non_dev(tmp_path):
+    """`workato sdk push` releases connector code into the profile's
+    workspace — guarded like push (the helper route already self-guards)."""
+    home = _home_with_profiles(tmp_path, "acme-prod", {"acme-prod": 1})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command":
+                                  "workato sdk push --connector connectors/foo/connector.rb"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "raw-CLI sdk push on prod profile must be blocked"
+
+
+def test_env_guard_ignores_sdk_gem_push(tmp_path):
+    """`bundle exec workato push` (SDK gem) authenticates via the connector's
+    own settings, not CLI profiles — profile guarding must not block it."""
+    home = _home_with_profiles(tmp_path, "acme-prod", {"acme-prod": 1})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "bundle exec workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 0, f"SDK gem push uses different auth: {r.stderr}"
+
+
+def test_env_guard_short_profile_flag(tmp_path):
+    home = _home_with_profiles(tmp_path, "acme-dev",
+                               {"acme-dev": 1, "acme-test": 2})
+    ws = _project_fixture(tmp_path, '{"name": "r"}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push -p acme-test"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "-p short form must be recognized like --profile"
+
+
+def test_env_guard_projects_use_overrides_first_match(tmp_path):
+    """`projects use <name>` decides which workspace the push targets — the
+    guard must resolve THAT project's binding, not the alphabetically first."""
+    home = _home_with_profiles(tmp_path, "acme-dev",
+                               {"acme-dev": 1, "acme-prod": 2})
+    ws = _multi_project_fixture(tmp_path, {
+        "a-dev-app": {"workspace_id": 1},
+        "zprod-app": {"workspace_id": 2},
+    })
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command":
+                                  'workato projects use "zprod-app" && workato push'}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "push into the prod-bound project must be blocked"
+
+
+def test_env_guard_ambiguous_bindings_fall_to_current(tmp_path):
+    """Multiple projects bound to different workspaces: first-match is wrong,
+    so resolution falls to current_profile (prod here) and blocks."""
+    home = _home_with_profiles(tmp_path, "acme-prod",
+                               {"acme-dev": 1, "acme-prod": 2})
+    ws = _multi_project_fixture(tmp_path, {
+        "a-app": {"workspace_id": 1},
+        "b-app": {"workspace_id": 2},
+    })
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(home)})
+    assert r.returncode == 2, "ambiguous bindings must not resolve via first-match"
+
+
+@pytest.mark.skipif(shutil.which("workato") is not None,
+                    reason="workato CLI present — hook would call the real validator")
+def test_env_guard_fails_open_without_profiles(tmp_path):
+    ws = _project_fixture(tmp_path, '{"name": "r", "code": {}}')
+    r = _run_hook("validate-before-push.sh",
+                  {"tool_input": {"command": "workato push"}},
+                  env={"CLAUDE_PROJECT_DIR": str(ws), "HOME": str(_empty_home(tmp_path))})
+    assert r.returncode == 0, "no profiles configured -> the CLI itself will fail; allow"
 
 
 # sync-docs-after-sdk-push behavior (issue #28).
@@ -127,6 +309,23 @@ def test_sync_docs_hook_reminds_after_successful_sdk_push():
     })
     assert r.returncode == 0
     assert "connectors/docs/foo.md" in r.stdout, "reminder must name the doc to update"
+
+
+def test_sync_docs_hook_covers_all_sdk_push_routes():
+    """Issue #10: the reminder must fire for the raw Platform CLI form and the
+    SDK gem form too, not only the helper-mediated route."""
+    raw_cli = _run_hook("sync-docs-after-sdk-push.sh", {
+        "tool_input": {"command": "workato sdk push --connector connectors/bar/connector.rb"},
+        "tool_response": {"exitCode": 0},
+    })
+    assert "connectors/docs/bar.md" in raw_cli.stdout, "raw CLI route must remind"
+    gem_form = _run_hook("sync-docs-after-sdk-push.sh", {
+        "tool_input": {"command": "bundle exec workato push"},
+        "tool_response": {"exitCode": 0},
+    })
+    assert "connectors/docs/" in gem_form.stdout, (
+        "sdk push without --connector must emit the generic reminder"
+    )
 
 
 def test_sync_docs_hook_silent_on_failure_and_non_sdk():
