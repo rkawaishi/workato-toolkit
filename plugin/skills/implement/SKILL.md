@@ -1,5 +1,5 @@
 ---
-description: Thin orchestrator that dispatches tasks.md's unfinished tasks to existing skills (/create-recipe, /create-workflow-app, etc.). Does not implement anything itself.
+description: Thin orchestrator that dispatches tasks.md's unfinished tasks to existing skills (/workato-create recipe, /workato-create workflow-app, etc.). Does not implement anything itself.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 ---
 
@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 
 A **thin orchestrator** that dispatches the unfinished tasks in `tasks.md` to existing skills.
 
-This skill itself does not generate JSON or implement anything — it merely routes each task to the appropriate existing skill by its kind tag. The implementation responsibility stays with `/create-recipe`, `/create-workflow-app`, etc. (to avoid double-implementing).
+This skill itself does not generate JSON or implement anything — it merely routes each task to the appropriate existing skill by its kind tag. The implementation responsibility stays with `/workato-create recipe`, `/workato-create workflow-app`, etc. (to avoid double-implementing).
 
 ## Usage
 
@@ -30,14 +30,14 @@ Recommended (not required): `/analyze` reports 0 BLOCKERS before running `/imple
 
 | Tag | Skill / action it dispatches to |
 |---|---|
-| `[connection]` | Handled inside `/create-recipe` (standalone tasks: manual or template-generated) |
-| `[connector]` | `/create-connector` |
-| `[data-table]` | `/create-workflow-app` (Data Table task) |
-| `[page]` | `/create-workflow-app` (Page task) |
-| `[recipe]` | `workato-builder` subagent (fallback: `/create-recipe`) |
-| `[function]` | `workato-builder` subagent — Recipe Function flag (fallback: `/create-recipe`) |
-| `[handler]` | `workato-builder` subagent — handler recipe (fallback: `/create-recipe`) |
-| `[mcp]` | `/create-genie` |
+| `[connection]` | Handled inside `/workato-create recipe` (standalone tasks: manual or template-generated) |
+| `[connector]` | `/workato-create connector` |
+| `[data-table]` | `/workato-create workflow-app` (Data Table task) |
+| `[page]` | `/workato-create workflow-app` (Page task) |
+| `[recipe]` | `workato-builder` subagent (fallback: `/workato-create recipe`) |
+| `[function]` | `workato-builder` subagent — Recipe Function flag (fallback: `/workato-create recipe`) |
+| `[handler]` | `workato-builder` subagent — handler recipe (fallback: `/workato-create recipe`) |
+| `[mcp]` | `/workato-create genie` |
 | `[validate]` | `/validate-recipe` |
 | `[push]` | `/push-project` |
 | `[pull]` | `/pull-project` |
@@ -115,8 +115,8 @@ For example, for `[recipe] approval_main`:
 
 Dispatch the task to its owning skill. `/implement` itself never generates JSON.
 
-- **`[recipe]` / `[function]` / `[handler]`** — dispatch directly to the **`workato-builder` subagent** (asset type `recipe`), invoked via Claude Code's subagent mechanism. `plan.md` already holds the finalized design, so no interview is needed: pass the recipe definition, Resource Inventory and Reused Assets from Step 4b plus the target file paths. The subagent keeps the ~1000-line JSON out of this orchestrator's context, returning a short summary. (This is the generation half of `/create-recipe` Steps 7–9.) Only if subagent dispatch is unavailable, invoke `/create-recipe <project>/<NNN>-<slug>` instead.
-- **Other tags** — invoke the owning skill from the tag → skill table. `/create-workflow-app`, `/create-genie` and `/create-connector` each dispatch their own generation step to `workato-builder` internally.
+- **`[recipe]` / `[function]` / `[handler]`** — dispatch directly to the **`workato-builder` subagent** (asset type `recipe`), invoked via Claude Code's subagent mechanism. `plan.md` already holds the finalized design, so no interview is needed: pass the recipe definition, Resource Inventory and Reused Assets from Step 4b plus the target file paths. The subagent keeps the ~1000-line JSON out of this orchestrator's context, returning a short summary. (This is the generation half of `/workato-create recipe` Steps 7–9.) Only if subagent dispatch is unavailable, invoke `/workato-create recipe <project>/<NNN>-<slug>` instead.
+- **Other tags** — invoke the owning skill from the tag → skill table. `/workato-create workflow-app`, `/workato-create genie` and `/workato-create connector` each dispatch their own generation step to `workato-builder` internally.
 
 > **Important**: `/implement` must not generate JSON itself. The `workato-builder` subagent and the owning skills own all implementation.
 

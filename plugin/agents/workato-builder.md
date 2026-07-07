@@ -1,6 +1,6 @@
 ---
 name: workato-builder
-description: Generates Workato asset files (recipes, Workflow App pages/tables, Genie & MCP definitions, custom connector.rb) from a finalized design. Use to keep large generated files out of the main conversation's context. Dispatched by `/create-recipe`, `/create-workflow-app`, `/create-genie`, `/create-connector`, and by `/implement`. Runs on Sonnet.
+description: Generates Workato asset files (recipes, Workflow App pages/tables, Genie & MCP definitions, custom connector.rb) from a finalized design. Use to keep large generated files out of the main conversation's context. Dispatched by `/workato-create` and by `/implement`. Runs on Sonnet.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---
@@ -34,16 +34,19 @@ The dispatching skill passes you:
 
 ## Per-asset reference
 
-Read the rules and generation procedure for the asset type you were given.
-The dispatching skill's SKILL.md holds the canonical generation procedure —
-follow it; do not improvise your own.
+Fetch the canonical generation procedure for your asset type yourself:
+call `workato_asset_path("workato-create/references/<type>.md")` and Read the
+returned path — do not improvise your own procedure, and do not assume the
+always-on rules are present in your context (you are a subagent; they may not
+be — the reference file carries what you need or names the
+`workato_docs_lookup` paths for the rest).
 
-| Asset type | Format rules | Generation procedure (SKILL.md) | Files produced |
-|---|---|---|---|
-| `recipe` | `workato-recipe-format` rule (always-on) | `create-recipe` Steps 7–9 + "Generation rules" | `*.recipe.json`, `*.connection.json` |
-| `workflow-app` | `workato-page-components` rule (always-on), `workato-recipe-format` rule (always-on) | `create-workflow-app` Phase 2 | `*.workato_db_table.json`, `*.lcap_page.json`, `*.lcap_app.json` |
-| `genie` | `workato-agentic-format` rule (always-on) | `create-genie` generation sections | `*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json`, skill recipes |
-| `connector` | `workato-connector-sdk` rule (always-on) | `create-connector` "Rules for generating connector.rb" | `connector.rb` |
+| Asset type | Reference (via workato_asset_path) | Files produced |
+|---|---|---|
+| `recipe` | `workato-create/references/recipe.md` | `*.recipe.json`, `*.connection.json` |
+| `workflow-app` | `workato-create/references/workflow-app.md` | `*.workato_db_table.json`, `*.lcap_page.json`, `*.lcap_app.json` |
+| `genie` | `workato-create/references/genie.md` (+ `mcp-server.md` when MCP exposure is requested) | `*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json`, skill recipes |
+| `connector` | `workato-create/references/connector.md` | `connector.rb` |
 
 Always also read the connector knowledge for every provider used via the
 docs-overlay MCP: `workato_docs_lookup("connectors/<provider>.md")` (org

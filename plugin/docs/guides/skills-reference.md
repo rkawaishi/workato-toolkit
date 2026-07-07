@@ -141,12 +141,12 @@ Only `/design migrate` remains useful as a standard-operation subcommand:
 
 ## Build phase
 
-### /create-recipe — generate recipe JSON
+### /workato-create recipe — generate recipe JSON
 
 Decide the recipe's purpose, trigger, and actions interactively, and generate `.recipe.json` and `.connection.json`.
 
 ```
-/create-recipe             # Generate a recipe interactively
+/workato-create recipe             # Generate a recipe interactively
 ```
 
 **Workflow:**
@@ -162,46 +162,46 @@ Decide the recipe's purpose, trigger, and actions interactively, and generate `.
 - **Needs confirmation**: values that can be inferred but require user confirmation
 - **Connection-dependent**: values that can only be known after connection authentication (e.g. `pick_list` in object definitions)
 
-### /create-workflow-app — build a Workflow App
+### /workato-create workflow-app — build a Workflow App
 
 Build a Workflow App such as an approval workflow in JSON.
 
 ```
-/create-workflow-app       # Build a Workflow App interactively
+/workato-create workflow-app       # Build a Workflow App interactively
 ```
 
 **Assets generated:**
 - Data Table schemas (`.data_table.json`)
 - Page definitions (`.page.json`) — request form, review screen, completion screen
 - App definition (`lcap_app.json`) — stage transitions and page bindings
-- Related recipes — delegated to `/create-recipe`
+- Related recipes — delegated to `/workato-create recipe`
 
 **The only UI operation**: enabling the Workflow App (Settings → Workflow Apps)
 
 See [Workflow App build guide](workflow-apps.md) for details.
 
-### /create-genie — generate a Genie & MCP
+### /workato-create genie — generate a Genie & MCP
 
 Generate an AI agent (Genie) and its skills, and optionally an MCP server.
 
 ```
-/create-genie              # Generate a Genie configuration interactively
+/workato-create genie              # Generate a Genie configuration interactively
 ```
 
 **Assets generated:**
 - `.agentic_genie.json` — Genie definition (instructions, AI model settings)
 - `.agentic_skill.json` — skill definition (parameters, trigger settings)
 - `.mcp_server.json` — MCP server definition (optional)
-- Skill recipes — delegated to `/create-recipe`
+- Skill recipes — delegated to `/workato-create recipe`
 
 See [Genie & MCP build guide](genie-and-mcp.md) for details.
 
-### /create-connector — generate a custom connector
+### /workato-create connector — generate a custom connector
 
 Scaffold a Connector SDK project and generate `connector.rb`.
 
 ```
-/create-connector          # Generate a custom connector interactively
+/workato-create connector          # Generate a custom connector interactively
 ```
 
 **Files generated:**
@@ -403,6 +403,6 @@ Scan the organization's shared projects and catalog reusable assets.
 - Workflow Apps
 - MCP servers
 
-**Output:** `projects/CATALOG.md` — referenced by `/create-recipe` and `/plan` to suggest reuse of existing assets.
+**Output:** `projects/CATALOG.md` — referenced by `/workato-create recipe` and `/plan` to suggest reuse of existing assets.
 
 **Scope control:** configure `global` / `team:<name>` / `private` in `projects/CATALOG_CONFIG.yaml`. `private` projects are not included in the catalog.

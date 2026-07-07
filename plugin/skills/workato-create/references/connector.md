@@ -1,16 +1,9 @@
----
-description: Scaffold a Workato custom connector (Connector SDK) project and generate its connector.rb. Japanese prompts are also supported.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
----
 
-# /create-connector
+# Reference: connector
 
 Interactively generate a Workato Connector SDK custom-connector project.
 
-## Usage
-
-- `/create-connector <api-name>` — create a connector for the given API (**preferred**; how `/implement` invokes it)
-- `/create-connector` — create a new custom connector interactively (fallback)
+Invoked as `/workato-create connector [<api-name>]`.
 
 > **Note**: connectors live under `connectors/<name>/` and are not tied to a single project (they're shared assets reused across projects). That's why this skill does not take a `<project>/<NNN>-<slug>` argument. When `/implement` dispatches a `[connector]` task, pass the **API documentation URL and the auth-method hints** from the calling project's `plan.md` `## New Components` `### Connections` section as arguments, or confirm them interactively.
 
@@ -34,7 +27,7 @@ Interactively generate a Workato Connector SDK custom-connector project.
 
 4. Generate files under `connectors/<name>/`:
 
-   > **Dispatch the generation.** `connector.rb` runs to hundreds of lines. Hand the generation to the **`workato-builder` subagent** (asset type `connector`; bundled with the plugin — invoke it via Claude Code's subagent mechanism). Pass the design from steps 1–3, the connector.rb conventions in "Rules for generating connector.rb" below, and the target paths. The subagent generates + runs `ruby -c` + writes the files and returns a short summary, keeping the Ruby source out of the main context. (Only if subagent dispatch is unavailable, generate inline.)
+   > **Dispatch the generation.** `connector.rb` runs to hundreds of lines. Hand the generation to the **`workato-builder` subagent** per the router's pipeline step 5 (asset type `connector`). Pass the design from steps 1–3, the connector.rb conventions in "Rules for generating connector.rb" below, and the target paths. The subagent generates + runs `ruby -c` + writes the files and returns a short summary, keeping the Ruby source out of the main context. (Only if subagent dispatch is unavailable, generate inline.)
 
 ### Files generated
 
@@ -147,14 +140,3 @@ After generation, display:
      After the first push, `connectors/docs/<name>.md` is just frontmatter + a stub.
      `/sync-connectors` parses `connector.rb` and fills in the body (the frontmatter is preserved).
 
-## Git management
-
-Generated files (`connector.rb`, `Gemfile`, `settings.yaml`, `README.md`) live under `connectors/<name>/`. Commit them in the workspace repository:
-
-```bash
-git add connectors/<name>/
-git commit -m "Add connector: <name>"
-git push origin
-```
-
-`settings.yaml` is already excluded in the workspace `.gitignore` (it contains credentials). `sdk push` is the deploy to the Workato API, separate from git.

@@ -1,17 +1,10 @@
----
-description: Generate Workato recipe JSON interactively. Pick a provider, trigger, and actions to produce a .recipe.json and a .connection.json. Japanese prompts are also supported.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
----
 
-# /create-recipe
+# Reference: recipe
 
 Generates Workato recipe JSON files. In the spec-driven workflow (`/spec` → `/plan` → `/tasks` → `/implement`), this skill is invoked from `[recipe]` / `[function]` / `[handler]` tasks.
 
-## Usage
-
-- `/create-recipe <project>/<NNN>-<slug>` — pull context from `plan.md` and generate (**preferred**; this is how `/implement` invokes it automatically)
-- `/create-recipe <project>` — only the project is fixed; if a `plan.md` exists we look it up and confirm with the user
-- `/create-recipe` — infer from context; confirm `<project>/<NNN>-<slug>`
+Invoked as `/workato-create recipe [<project>[/<NNN>-<slug>]]` — with the full
+slug, plan.md context is pulled automatically (how `/implement` invokes it).
 
 > **Note**: as part of the migration to the spec-driven workflow, the legacy `DESIGN.md` reference is retired. Start new projects with `/spec`; for existing projects, run `/design migrate` first to convert into `specs/`.
 
@@ -153,7 +146,7 @@ Remaining items:
 
 Steps 7–9 below are the **JSON generation procedure**. Generating a recipe produces ~1000 lines of JSON; running it inline keeps that JSON in the main conversation for the rest of the session even though it is never read again.
 
-**Dispatch Steps 7–9 to the `workato-builder` subagent** (bundled with the plugin; invoke it via Claude Code's subagent mechanism). Pass it asset type `recipe` plus the design from Steps 0–6: the interview results (or the `plan.md` pointer), the catalog / pattern findings, the interviewed input values, and the target file paths. The subagent executes Steps 7–9, validates and writes the files, and returns a short summary — the large JSON never enters the main conversation. Continue at "Output and deployment guide" using that summary. (Only if subagent dispatch is unavailable, perform Steps 7–9 inline.)
+**Dispatch Steps 7–9 to the `workato-builder` subagent** per the router's pipeline step 5 (asset type `recipe`). Pass the design from Steps 0–6: the interview results (or the `plan.md` pointer), the catalog / pattern findings, the interviewed input values, and the target file paths. The subagent executes Steps 7–9, validates and writes the files, and returns a short summary — the large JSON never enters the main conversation. Continue at "Output and deployment guide" using that summary. (Only if subagent dispatch is unavailable, perform Steps 7–9 inline.)
 
 The generation procedure itself is the same either way:
 
@@ -241,14 +234,3 @@ Then, following "Recipe deployment flow" (call `workato_docs_lookup` with path `
 6. **Test run**: test in the UI; analyze and fix errors if any.
 7. **Pattern accumulation**: if the recipe contains a new construction pattern, add it to the catalog via `/learn-pattern`.
 
-## Git management
-
-Generated files (`Recipes/`, `Connections/`) live under `projects/<project-name>/`, and any connector field info you appended (step above) lives under `org/docs/connectors/`. Commit them in the workspace repository:
-
-```bash
-git add projects/<project-name>/Recipes/ projects/<project-name>/Connections/ org/docs/
-git commit -m "Add recipe: <name>"
-git push origin
-```
-
-`workato push` is the deploy to the Workato API, separate from git.

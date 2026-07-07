@@ -20,10 +20,10 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
                   /sync-connectors        → Fetch metadata for connectors to be used
                      ↓
 [Build]           /implement              → Read tasks.md and dispatch to the skills below
-                  /create-recipe          → Read plan.md and generate a recipe
-                  /create-workflow-app    → Read plan.md and generate a full Workflow App
-                  /create-genie           → Generate Genie / MCP
-                  /create-connector       → Generate a custom connector
+                  /workato-create recipe          → Read plan.md and generate a recipe
+                  /workato-create workflow-app    → Read plan.md and generate a full Workflow App
+                  /workato-create genie           → Generate Genie / MCP
+                  /workato-create connector       → Generate a custom connector
                      ↓
 [Validation]      /validate-recipe        → Validate JSON structure
                      ↓
@@ -93,10 +93,10 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | Skill | When to invoke | Reads | Writes |
 |---|---|---|---|
 | `/implement <project>/<NNN>-<slug>` | After tasks.md is finalized | `tasks.md`, `plan.md`, `spec.md` (reference only) | `tasks.md` (check-off and FAILED marks) |
-| `/create-recipe <project>/<NNN>-<slug>` | Invoked from `/implement` via [recipe]/[function]/[handler] tasks | `plan.md`, `docs/connectors/<provider>.md`, `connectors/docs/<name>.md`, `docs/logic/`, `docs/patterns/recipe-patterns/`, `org/docs/patterns/recipe-patterns/`, `projects/docs/patterns/` (legacy), `projects/CATALOG.md`, the `workato-recipe-format` rule (always-on) | `projects/<name>/Recipes/*.recipe.json`, `*.connection.json`; if needed, append to plan.md's Unlearned Actions and tasks.md's `[learn]` tasks |
-| `/create-workflow-app <project>/<NNN>-<slug>` | Invoked from `/implement` via [page]/[data-table] tasks | `plan.md`, `docs/platform/workflow-apps.md`, `docs/patterns/deployment-guide.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Data Tables/*.data_table.json`, `Pages/*.page.json`, `lcap_app.json`, `Recipes/*.recipe.json` |
-| `/create-genie` | When creating a new AI agent / MCP server (optional `[mcp]` tasks) | `plan.md` (optional), `docs/platform/agent-studio.md`, `docs/platform/mcp.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Agents/*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json` |
-| `/create-connector <api-name>` | Invoked via a `[connector]` task. Connectors are shared assets and are not tied to a project; the caller's `plan.md` Connections information is passed as arguments | `docs/connector-sdk/connector-rb.md`, `docs/connector-sdk/overview.md`, the `workato-connector-sdk` rule (always-on), API documentation (WebFetch) | `connectors/<name>/connector.rb`, `settings.yaml`, `Gemfile` |
+| `/workato-create recipe <project>/<NNN>-<slug>` | Invoked from `/implement` via [recipe]/[function]/[handler] tasks | `plan.md`, `docs/connectors/<provider>.md`, `connectors/docs/<name>.md`, `docs/logic/`, `docs/patterns/recipe-patterns/`, `org/docs/patterns/recipe-patterns/`, `projects/docs/patterns/` (legacy), `projects/CATALOG.md`, the `workato-recipe-format` rule (always-on) | `projects/<name>/Recipes/*.recipe.json`, `*.connection.json`; if needed, append to plan.md's Unlearned Actions and tasks.md's `[learn]` tasks |
+| `/workato-create workflow-app <project>/<NNN>-<slug>` | Invoked from `/implement` via [page]/[data-table] tasks | `plan.md`, `docs/platform/workflow-apps.md`, `docs/patterns/deployment-guide.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Data Tables/*.data_table.json`, `Pages/*.page.json`, `lcap_app.json`, `Recipes/*.recipe.json` |
+| `/workato-create genie` | When creating a new AI agent / MCP server (optional `[mcp]` tasks) | `plan.md` (optional), `docs/platform/agent-studio.md`, `docs/platform/mcp.md`, the `workato-agentic-format` rule (always-on) | `projects/<name>/Agents/*.agentic_genie.json`, `*.agentic_skill.json`, `*.mcp_server.json` |
+| `/workato-create connector <api-name>` | Invoked via a `[connector]` task. Connectors are shared assets and are not tied to a project; the caller's `plan.md` Connections information is passed as arguments | `docs/connector-sdk/connector-rb.md`, `docs/connector-sdk/overview.md`, the `workato-connector-sdk` rule (always-on), API documentation (WebFetch) | `connectors/<name>/connector.rb`, `settings.yaml`, `Gemfile` |
 
 ### Validation and sync phases
 
@@ -124,13 +124,13 @@ The kit canonical `docs/` is **written only by kit maintainers** (via PRs to the
 
 | Path | Writer | Reader | Contents |
 |---|---|---|---|
-| `docs/connectors/<provider>.md` | Kit maintainers (PR) | `/create-recipe`, `/create-workflow-app`, `/create-genie` | Pre-built connector trigger/action/field specs (kit canonical) |
-| `docs/connector-sdk/` | Manual | `/create-connector` | Connector SDK reference |
-| `docs/logic/` | Manual | `/create-recipe`, `/create-workflow-app` | datapill syntax, formulas, loops, error handling, triggers |
-| `docs/platform/` | Manual | `/create-workflow-app`, `/create-genie`, `/plan` | Data Table, Lookup Table, Agent Studio, MCP, Workflow App |
-| `docs/patterns/recipe-patterns/` | Manual (kit maintainers) | `/create-recipe`, `/plan`, `/learn-pattern` (cross-reference at load time) | Recipe construction patterns (kit canonical, read-only) |
-| `docs/patterns/deployment-guide.md` | Manual | `/push-project`, `/create-workflow-app` | Deployment procedures, common errors |
-| `docs/patterns/shared-assets.md` | Manual | `/create-recipe`, `/catalog`, `/plan` | Shared asset design policy |
+| `docs/connectors/<provider>.md` | Kit maintainers (PR) | `/workato-create recipe`, `/workato-create workflow-app`, `/workato-create genie` | Pre-built connector trigger/action/field specs (kit canonical) |
+| `docs/connector-sdk/` | Manual | `/workato-create connector` | Connector SDK reference |
+| `docs/logic/` | Manual | `/workato-create recipe`, `/workato-create workflow-app` | datapill syntax, formulas, loops, error handling, triggers |
+| `docs/platform/` | Manual | `/workato-create workflow-app`, `/workato-create genie`, `/plan` | Data Table, Lookup Table, Agent Studio, MCP, Workflow App |
+| `docs/patterns/recipe-patterns/` | Manual (kit maintainers) | `/workato-create recipe`, `/plan`, `/learn-pattern` (cross-reference at load time) | Recipe construction patterns (kit canonical, read-only) |
+| `docs/patterns/deployment-guide.md` | Manual | `/push-project`, `/workato-create workflow-app` | Deployment procedures, common errors |
+| `docs/patterns/shared-assets.md` | Manual | `/workato-create recipe`, `/catalog`, `/plan` | Shared asset design policy |
 | `docs/patterns/workspace-management.md` | Manual | `/plan`, `/catalog` | Workspace structure and naming conventions |
 | Always-on rules | Manual | All skills | JSON format, per-path rules |
 | `docs/learned-patterns.md` | Manual (kit maintainers' temporary buffer) | Manual (triage work) | Kit canonical buffer. Users use `org/docs/learned-patterns.md` |
@@ -139,26 +139,26 @@ The kit canonical `docs/` is **written only by kit maintainers** (via PRs to the
 
 | Path | Writer | Reader | Contents |
 |---|---|---|---|
-| `connectors/docs/<name>.md` | `/sync-connectors --custom` | `/create-recipe`, `/create-workflow-app` | Custom connector trigger/action/field specs |
-| `connectors/<name>/connector.rb` | `/create-connector`, manual | `/sync-connectors --custom` | Custom connector implementation |
+| `connectors/docs/<name>.md` | `/sync-connectors --custom` | `/workato-create recipe`, `/workato-create workflow-app` | Custom connector trigger/action/field specs |
+| `connectors/<name>/connector.rb` | `/workato-create connector`, manual | `/sync-connectors --custom` | Custom connector implementation |
 | `projects/<name>/specs/<NNN>-<slug>/spec.md` | `/spec`, `/clarify` | `/plan`, `/analyze`, Claude at session start | Feature requirements (WHAT/WHY, no Workato vocabulary) |
-| `projects/<name>/specs/<NNN>-<slug>/plan.md` | `/plan` | `/tasks`, `/analyze`, `/create-recipe`, `/create-workflow-app`, `/learn-recipe` (tidies Unlearned Actions) | Workato configuration (HOW). Includes the Unlearned Actions table |
+| `projects/<name>/specs/<NNN>-<slug>/plan.md` | `/plan` | `/tasks`, `/analyze`, `/workato-create recipe`, `/workato-create workflow-app`, `/learn-recipe` (tidies Unlearned Actions) | Workato configuration (HOW). Includes the Unlearned Actions table |
 | `projects/<name>/specs/<NNN>-<slug>/tasks.md` | `/tasks`, `/implement` (check-off), `/learn-recipe` (`[learn]` completion) | `/analyze`, `/implement` | Executable tasks (with `[P]` / type tags) |
 | `projects/<name>/DESIGN.md` / `DESIGN.md.legacy.*` | `/design update` (legacy, compatibility mode with warning) | `/design migrate`, manual review | **Deprecated**. Not generated for new projects. `/design new` is retired (refuse if invoked) |
-| `projects/<name>/Recipes/*.json` | `/create-recipe`, `/pull-project` | `/learn-recipe`, `/validate-recipe`, `/push-project` | Recipe body |
-| `projects/CATALOG.md` | `/catalog scan` | `/create-recipe`, `/plan` | List of organization shared assets (Recipe Function, Connection) |
+| `projects/<name>/Recipes/*.json` | `/workato-create recipe`, `/pull-project` | `/learn-recipe`, `/validate-recipe`, `/push-project` | Recipe body |
+| `projects/CATALOG.md` | `/catalog scan` | `/workato-create recipe`, `/plan` | List of organization shared assets (Recipe Function, Connection) |
 | `projects/CATALOG_CONFIG.yaml` | Manual | `/catalog` | Scope settings (global / team / private) |
-| `projects/docs/patterns/` | Legacy (no writer; record new entries in `org/docs/patterns/recipe-patterns/`) | `/create-recipe`, `/plan`, `/learn-pattern` (read only) | Org-domain patterns recorded in older versions (backward compatibility) |
-| `org/docs/connectors/<provider>.md` | `/learn-recipe` | `/create-recipe`, `/create-workflow-app`, `/create-genie` | Corrections / additions to the kit version, org-specific field information |
+| `projects/docs/patterns/` | Legacy (no writer; record new entries in `org/docs/patterns/recipe-patterns/`) | `/workato-create recipe`, `/plan`, `/learn-pattern` (read only) | Org-domain patterns recorded in older versions (backward compatibility) |
+| `org/docs/connectors/<provider>.md` | `/learn-recipe` | `/workato-create recipe`, `/workato-create workflow-app`, `/workato-create genie` | Corrections / additions to the kit version, org-specific field information |
 | `org/docs/logic/`, `org/docs/platform/`, `org/docs/patterns/deployment-guide.md` | `/learn-recipe` | All create-family skills | Corrections / additions to the kit version |
-| `org/docs/patterns/recipe-patterns/` | `/learn-pattern` | `/create-recipe`, `/plan` | Recipe construction patterns recorded by the organization (both generic and org-domain consolidated here) |
+| `org/docs/patterns/recipe-patterns/` | `/learn-pattern` | `/workato-create recipe`, `/plan` | Recipe construction patterns recorded by the organization (both generic and org-domain consolidated here) |
 | `org/docs/learned-patterns.md` | `/learn-recipe` (fallback when the destination is undecided) | Manual (triage work) | Org-side temporary buffer |
 
 ## Lifecycle principles
 
 ### 1. docs-first
 
-Build skills (`/create-recipe`, etc.) must **read the docs first**.
+Build skills (`/workato-create recipe`, etc.) must **read the docs first**.
 
 - If the information is in the documentation, implement directly from it
 - If the information is missing:
@@ -188,7 +188,7 @@ Logic, naming, and datapill references that are specific to individual projects 
 
 ### 4. Build skills do not write docs
 
-Build skills like `/create-recipe` only generate assets under `projects/`; they do not write to `docs/connectors/` or `docs/patterns/`.
+Build skills like `/workato-create recipe` only generate assets under `projects/`; they do not write to `docs/connectors/` or `docs/patterns/`.
 Knowledge writes are the responsibility of the **learning skills** (`/learn-recipe`, `/learn-pattern`, `/sync-connectors`). This separation prevents incorrect information from leaking into the docs as a side effect of building.
 
 ## Typical scenarios
@@ -202,7 +202,7 @@ Knowledge writes are the responsibility of the **learning skills** (`/learn-reci
 /tasks <project>/001-<slug>           # Create tasks.md (tagged task decomposition)
 /analyze <project>/001-<slug>         # spec ↔ plan ↔ tasks consistency check
 /sync-connectors <provider>           # Fetch metadata for unlearned connectors
-/implement <project>/001-<slug>       # Dispatch tasks to /create-recipe etc.
+/implement <project>/001-<slug>       # Dispatch tasks to /workato-create recipe etc.
 /validate-recipe <project>            # Validate JSON structure (usually triggered inside /implement)
 /push-project --start                 # Deploy + start (via the [push] task)
 (Adjust pick_list etc. in the UI)
@@ -229,7 +229,7 @@ If connector information is already in place, `/sync-connectors` and `/learn-rec
 ```
 /spec <project>                       # Define the feature that uses the connector
 .../tasks                             # tasks.md will include a [connector] task
-/implement <project>/<NNN>-<slug>     # /create-connector is invoked from the [connector] task
+/implement <project>/<NNN>-<slug>     # /workato-create connector is invoked from the [connector] task
 (Implement and test with the Workato SDK)
 /sync-connectors --custom <name>      # Update connectors/docs/<name>.md
 (Continue /implement to the [recipe] tasks)

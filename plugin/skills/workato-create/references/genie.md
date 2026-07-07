@@ -1,12 +1,8 @@
----
-description: Interactively generate a Workato Genie (AI agent), its skills, and the supporting recipes. Japanese prompts are also supported.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
----
 
-# /create-genie
+# Reference: genie
 
 Generate the full file set for a Workato Genie (AI agent).
-Supports Genie alone, MCP server alone, or both.
+Covers the Genie itself and its skills. For MCP exposure (alone or in addition), also apply [references/mcp-server.md](mcp-server.md).
 
 ## Genie vs MCP Server — when to use which
 
@@ -52,10 +48,9 @@ Supports Genie alone, MCP server alone, or both.
 
    > **Dispatch the generation.** Hand this file generation to the **`workato-builder` subagent** (asset type `genie`; bundled with the plugin — invoke it via Claude Code's subagent mechanism). Pass the design from steps 1–3, the `instructions` / skill-recipe / MCP-server conventions in the sections below, and the target paths. The subagent writes the files and returns a short summary, keeping the JSON out of the main context. (Only if subagent dispatch is unavailable, generate inline.)
 
-5. **Delegate skill recipes to `/create-recipe`**:
+5. **Create the skill recipes by applying [references/recipe.md](recipe.md)** (same pipeline, recursed per recipe):
    - Lay out each skill's recipe requirements (trigger: `workato_genie/start_workflow`, parameters, external integration targets).
-   - Invoke `/create-recipe` to generate the recipe (with interview).
-   - `/create-recipe` handles the Genie-skill-recipe specifics (`as` is random hex, `parameters_schema_json`, etc.).
+   - The recipe reference handles the Genie-skill-recipe specifics (`as` is random hex, `parameters_schema_json`, etc. — see "Rules for generating a skill recipe" below).
 
 ## Generating the Genie's `instructions`
 
@@ -108,64 +103,6 @@ You are a [Role] Agent
 - `extended_output_schema` / `extended_input_schema` expand the `result_schema_json` fields under a `result` object.
 - Intermediate steps: the actual business logic (Salesforce lookup, API calls, etc.).
 
-## Generating the MCP server file
-
-For MCP exposure, generate `<project>/Agents/<name>.mcp_server.json`:
-
-```json
-{
-  "name": "Server name",
-  "description": "MCP server description (the AI uses this to choose a server)",
-  "auth_type": "workato_idp",
-  "tools_type": "project_assets",
-  "tools": [
-    {
-      "tool": "ref_0",
-      "description": "Use this tool when... / Do not use this tool when...",
-      "vua_required": true
-    }
-  ],
-  "references": {
-    "ref_0": {
-      "type": "agentic_skill",
-      "id": {
-        "zip_name": "Agents/skill_name.agentic_skill.json",
-        "name": "skill_name",
-        "folder": "Agents"
-      }
-    }
-  }
-}
-```
-
-### Guidelines for MCP tool `description`
-
-- This is the instruction the AI uses to pick a tool. Make it more detailed than a Genie's `trigger_description`.
-- Prefer "Use this tool when..." / "Do not use this tool when..." phrasing.
-- Make the distinction between tools unambiguous.
-
-### Caveats around skill names
-
-When you attach a skill to an MCP server, Workato may rename the skill's `zip_name` to match the recipe name. Keep the skill's file name in lockstep with the recipe name.
-
-### MCP server deployment caveats
-
-- **First push**: the MCP server, skills, and skill recipes are created together.
-- **`PG::UniqueViolation` on update**: re-pushing while the skill already exists triggers this error. `agentic_skill` and `mcp_server` cannot be removed via the CLI's `--delete` (they show up as `Skipped`). **Ask the user to delete them manually in the UI**, then re-push.
-- **`extended_output_schema` on skill recipes**: actions like `add_record` need `extended_output_schema`; without it, downstream steps can't see the datapills and the recipe fails to start. Set it on every action.
-
-### MCP only (no Genie)
-
-When building only an MCP server without a Genie:
-1. Generate the skill recipe (`workato_genie/start_workflow` trigger).
-2. Generate the skill definition (`.agentic_skill.json`).
-3. Generate the MCP server definition (`.mcp_server.json`).
-4. No Genie file (`.agentic_genie.json`) needed.
-
-```
-MCP Server → Skills → Recipes (no Genie)
-```
-
 ## Calling a Genie from a recipe: `assign_task_to_genie`
 
 Delegate a task to a Genie from inside a recipe:
@@ -209,12 +146,3 @@ Follow the deployment guide (call `workato_docs_lookup` with path `patterns/depl
 4. For MCP: guide server enablement and AI-client configuration.
 5. Guide the test run.
 
-## Git management
-
-Generated files (`Agents/`, `Recipes/`, `Connections/`) live under `projects/<project-name>/`. Commit them in the workspace repository:
-
-```bash
-git add projects/<project-name>/Agents/ projects/<project-name>/Recipes/ projects/<project-name>/Connections/
-git commit -m "Add genie: <name>"
-git push origin
-```

@@ -84,7 +84,7 @@ def test_no_claude_rules_path_refs():
 
 
 def test_rules_referenced_by_name():
-    text = (SKILLS / "create-recipe" / "SKILL.md").read_text(encoding="utf-8")
+    text = (SKILLS / "workato-create" / "references" / "recipe.md").read_text(encoding="utf-8")
     assert "`workato-recipe-format`" in text
     assert "always-on" in text
 

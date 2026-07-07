@@ -26,6 +26,13 @@ see issue #10 / P6 Phase A).
   gate + this changelog (#25).
 
 ### Changed
+- **BREAKING**: the four asset-creation skills are consolidated into one —
+  `/create-recipe`, `/create-genie`, `/create-workflow-app`,
+  `/create-connector` are replaced by `/workato-create
+  <recipe|genie|mcp-server|workflow-app|connector>` (MCP-server creation is
+  now its own subcommand). Type-specific procedures load on demand from
+  `references/<type>.md`; the workato-builder subagent fetches its generation
+  reference via `workato_asset_path`. (#18)
 - User-facing docs and skills now state Claude Code–only support everywhere;
   the Cursor quickstart guide was removed (other-editor assets remain frozen
   in-tree). A test guard keeps multi-editor support claims out of shipped
