@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pytest:*)",
+      "Bash(python3 scripts/sync_derived.py:*)",
+      "Bash(python3 scripts/sync_derived.py && python3 -m pytest tests/ -q)",
+      "Bash(pip install -r requirements-dev.txt)",
+      "Bash(python3 -m pip install -r requirements-dev.txt:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/dev-session-bootstrap.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

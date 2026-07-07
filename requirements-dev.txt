@@ -1,0 +1,6 @@
+# Development dependencies for this repository (tests + tooling).
+# CI installs from this file (sync-check.yml / release.yml); dev sessions get
+# it via the SessionStart hook (scripts/dev-session-bootstrap.sh).
+# The docs-overlay dev MCP additionally needs `uv` (it runs with
+# `uv run --with fastmcp`, so fastmcp itself is not listed here).
+pytest
