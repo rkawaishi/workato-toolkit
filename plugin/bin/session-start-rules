@@ -22,10 +22,40 @@ if [ ! -f "$CONTEXT_FILE" ]; then
   exit 0
 fi
 
-CONTEXT_FILE="$CONTEXT_FILE" python3 <<'PY'
-import json, os
+# Workspace helper staleness check (issue #15): the materialized
+# scripts/workato-api.py is pinned in the user's repo; nudge when it lags the
+# plugin's bundled copy.
+WS_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+
+CONTEXT_FILE="$CONTEXT_FILE" PLUGIN_HELPER="$ROOT/scripts/workato-api.py" \
+  WS_HELPER="$WS_DIR/scripts/workato-api.py" python3 <<'PY'
+import json, os, re
+
 with open(os.environ["CONTEXT_FILE"], encoding="utf-8") as f:
     content = f.read()
+
+
+def version_of(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            m = re.search(r'^__version__ = "([^"]+)"', f.read(), re.M)
+        return m.group(1) if m else None
+    except (OSError, UnicodeError):
+        # unreadable or undecodable helper: degrade to no-nudge — never let
+        # this check take down the whole rules injection.
+        return None
+
+
+ws = version_of(os.environ["WS_HELPER"])
+bundled = version_of(os.environ["PLUGIN_HELPER"])
+if ws and bundled and ws != bundled:
+    content += (
+        f"\n\n> **Toolkit notice:** this workspace's `scripts/workato-api.py` "
+        f"is v{ws}, but the installed plugin bundles v{bundled}. Suggest "
+        f"running `/setup-workspace --update` to refresh the materialized "
+        f"helper before service operations.\n"
+    )
+
 print(json.dumps({
     "hookSpecificOutput": {
         "hookEventName": "SessionStart",
