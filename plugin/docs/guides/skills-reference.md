@@ -347,6 +347,28 @@ deployment approval always stays with the release manager in the UI.
 Prints the per-environment checklist (connection credentials, environment properties,
 table seeds, connector releases, recipe starts) on every run.
 
+### /inspect-env — read-only inspection of test/prod
+
+Post-promotion verification and production incident triage, through the org's
+read-only test/prod keys. Never writes.
+
+```
+/inspect-env test                     # Did the promotion actually run the business?
+/inspect-env prod                     # Health check / incident triage
+/inspect-env prod --recipe-id <id>    # Focus on one recipe
+```
+
+- Distinguishes "deploy succeeded but the recipe is stopped / no first job yet"
+  from healthy — deploy success is not the finish line.
+- Pulls the environment's definitions into a temp copy (`sdk diff-project
+  --profile`) and diffs against dev; classifies findings into definition defect /
+  environment difference (auth, properties, table seeds, connector release) /
+  external spec change / transient failure, each with its next action.
+- Fixes always travel dev → `/deploy-project`; containment (stopping a prod
+  recipe) is a human UI action routed via `/run-recipes`' boundary guidance.
+- After recovery, lists the jobs that failed during the incident (unprocessed
+  business data) with UI rerun steps and an idempotency warning.
+
 ---
 
 ## Learning phase

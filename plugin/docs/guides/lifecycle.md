@@ -35,6 +35,7 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
                   /diagnose-jobs          → Classify failures / start errors and fix→re-push→re-verify until green (dev)
                      ↓
 [Promotion]       /deploy-project         → Promote dev→test→prod via Deploy manifests (approvals stay human)
+                  /inspect-env            → Read-only verification of test/prod (run state, jobs, diff vs dev)
                      ↓
 [Learning]        /learn-recipe           → Enrich org/docs/ from the adjusted recipe
                                             and tidy plan.md.Unlearned and tasks.md.[learn]
@@ -104,6 +105,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | `/run-recipes` | Run-state checks; start/stop/restart without a push | Recipe run state (helper `recipes list`) | Recipe running state (dev only; test/prod → UI guidance) |
 | `/diagnose-jobs` | Failed jobs or a recipe that won't start (dev) | Job logs / start errors (helper `jobs list/get/tail`), connector docs via `workato_docs_lookup` | Recipe JSON fixes + re-push (dev only; `--no-fix` for diagnosis only) |
 | `/deploy-project` | Releasing to test/prod (after dev verification) | `platform/environments.md` (via `workato_docs_lookup`), the org promotion policy record | Deploy manifests (remote; approvals stay human) |
+| `/inspect-env` | After a deploy; on a prod incident | test/prod recipes, jobs, definitions (read-only keys; temp-copy diff vs dev) | Nothing (report only) |
 
 ### Learning phase
 

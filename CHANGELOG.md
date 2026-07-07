@@ -29,6 +29,10 @@ see issue #10 / P6 Phase A).
   (failed jobs, start errors), six cause classes, a capped default fix →
   re-push → re-verify cycle (`--no-fix` to suppress), UI-fix handover with
   pull-back round-trip, and unreclaimed-job reporting.
+  `/inspect-env` — read-only test/prod inspection: run state vs deploy
+  success, job health, temp-copy definition diff against dev, four-class
+  triage, environment-config (properties/table-seed) verification, and the
+  post-recovery reclaim list.
 - Development: dev-session bootstrap (#24), CI lint jobs + release version
   gate + this changelog (#25).
 
