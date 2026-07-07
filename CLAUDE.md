@@ -42,6 +42,21 @@ generated, maintained, or verified:
 To revive an editor: restore its generators from git history (`scripts/sync_derived.py`
 prior to 2026-07), regenerate, and verify on the real editor before advertising support.
 
+## Dev session prerequisites
+
+- **Python 3.11+** with the dev dependencies from `requirements-dev.txt`
+  (`pip install -r requirements-dev.txt`). A fresh Claude Code session installs
+  them automatically via the SessionStart hook in `.claude/settings.json`
+  (`scripts/dev-session-bootstrap.sh` — idempotent, probes for pytest first).
+- **uv** — the dev MCP in the root `.mcp.json` starts the docs-overlay server with
+  `uv run --with fastmcp`, so neither fastmcp nor uv-managed deps are in
+  requirements-dev.txt.
+- **superpowers plugin (recommended, not required)** — files under `dev/plans/` say
+  "REQUIRED SUB-SKILL: superpowers:subagent-driven-development / executing-plans".
+  If the plugin is not installed in your session, fall back to executing the plan's
+  checkbox tasks manually in order (they are plain markdown task lists); do not skip
+  the per-task "expected test state" checks.
+
 ## Development documents
 
 - Design specs → `dev/specs/` · implementation plans → `dev/plans/` · session
