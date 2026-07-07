@@ -1,4 +1,7 @@
+import json
+import os
 import re
+import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -25,8 +28,6 @@ def test_rules_nonempty_with_heading():
         text = (RULES / f"{stem}.md").read_text(encoding="utf-8")
         assert len(text) > 200, f"{stem}.md too short"
         assert re.search(r"^# .+", text, re.MULTILINE), f"{stem}.md has no top heading"
-
-import os, subprocess, json
 
 BIN = REPO / "plugin" / "bin"
 PATTERNS = REPO / "plugin" / "credential-patterns.txt"

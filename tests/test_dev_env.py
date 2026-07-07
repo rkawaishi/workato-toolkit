@@ -128,3 +128,68 @@ def test_claude_md_documents_dev_prerequisites():
         ("dev-session-bootstrap", "SessionStart bootstrap"),
     ]:
         assert needle in text, f"CLAUDE.md must document the {why} ({needle!r})"
+
+
+# --- CI quality gates (issue #25) ---
+
+def test_sync_check_has_lint_job():
+    text = (REPO / ".github" / "workflows" / "sync-check.yml").read_text(encoding="utf-8")
+    assert "ruff check" in text, "sync-check.yml must run ruff on the python code"
+    assert "shellcheck" in text, "sync-check.yml must run shellcheck on the shell scripts"
+    for path in ("plugin/bin", "plugin/scripts", "scripts"):
+        assert path in text.split("shellcheck", 1)[1].split("\n", 3)[0] or path in text, (
+            f"shellcheck step must cover {path}"
+        )
+
+
+def test_ruff_config_pins_target_version():
+    pyproject = REPO / "pyproject.toml"
+    assert pyproject.is_file(), "pyproject.toml with [tool.ruff] config missing"
+    text = pyproject.read_text(encoding="utf-8")
+    assert "[tool.ruff]" in text
+    assert re.search(r'target-version\s*=\s*"py311"', text), (
+        "ruff target-version must match the documented Python floor (3.11)"
+    )
+
+
+def test_requirements_dev_declares_ruff():
+    lines = [
+        ln.strip()
+        for ln in REQS.read_text(encoding="utf-8").splitlines()
+        if ln.strip() and not ln.strip().startswith("#")
+    ]
+    assert any(re.match(r"^ruff\b", ln) for ln in lines), (
+        "requirements-dev.txt must include ruff (CI lint job installs from it)"
+    )
+
+
+def test_release_gates_tag_on_manifest_version():
+    text = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "GITHUB_REF_NAME" in text and "plugin.json" in text, (
+        "release.yml must verify the pushed tag matches plugin/.claude-plugin/"
+        "plugin.json's version before publishing"
+    )
+    gate_pos = text.index("GITHUB_REF_NAME")
+    publish_pos = text.index("action-gh-release")
+    assert gate_pos < publish_pos, "version gate must run before the release publish step"
+
+
+def test_changelog_exists_with_unreleased_section():
+    changelog = REPO / "CHANGELOG.md"
+    assert changelog.is_file(), "CHANGELOG.md missing (release notes need a curated home)"
+    text = changelog.read_text(encoding="utf-8")
+    assert "## [Unreleased]" in text, "CHANGELOG.md must keep an [Unreleased] section"
+
+
+def test_python_floor_documented():
+    claude_md = (REPO / "CLAUDE.md").read_text(encoding="utf-8")
+    assert "Python 3.11" in claude_md, "CLAUDE.md must state the Python floor"
+    helper_head = "\n".join(
+        (REPO / "plugin" / "scripts" / "workato-api.py")
+        .read_text(encoding="utf-8")
+        .splitlines()[:40]
+    )
+    assert "Python 3.11" in helper_head, (
+        "the shipped helper must declare its Python floor in the module docstring "
+        "(it runs on the user's python3, not CI's)"
+    )
