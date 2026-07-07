@@ -59,13 +59,14 @@ ALLOWED_CONTEXT = re.compile(
 EXCEPTIONS = {
     # Workato MCP servers are consumed BY these AI clients — a product fact
     # about Workato's MCP feature, not an editor-support claim for this plugin.
-    ("plugin/skills/create-genie/SKILL.md", "Claude Desktop, Cursor, ChatGPT"),
+    ("plugin/skills/workato-create/references/genie.md", "Claude Desktop, Cursor, ChatGPT"),
+    ("plugin/skills/workato-create/references/mcp-server.md", "Claude Desktop, Cursor, ChatGPT"),
 }
 
 
 def _shipped_prose_files():
     return (
-        sorted((REPO / "plugin" / "skills").rglob("SKILL.md"))
+        sorted((REPO / "plugin" / "skills").rglob("*.md"))  # incl. references/
         + sorted((REPO / "plugin" / "docs" / "guides").glob("*.md"))
         + sorted((REPO / "plugin" / "rules").glob("*.md"))
         + [REPO / "plugin" / "agents" / "workato-builder.md"]

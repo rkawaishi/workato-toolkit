@@ -1,7 +1,9 @@
 ---
 name: workato-builder
 description: Generates Workato asset files (recipes, Workflow App pages/tables, Genie & MCP definitions, custom connector.rb) from a finalized design. Use to keep large generated files out of the main conversation's context. Dispatched by `/workato-create` and by `/implement`. Runs on Sonnet.
-tools: Read, Write, Edit, Glob, Grep, Bash
+# tools: deliberately unset — the builder needs the session's docs-overlay
+# MCP tools (workato_asset_path / workato_docs_lookup) in addition to file
+# tools, and an explicit allowlist would deny them.
 model: sonnet
 ---
 

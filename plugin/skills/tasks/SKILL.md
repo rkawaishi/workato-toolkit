@@ -44,7 +44,7 @@ For each section of `plan.md`, cut tasks out and apply a **kind tag** and a **pa
 | `[recipe]` | `/workato-create recipe` | Generate a recipe JSON |
 | `[function]` | `/workato-create recipe` | Generate a Recipe Function |
 | `[handler]` | `/workato-create recipe` | Handler recipe (Slack buttons, etc.) |
-| `[mcp]` | `/workato-create genie` | MCP server / Genie / skill |
+| `[mcp]` | `/workato-create mcp-server` | MCP server / Genie / skill |
 | `[validate]` | `/validate-recipe` | Validate JSON structure |
 | `[push]` | `/push-project` | Deploy to Workato |
 | `[pull]` | `/pull-project` | Pull post-UI changes |

@@ -37,7 +37,7 @@ Recommended (not required): `/analyze` reports 0 BLOCKERS before running `/imple
 | `[recipe]` | `workato-builder` subagent (fallback: `/workato-create recipe`) |
 | `[function]` | `workato-builder` subagent — Recipe Function flag (fallback: `/workato-create recipe`) |
 | `[handler]` | `workato-builder` subagent — handler recipe (fallback: `/workato-create recipe`) |
-| `[mcp]` | `/workato-create genie` |
+| `[mcp]` | `/workato-create mcp-server` |
 | `[validate]` | `/validate-recipe` |
 | `[push]` | `/push-project` |
 | `[pull]` | `/pull-project` |

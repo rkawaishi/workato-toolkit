@@ -141,7 +141,15 @@ Only `/design migrate` remains useful as a standard-operation subcommand:
 
 ## Build phase
 
-### /workato-create recipe — generate recipe JSON
+### /workato-create — create any Workato asset
+
+One skill covers every asset type; the type is a subcommand
+(`/workato-create <recipe|genie|mcp-server|workflow-app|connector>`), and the
+type's procedure is loaded on demand from the skill's `references/`. Run it
+without a subcommand to have the type inferred from your request or plan.md.
+The subcommands:
+
+#### recipe — generate recipe JSON
 
 Decide the recipe's purpose, trigger, and actions interactively, and generate `.recipe.json` and `.connection.json`.
 
@@ -162,7 +170,7 @@ Decide the recipe's purpose, trigger, and actions interactively, and generate `.
 - **Needs confirmation**: values that can be inferred but require user confirmation
 - **Connection-dependent**: values that can only be known after connection authentication (e.g. `pick_list` in object definitions)
 
-### /workato-create workflow-app — build a Workflow App
+#### workflow-app — build a Workflow App
 
 Build a Workflow App such as an approval workflow in JSON.
 
@@ -180,7 +188,7 @@ Build a Workflow App such as an approval workflow in JSON.
 
 See [Workflow App build guide](workflow-apps.md) for details.
 
-### /workato-create genie — generate a Genie & MCP
+#### genie — generate a Genie (AI agent)
 
 Generate an AI agent (Genie) and its skills, and optionally an MCP server.
 
@@ -191,12 +199,21 @@ Generate an AI agent (Genie) and its skills, and optionally an MCP server.
 **Assets generated:**
 - `.agentic_genie.json` — Genie definition (instructions, AI model settings)
 - `.agentic_skill.json` — skill definition (parameters, trigger settings)
-- `.mcp_server.json` — MCP server definition (optional)
-- Skill recipes — delegated to `/workato-create recipe`
+- Skill recipes — built with the recipe subcommand's procedure
 
 See [Genie & MCP build guide](genie-and-mcp.md) for details.
 
-### /workato-create connector — generate a custom connector
+#### mcp-server — expose skills to external AI clients
+
+Build a Workato MCP server (`.mcp_server.json` + skills + skill recipes),
+with or without a Genie. Use this instead of `genie` when the goal is tools
+callable from external AI clients rather than a conversational agent.
+
+```
+/workato-create mcp-server         # Build an MCP server interactively
+```
+
+#### connector — generate a custom connector
 
 Scaffold a Connector SDK project and generate `connector.rb`.
 

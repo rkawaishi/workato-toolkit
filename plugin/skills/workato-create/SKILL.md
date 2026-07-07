@@ -46,7 +46,9 @@ recipe (same pipeline, no separate skill invocation).
 5. **Generate via the `workato-builder` subagent** — pass it: the asset type,
    the finalized design (or the plan.md pointer), the target file paths, and
    the instruction to fetch its generation reference itself via
-   `workato_asset_path("workato-create/references/<type>.md")`. The subagent
+   `workato_asset_path("workato-create/references/<type>.md")`.
+   (`mcp-server` is the one special case: dispatch it as asset type `genie`
+   and have the builder fetch BOTH `genie.md` and `mcp-server.md`.) The subagent
    generates, validates, writes, and returns a short summary — large JSON/Ruby
    never enters this conversation. (Only if subagent dispatch is unavailable,
    follow the reference's generation sections inline.)

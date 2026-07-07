@@ -16,8 +16,9 @@ Consult `workato_docs_lookup("platform/mcp.md")` for the platform behavior.
 3. Generate the MCP server definition (below). No `.agentic_genie.json` needed.
 
 Generation is dispatched to the `workato-builder` subagent per the router's
-pipeline step 5 — asset type `genie` (the builder's genie lane covers
-`.mcp_server.json`).
+pipeline step 5 — **asset type `genie`** (the builder's genie lane covers
+`.mcp_server.json`); instruct the builder to fetch BOTH
+`workato-create/references/genie.md` and `workato-create/references/mcp-server.md`.
 
 ## Generating the MCP server file
 
@@ -64,16 +65,3 @@ When you attach a skill to an MCP server, Workato may rename the skill's `zip_na
 - **First push**: the MCP server, skills, and skill recipes are created together.
 - **`PG::UniqueViolation` on update**: re-pushing while the skill already exists triggers this error. `agentic_skill` and `mcp_server` cannot be removed via the CLI's `--delete` (they show up as `Skipped`). **Ask the user to delete them manually in the UI**, then re-push.
 - **`extended_output_schema` on skill recipes**: actions like `add_record` need `extended_output_schema`; without it, downstream steps can't see the datapills and the recipe fails to start. Set it on every action.
-
-### MCP only (no Genie)
-
-When building only an MCP server without a Genie:
-1. Generate the skill recipe (`workato_genie/start_workflow` trigger).
-2. Generate the skill definition (`.agentic_skill.json`).
-3. Generate the MCP server definition (`.mcp_server.json`).
-4. No Genie file (`.agentic_genie.json`) needed.
-
-```
-MCP Server → Skills → Recipes (no Genie)
-```
-
