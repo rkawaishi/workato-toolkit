@@ -5,11 +5,11 @@ import re
 from conftest import SKILLS
 
 EXPECTED_SKILLS = {
-    "analyze", "auto-learn", "catalog", "clarify", "create-connector",
-    "create-genie", "create-recipe", "create-workflow-app", "deploy-project",
+    "analyze", "auto-learn", "catalog", "clarify", "deploy-project",
     "design", "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
     "onboard", "ping", "plan", "pull-project", "push-project",
     "setup-workspace", "spec", "sync-connectors", "tasks", "validate-recipe",
+    "workato-create",
 }
 
 # @-prefixed doc references that must be gone after the rewrite (READ refs → MCP).
@@ -17,9 +17,8 @@ FORBIDDEN = re.compile(r"@(?:docs|org/docs|projects/docs)/")
 
 # Skills that DO consult the docs knowledge base and therefore must mention the MCP tool.
 SKILLS_WITH_DOC_REFS = {
-    "analyze", "auto-learn", "create-connector", "create-genie", "create-recipe",
-    "create-workflow-app", "deploy-project", "issue-api-keys", "learn-recipe",
-    "plan", "push-project", "tasks",
+    "analyze", "auto-learn", "deploy-project", "issue-api-keys", "learn-recipe",
+    "plan", "push-project", "tasks", "workato-create",
 }
 
 
@@ -172,3 +171,60 @@ def test_learning_skills_have_no_submodule_language():
         text = files[name].read_text(encoding="utf-8")
         assert "submodule" not in text, f"{name}: stale 'submodule' wording"
         assert "cd kit" not in text, f"{name}: stale 'cd kit' git step"
+
+
+# --- /workato-create consolidation (issue #18) ---
+CREATE_REFERENCES = {"recipe", "genie", "mcp-server", "workflow-app", "connector"}
+
+
+def _create_dir():
+    return SKILLS / "workato-create"
+
+
+def test_workato_create_has_type_references():
+    refs = {p.stem for p in (_create_dir() / "references").glob("*.md")}
+    assert refs == CREATE_REFERENCES, f"missing/extra: {CREATE_REFERENCES ^ refs}"
+
+
+def test_workato_create_router_points_at_every_reference():
+    text = (_create_dir() / "SKILL.md").read_text(encoding="utf-8")
+    for ref in CREATE_REFERENCES:
+        assert f"references/{ref}.md" in text, (
+            f"router must route the {ref} subcommand to its reference file"
+        )
+
+
+def test_no_references_to_retired_create_skills():
+    """The four create-* skills are gone; nothing shipped may still invoke them."""
+    retired = re.compile(r"/create-(recipe|genie|workflow-app|connector)\b")
+    offenders = []
+    scan = (
+        list(SKILLS.rglob("*.md"))
+        + list((SKILLS.parent / "docs").rglob("*.md"))
+        + list((SKILLS.parent / "rules").glob("*.md"))
+        + [SKILLS.parent / "agents" / "workato-builder.md"]
+    )
+    for p in scan:
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if retired.search(line):
+                offenders.append(f"{p.relative_to(SKILLS.parent)}:{i}: {line.strip()}")
+    assert not offenders, "retired skill references:\n" + "\n".join(offenders)
+
+
+def test_create_references_obey_skill_content_guards():
+    """references/*.md are skill content: same bare-path prohibitions apply."""
+    for ref in CREATE_REFERENCES:
+        text = (_create_dir() / "references" / f"{ref}.md").read_text(encoding="utf-8")
+        assert not FORBIDDEN.search(text), f"references/{ref}.md has @-prefixed doc refs"
+        assert "workato_docs_lookup" in text, (
+            f"references/{ref}.md must consult the knowledge base via the MCP"
+        )
+
+
+def test_builder_resolves_references_via_asset_path():
+    """workato-builder (a subagent) cannot rely on always-on context or skill
+    paths (issue #22); it fetches the generation reference via the MCP."""
+    agent = (SKILLS.parent / "agents" / "workato-builder.md").read_text(encoding="utf-8")
+    assert "workato_asset_path" in agent, (
+        "builder must resolve references/<type>.md via workato_asset_path"
+    )
