@@ -5,8 +5,8 @@ import re
 from conftest import SKILLS
 
 EXPECTED_SKILLS = {
-    "analyze", "auto-learn", "catalog", "clarify", "deploy-project",
-    "design", "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
+    "analyze", "auto-learn", "catalog", "deploy-project",
+    "implement", "issue-api-keys", "learn-pattern", "learn-recipe",
     "onboard", "ping", "plan", "pull-project", "push-project",
     "setup-workspace", "spec", "sync-connectors", "tasks", "validate-recipe",
     "workato-create",
@@ -261,4 +261,66 @@ def test_routing_tables_only_in_the_rule():
                 offenders.append(f"{p.relative_to(SKILLS.parent)}: {marker}")
     assert not offenders, (
         "destination-routing tables re-inlined outside the rule:\n" + "\n".join(offenders)
+    )
+
+
+# --- spec-driven family consolidation (issue #20) ---
+
+def test_spec_absorbs_clarify_and_migrate():
+    """/clarify (Open-Questions loop) and /design migrate (legacy DESIGN.md
+    conversion) are modes of /spec now — 7 pipeline skills became 5."""
+    text = (SKILLS / "spec" / "SKILL.md").read_text(encoding="utf-8")
+    assert "Open Questions" in text and "resolve" in text.lower(), (
+        "spec must carry the clarification loop"
+    )
+    assert "migrate" in text and "DESIGN.md" in text, (
+        "spec must carry the legacy-DESIGN.md migration mode"
+    )
+
+
+def test_no_references_to_retired_sdd_skills():
+    retired = re.compile(r"/(clarify|design)\b")
+    offenders = []
+    scan = (
+        list(SKILLS.rglob("*.md"))
+        + list((SKILLS.parent / "docs").rglob("*.md"))
+        + list((SKILLS.parent / "rules").glob("*.md"))
+        + [SKILLS.parent / "agents" / "workato-builder.md"]
+    )
+    for p in scan:
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if retired.search(line):
+                offenders.append(f"{p.relative_to(SKILLS.parent)}:{i}: {line.strip()}")
+    assert not offenders, "retired /clarify //design references:\n" + "\n".join(offenders)
+
+
+def test_kind_tag_registry_lives_only_in_tasks():
+    """The tag -> owning-skill registry is defined once (issue #20: three
+    divergent copies had already drifted on [connection])."""
+    owners = [p.parent.name for p in SKILLS.rglob("SKILL.md")
+              if "| Tag | Owning skill" in p.read_text(encoding="utf-8")]
+    assert owners == ["tasks"], f"tag registry must live only in tasks, found: {owners}"
+    implement = (SKILLS / "implement" / "SKILL.md").read_text(encoding="utf-8")
+    assert "| Tag | Skill / action it dispatches to |" not in implement, (
+        "implement must reference the /tasks registry, not keep its own copy"
+    )
+
+
+def test_plan_template_conventions_match_the_rules():
+    text = (SKILLS / "plan" / "SKILL.md").read_text(encoding="utf-8")
+    assert ".data_table.json" not in text, (
+        "plan template must use *.workato_db_table.json (matches the "
+        "workato-project-structure rule and every other consumer)"
+    )
+    assert "workato_db_table.json" in text
+    assert "fnc_" in text, (
+        "Recipe Function tasks need the fnc_ filename prefix from the rule"
+    )
+
+
+def test_spec_single_argument_grammar():
+    text = (SKILLS / "spec" / "SKILL.md").read_text(encoding="utf-8")
+    assert "<project-name> <feature-slug>" not in text, (
+        "spec must use the slash form <project>/<NNN>-<slug> like every "
+        "downstream skill (single argument grammar)"
     )
