@@ -134,12 +134,14 @@ def test_claude_md_documents_dev_prerequisites():
 
 def test_sync_check_has_lint_job():
     text = (REPO / ".github" / "workflows" / "sync-check.yml").read_text(encoding="utf-8")
-    assert "ruff check" in text, "sync-check.yml must run ruff on the python code"
-    assert "shellcheck" in text, "sync-check.yml must run shellcheck on the shell scripts"
-    for path in ("plugin/bin", "plugin/scripts", "scripts"):
-        assert path in text.split("shellcheck", 1)[1].split("\n", 3)[0] or path in text, (
-            f"shellcheck step must cover {path}"
-        )
+    assert "ruff check ." in text, (
+        "sync-check.yml must run ruff over the whole tree (opt-out coverage: "
+        "a new python directory is linted without editing the workflow)"
+    )
+    assert "shellcheck" in text and "git ls-files" in text, (
+        "shellcheck step must discover bash scripts by shebang via git ls-files "
+        "(opt-out coverage incl. extensionless hooks), not a hardcoded path list"
+    )
 
 
 def test_ruff_config_pins_target_version():
@@ -163,15 +165,27 @@ def test_requirements_dev_declares_ruff():
     )
 
 
+GATE_STEP_NAME = "Verify tag matches plugin manifest version"
+
+
 def test_release_gates_tag_on_manifest_version():
     text = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-    assert "GITHUB_REF_NAME" in text and "plugin.json" in text, (
-        "release.yml must verify the pushed tag matches plugin/.claude-plugin/"
-        "plugin.json's version before publishing"
+    assert GATE_STEP_NAME in text, (
+        "release.yml must have the tag/manifest version-gate step"
     )
-    gate_pos = text.index("GITHUB_REF_NAME")
-    publish_pos = text.index("action-gh-release")
-    assert gate_pos < publish_pos, "version gate must run before the release publish step"
+    # Bind the checks to the gate step's own block (from its name to the next
+    # step), not to first occurrences anywhere in the file.
+    gate_block = text.split(GATE_STEP_NAME, 1)[1].split("- name:", 1)[0]
+    assert "GITHUB_REF_NAME" in gate_block and "plugin.json" in gate_block, (
+        "the gate step must compare the pushed tag against plugin/.claude-plugin/"
+        "plugin.json's version"
+    )
+    assert "CHANGELOG.md" in gate_block, (
+        "the gate step must also require a matching '## [x.y.z]' CHANGELOG section"
+    )
+    assert text.index(GATE_STEP_NAME) < text.index("action-gh-release"), (
+        "version gate must run before the release publish step"
+    )
 
 
 def test_changelog_exists_with_unreleased_section():

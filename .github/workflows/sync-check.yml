@@ -42,9 +42,17 @@ jobs:
       - name: Install dev deps
         run: pip install -r requirements-dev.txt
       - name: Ruff (python)
-        run: ruff check scripts/ tests/ plugin/scripts/ plugin/mcp/
-      - name: ShellCheck (bash hooks + scripts)
-        # shellcheck is preinstalled on ubuntu-latest runners.
+        # Whole tree (opt-out): a new python directory is linted automatically.
+        run: ruff check .
+      - name: ShellCheck (all tracked bash scripts)
+        # Discover by shebang rather than a path list, so hook scripts without
+        # a .sh extension (session-start-rules) and any future script are
+        # covered automatically. shellcheck is preinstalled on ubuntu runners.
         run: |
-          shellcheck plugin/bin/*.sh plugin/bin/session-start-rules \
-            plugin/scripts/*.sh scripts/*.sh
+          files=$(git ls-files | while IFS= read -r f; do
+            [ -f "$f" ] && head -n1 "$f" | grep -q '^#!.*bash' && printf '%s\n' "$f"
+          done; true)
+          echo "shellcheck targets:"; echo "$files"
+          [ -n "$files" ] || { echo "::error::bash-script discovery found nothing — discovery is broken"; exit 1; }
+          # shellcheck disable=SC2086  # word-splitting is intended; tracked paths contain no spaces
+          shellcheck $files

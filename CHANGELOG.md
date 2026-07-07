@@ -3,9 +3,11 @@
 Notable changes to the workato-toolkit plugin. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/). A release tag `vX.Y.Z` must match
-the `version` in `plugin/.claude-plugin/plugin.json` — `release.yml` enforces
-this before publishing. Breaking changes (e.g. skill renames) are called out
-explicitly under **Changed**/**Removed**.
+the `version` in `plugin/.claude-plugin/plugin.json` AND have a `## [X.Y.Z]`
+section here — `release.yml` enforces both before publishing (move the
+`[Unreleased]` content under a versioned heading when cutting a release).
+Breaking changes (e.g. skill renames) are called out explicitly under
+**Changed**/**Removed**.
 
 ## [Unreleased]
 
