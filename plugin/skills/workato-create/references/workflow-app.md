@@ -1,17 +1,11 @@
----
-description: Build a Workato Workflow App (approval workflows, etc.). The only UI action is enabling the App. Everything else (Data Table, stages, pages, recipes) is generated as JSON and pushed. Japanese prompts are also supported.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
----
 
-# /create-workflow-app
+# Reference: workflow-app
 
 Build a Workato Workflow App. The only UI action required is enabling the Workflow App itself; everything else (Data Tables, stages, pages, recipes) is generated as JSON and pushed.
 
-## Usage
-
-- `/create-workflow-app <project>/<NNN>-<slug>` — pull context from `plan.md` and build (**preferred**; how `/implement` invokes it)
-- `/create-workflow-app` — build a new Workflow App interactively (fallback when no plan.md)
-- `/create-workflow-app <name>` — start with a fixed name (legacy invocation from before spec-driven workflow; DESIGN.md is not consulted)
+Invoked as `/workato-create workflow-app [<project>/<NNN>-<slug> | <name>]` —
+with the full slug, plan.md context is pulled automatically (how `/implement`
+invokes it).
 
 > **Note**: as part of the migration to the spec-driven workflow, the legacy `DESIGN.md` reference is retired. Start new projects with `/spec`; for existing projects, run `/design migrate` first to convert into `specs/`.
 
@@ -74,7 +68,7 @@ Let me know once you're done.
 
 File layout follows the `workato-project-structure` rule (always-on).
 
-> **Dispatch the generation.** Phase 2 produces large JSON (Data Tables, pages, the app definition). Hand it to the **`workato-builder` subagent** (asset type `workflow-app`; bundled with the plugin — invoke it via Claude Code's subagent mechanism). Pass the design fixed in Phase 1, this Phase 2 procedure's targets, and the file paths. The subagent generates + validates + writes the files and returns a short summary, keeping the JSON out of the main context. Recipes (section 4 below) are delegated separately. (Only if subagent dispatch is unavailable, perform Phase 2 inline.)
+> **Dispatch the generation.** Phase 2 produces large JSON (Data Tables, pages, the app definition). Hand it to the **`workato-builder` subagent** per the router's pipeline step 5 (asset type `workflow-app`). Pass the design fixed in Phase 1, this Phase 2 procedure's targets, and the file paths. The subagent generates + validates + writes the files and returns a short summary, keeping the JSON out of the main context. Recipes (section 4 below) are delegated separately. (Only if subagent dispatch is unavailable, perform Phase 2 inline.)
 
 ### 1. Data Tables/workato_db_table.json (Data Table schema)
 
@@ -185,15 +179,15 @@ Update the pulled lcap_app.json to include the Data Table, stages, and page refe
 }
 ```
 
-### 4. Delegate recipes to `/create-recipe`
+### 4. Create the recipes by applying [references/recipe.md](recipe.md)
 
-The Workflow App's recipes (main recipe, Recipe Functions) are delegated to `/create-recipe`:
+The Workflow App's recipes (main recipe, Recipe Functions) go through the same pipeline, recursed per recipe:
 
 - Summarize the main recipe's requirements for the user:
   - Trigger: `workato_workflow_task/new_requests_realtime`
   - Required actions: approval, external integration, stage change
-- Call `/create-recipe`, which runs the recipe-generation interview.
-- Same goes for Recipe Functions — generate them via `/create-recipe`.
+- Apply the recipe reference, which runs the recipe-generation interview.
+- Same goes for Recipe Functions.
 
 A typical approval workflow:
 ```
@@ -239,12 +233,3 @@ After each Phase, display:
 - **Project URL** (built from `.workatoenv`'s `folder_id` + the region).
 - Concrete instructions for what the user should do in the UI (see the deployment guide).
 
-## Git management
-
-Generated files (`*.lcap_app.json`, `Pages/`, `Data Tables/`, `Recipes/`, `Connections/`) live under `projects/<project-name>/`. Commit in the workspace repository:
-
-```bash
-git add projects/<project-name>/
-git commit -m "Add workflow app: <name>"
-git push origin
-```

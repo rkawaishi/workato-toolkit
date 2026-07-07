@@ -1010,7 +1010,7 @@ For files at the project root, leave `folder: ""`.
 
 ### Applying this to new projects
 
-When `/create-recipe`, `/create-workflow-app`, or `/create-genie` generates new files, follow this layout and put each artifact in the right subfolder.
+When `/workato-create recipe`, `/workato-create workflow-app`, or `/workato-create genie` generates new files, follow this layout and put each artifact in the right subfolder.
 
 ### Reorganizing existing projects
 

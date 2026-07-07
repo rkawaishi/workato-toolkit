@@ -125,7 +125,7 @@ The distinction between generic and org-domain is expressed in the pattern body'
 Patterns that were recorded in older versions under `projects/docs/patterns/` are also read at load time (backward compatible).
 
 **How patterns are used:**
-- Referenced automatically during step design in `/create-recipe`
+- Referenced automatically during step design in `/workato-create recipe`
 - Proposed as candidates during architecture decisions in `/plan`
 - Patterns are composable blocks, not monolithic templates
 
@@ -155,7 +155,7 @@ Fetches the latest connector information and updates the documentation.
 
 ```
 1. /sync-connectors <provider>     # Fetch connector information
-2. /create-recipe                  # Generate the recipe
+2. /workato-create recipe                  # Generate the recipe
 3. /push-project --start                  # Deploy
 4. Adjust in the UI                # Pick from pick_list, fine-tune fields
 5. /pull-project                          # Pull changes
@@ -168,7 +168,7 @@ From the second time on, steps 1, 4, 5, and 6 are unnecessary, and a correct rec
 
 ```
 1. /learn-pattern                  # Record the pattern
-2. From now on, /create-recipe uses it automatically
+2. From now on, /workato-create recipe uses it automatically
 ```
 
 ### When taking over a project

@@ -1,6 +1,6 @@
 # Custom connector development guide
 
-Development flow for custom connectors using the Workato Connector SDK, via the `/create-connector` skill.
+Development flow for custom connectors using the Workato Connector SDK, via the `/workato-create connector` skill.
 
 ## When to build a custom connector
 
@@ -27,7 +27,7 @@ connectors/
 ### 1. Scaffold
 
 ```
-/create-connector
+/workato-create connector
 ```
 
 Interactively decide the following and generate files:
@@ -155,7 +155,7 @@ After pushing, create a Connection in the Workato UI and run the authentication 
 /sync-connectors --custom
 ```
 
-Parses `connector.rb` and auto-generates a list of actions/triggers/fields into `connectors/docs/<name>.md`. This lets `/create-recipe` reference field information for custom connectors.
+Parses `connector.rb` and auto-generates a list of actions/triggers/fields into `connectors/docs/<name>.md`. This lets `/workato-create recipe` reference field information for custom connectors.
 
 ## Authentication methods
 

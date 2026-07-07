@@ -109,19 +109,19 @@ You: /clarify <project>/001-<slug>   # Resolve Open Questions
 You: /plan <project>/001-<slug>      # Workato design (plan.md)
 You: /tasks <project>/001-<slug>     # Execution tasks (tasks.md)
 You: /analyze <project>/001-<slug>   # Consistency check across spec ↔ plan ↔ tasks
-You: /implement <project>/001-<slug> # Dispatch to /create-recipe etc. for implementation
+You: /implement <project>/001-<slug> # Dispatch to /workato-create recipe etc. for implementation
 ```
 
 ### Option B: Jump straight to building
 
 ```
-You: /create-recipe
+You: /workato-create recipe
 ```
 
 Or, if you need a Workflow App:
 
 ```
-You: /create-workflow-app
+You: /workato-create workflow-app
 ```
 
 ## 9. Deploy
@@ -146,7 +146,7 @@ Workato Recipe JSON contains many structures that are not documented officially.
 - Auto-generated `dynamicPickListSelection` and `toggleCfg` produced by UI configuration
 - Connection-dependent fields (empty after push alone, only revealed once configured in the UI and pulled back)
 
-These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and writes it to your workspace's `org/docs/` overlay (the plugin's bundled knowledge base is read-only; the docs-overlay MCP merges the two). The more learning accumulates, the more accurately the next `/create-recipe` or `/create-workflow-app` will generate.
+These are **information you only discover by actually building a Recipe, iterating in the Workato UI, and then pulling**. `/learn-recipe` analyzes this information and writes it to your workspace's `org/docs/` overlay (the plugin's bundled knowledge base is read-only; the docs-overlay MCP merges the two). The more learning accumulates, the more accurately the next `/workato-create recipe` or `/workato-create workflow-app` will generate.
 
 ### How to do it
 

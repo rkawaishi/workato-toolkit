@@ -37,14 +37,14 @@ For each section of `plan.md`, cut tasks out and apply a **kind tag** and a **pa
 
 | Tag | Owning skill | Example |
 |---|---|---|
-| `[connection]` | (manual or done inside `/create-recipe`) | Create a connection JSON |
-| `[connector]` | `/create-connector` | Implement a custom connector |
-| `[data-table]` | `/create-workflow-app` | Create a Data Table schema |
-| `[page]` | `/create-workflow-app` | Create a Workflow App page |
-| `[recipe]` | `/create-recipe` | Generate a recipe JSON |
-| `[function]` | `/create-recipe` | Generate a Recipe Function |
-| `[handler]` | `/create-recipe` | Handler recipe (Slack buttons, etc.) |
-| `[mcp]` | `/create-genie` | MCP server / Genie / skill |
+| `[connection]` | (manual or done inside `/workato-create recipe`) | Create a connection JSON |
+| `[connector]` | `/workato-create connector` | Implement a custom connector |
+| `[data-table]` | `/workato-create workflow-app` | Create a Data Table schema |
+| `[page]` | `/workato-create workflow-app` | Create a Workflow App page |
+| `[recipe]` | `/workato-create recipe` | Generate a recipe JSON |
+| `[function]` | `/workato-create recipe` | Generate a Recipe Function |
+| `[handler]` | `/workato-create recipe` | Handler recipe (Slack buttons, etc.) |
+| `[mcp]` | `/workato-create mcp-server` | MCP server / Genie / skill |
 | `[validate]` | `/validate-recipe` | Validate JSON structure |
 | `[push]` | `/push-project` | Deploy to Workato |
 | `[pull]` | `/pull-project` | Pull post-UI changes |

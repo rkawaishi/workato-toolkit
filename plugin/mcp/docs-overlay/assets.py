@@ -11,6 +11,14 @@ ASSETS = {
     "workato-api.py": "scripts/workato-api.py",
     "ensure-workatoignore.sh": "scripts/ensure-workatoignore.sh",
     "workatoignore.template": "templates/workatoignore.template",
+    # Generation references for the workato-builder subagent: a subagent has
+    # neither the always-on context nor a skill-file path, so it resolves its
+    # per-asset-type procedure through this tool (issues #18/#22).
+    "workato-create/references/recipe.md": "skills/workato-create/references/recipe.md",
+    "workato-create/references/genie.md": "skills/workato-create/references/genie.md",
+    "workato-create/references/mcp-server.md": "skills/workato-create/references/mcp-server.md",
+    "workato-create/references/workflow-app.md": "skills/workato-create/references/workflow-app.md",
+    "workato-create/references/connector.md": "skills/workato-create/references/connector.md",
 }
 
 

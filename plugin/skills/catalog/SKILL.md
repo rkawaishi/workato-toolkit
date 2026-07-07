@@ -1,12 +1,12 @@
 ---
-description: Scan the organization's shared assets (Recipe Functions, connections) and catalog them. Referenced by `/create-recipe` and `/plan`. Japanese prompts are also supported.
+description: Scan the organization's shared assets (Recipe Functions, connections) and catalog them. Referenced by `/workato-create recipe` and `/plan`. Japanese prompts are also supported.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # /catalog
 
 Scans assets in the **shared projects** under the organization's `projects/` and generates / updates a catalog file.
-Other skills (`/create-recipe`, `/plan`) consult the catalog to propose reusing existing assets.
+Other skills (`/workato-create recipe`, `/plan`) consult the catalog to propose reusing existing assets.
 
 **Important**: do not scan private-scope projects. Respect departmental visibility controls.
 
@@ -142,9 +142,9 @@ If an existing catalog is present, do a diff update (preserve manually-added des
 
 ## How other skills consume this
 
-### From `/create-recipe`
+### From `/workato-create recipe`
 
-When `/create-recipe` is generating a recipe:
+When `/workato-create recipe` is generating a recipe:
 
 1. Check whether `projects/CATALOG.md` exists.
 2. If so, load it and search for **shared** assets that match the requirements:

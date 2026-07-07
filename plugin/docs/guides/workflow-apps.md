@@ -35,7 +35,7 @@ Solidify the overall design with `/spec` → `/plan`. For Workflow Apps, make th
 ### 2. Asset generation
 
 ```
-/create-workflow-app
+/workato-create workflow-app
 ```
 
 Interactively generates the following:
@@ -81,7 +81,7 @@ Define stage transitions and bind pages to stages:
 
 #### Recipes
 
-Delegate to `/create-recipe` to generate logic for stage transitions (sending notifications, updating external systems, etc.).
+Delegate to `/workato-create recipe` to generate logic for stage transitions (sending notifications, updating external systems, etc.).
 
 ### 3. Deploy
 

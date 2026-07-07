@@ -94,7 +94,7 @@ The biggest feature of this toolkit is that **knowledge grows the more you use i
            Knowledge accumulates in org/docs/
                                │
                     ┌──────────▼───────────┐
-                    │  /create-recipe      │
+                    │  /workato-create recipe      │
                     │  /plan               │── used for the next build
                     └──────────────────────┘
 ```
@@ -124,7 +124,7 @@ Skills cover each phase of the development lifecycle:
 | **Setup** | `/setup-workspace`, `/issue-api-keys` | Workspace bootstrap and per-environment agent keys |
 | **Specification** | `/spec`, `/clarify` | Create spec.md and resolve Open Questions |
 | **Design** | `/plan`, `/tasks`, `/analyze` | Generate plan.md / tasks.md and check consistency |
-| **Build** | `/implement`, `/create-recipe`, `/create-workflow-app`, `/create-genie`, `/create-connector` | Asset generation |
+| **Build** | `/implement`, `/workato-create recipe`, `/workato-create workflow-app`, `/workato-create genie`, `/workato-create connector` | Asset generation |
 | **Validation** | `/validate-recipe` | JSON structure check |
 | **Sync** | `/push-project`, `/pull-project` | Sync with Workato (dev) |
 | **Promotion** | `/deploy-project` | dev→test→prod promotion via the Deploy feature |

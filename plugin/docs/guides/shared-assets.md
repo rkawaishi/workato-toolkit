@@ -143,7 +143,7 @@ scopes:
 
 ### Using the catalog
 
-- `/create-recipe` references the catalog at step 2 and proposes reusing existing Connections and Recipe Functions
+- `/workato-create recipe` references the catalog at step 2 and proposes reusing existing Connections and Recipe Functions
 - `/plan` lists candidate shared assets from the catalog under `## Reused Assets` in `plan.md` during architecture design
 - Before starting a new project, run `/catalog` to see the latest list of shared assets
 
@@ -160,4 +160,4 @@ When referencing shared assets across projects, the JSON uses the `zip_name` and
 }
 ```
 
-`/create-recipe` auto-generates these references based on catalog information. There is no need to write the JSON by hand.
+`/workato-create recipe` auto-generates these references based on catalog information. There is no need to write the JSON by hand.

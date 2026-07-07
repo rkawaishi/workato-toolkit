@@ -21,7 +21,7 @@ The write target is consolidated to `org/docs/patterns/recipe-patterns/`. When r
 
 The distinction between general and org-domain is expressed in the "Scope" section of each pattern's body, not by file path.
 
-`/create-recipe` and `/plan` consult all three catalogs, and conflicts are resolved in favor of the org side (`org/docs/`) (see the `org-knowledge-overlay` rule (always-on)).
+`/workato-create recipe` and `/plan` consult all three catalogs, and conflicts are resolved in favor of the org side (`org/docs/`) (see the `org-knowledge-overlay` rule (always-on)).
 
 ## Pattern flow
 
@@ -31,7 +31,7 @@ An expert has know-how
   → accumulated in the catalog
 
 Another developer creates a Recipe
-  → /create-recipe automatically references the catalog
+  → /workato-create recipe automatically references the catalog
   → proposes step composition based on the pattern
   → /plan also proposes patterns when converting spec.md → plan.md
 ```
@@ -76,7 +76,7 @@ Each pattern has the following sections:
 
 ## When patterns are consulted
 
-When `/create-recipe` generates a Recipe, after interview completion, the pattern catalog is consulted during step composition design (Step 6).
+When `/workato-create recipe` generates a Recipe, after interview completion, the pattern catalog is consulted during step composition design (Step 6).
 
 1. Break down the requirements (e.g. "fetch all records from API and reflect to DB")
 2. Identify the patterns matching each part (e.g. pagination loop + data sync)
