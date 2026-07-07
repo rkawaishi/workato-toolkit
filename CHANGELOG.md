@@ -25,6 +25,10 @@ see issue #10 / P6 Phase A).
 - Operations skills (operations-lifecycle spec, #44): `/run-recipes` — recipe
   run-state overview and start/stop/restart via the guarded helper; mutations
   are dev-only, with UI guidance + the hotfix path on test/prod profiles.
+  `/diagnose-jobs` — dev-side diagnosis-and-fix loop with two entrances
+  (failed jobs, start errors), six cause classes, a capped default fix →
+  re-push → re-verify cycle (`--no-fix` to suppress), UI-fix handover with
+  pull-back round-trip, and unreclaimed-job reporting.
 - Development: dev-session bootstrap (#24), CI lint jobs + release version
   gate + this changelog (#25).
 
