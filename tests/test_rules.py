@@ -83,3 +83,14 @@ def test_helper_command_table_in_sync():
         assert cmd in rule, (
             f"helper subcommand {cmd!r} missing from workato-cli.md's table"
         )
+
+
+def test_overlay_rule_is_the_knowledge_convention_source():
+    """Issue #21: the rule carries the full conventions the learning skills
+    defer to — routing detail, dedup procedure, and the connectors/docs
+    exception (custom-connector docs are read/written directly, not via MCP)."""
+    text = (RULES / "org-knowledge-overlay.md").read_text(encoding="utf-8")
+    assert "| Type of finding | Destination |" in text
+    assert "connectors/docs/" in text, "custom-connector exception must be stated"
+    assert "learned-patterns.md" in text
+    assert text.count("workato_docs_lookup") >= 2

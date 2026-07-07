@@ -110,3 +110,14 @@ def test_readme_covers_cc_install_and_freeze():
     # security defense-in-depth is documented (editor-agnostic hardening stays)
     assert "permissions" in text and "deny" in text
     assert ".codexignore" in text
+
+
+def test_no_bare_learned_patterns_path_in_guides():
+    """learned-patterns.md lives in the workspace overlay (org/docs/) — a bare
+    docs/learned-patterns.md reference points at the read-only bundle (#21)."""
+    offenders = []
+    for p in sorted(GUIDES.glob("*.md")):
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if re.search(r"(?<!org/)\bdocs/learned-patterns\.md", line):
+                offenders.append(f"{p.name}:{i}: {line.strip()}")
+    assert not offenders, "bare docs/learned-patterns.md refs:\n" + "\n".join(offenders)
