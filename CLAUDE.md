@@ -16,7 +16,8 @@ the only officially supported editor; Cursor / Codex / Gemini assets are frozen 
 - `plugin/` — the plugin root (`${CLAUDE_PLUGIN_ROOT}` after install): skills, the
   knowledge base (`plugin/docs/`, served by the docs-overlay MCP), always-on rules,
   agents, hook scripts (`plugin/bin/`), hooks config, MCP server, manifests.
-- Repo root — development space: `scripts/`, `tests/`, `.github/`, `dev/`, this file,
+- Repo root — development space: `scripts/`, `tests/`, `.github/`, `dev/`, `.claude/`
+  (dev-session settings + SessionStart bootstrap), `requirements-dev.txt`, this file,
   and `.claude-plugin/marketplace.json` (marketplaces resolve from the repo root; its
   `source` points at `./plugin`).
 
