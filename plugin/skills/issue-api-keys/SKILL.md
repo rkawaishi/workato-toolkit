@@ -74,7 +74,7 @@ Client issuance needs one admin-privileged Developer API client (chicken-and-egg
 - If an admin profile already exists (`workato profiles list`), use it.
 - Otherwise guide the user through creating one client in **Workspace admin > API
   clients** (UI) and registering it: `workato init --profile <org>-admin ...`.
-- Verify with `python3 scripts/workato-api.py --profile <org>-admin`. profile show
+- Verify with `python3 scripts/workato-api.py --profile <org>-admin profile show`.
 - Offer to revoke or shelve the admin client after issuance — agents never keep it.
 
 ### 4. Issue (one client per environment)
@@ -105,7 +105,7 @@ up" later, which is by design.
 ### 5. Verify
 
 - Read smoke on all three profiles:
-  `python3 scripts/workato-api.py --profile <org>-<env>` profile show (each env).
+  `python3 scripts/workato-api.py --profile <org>-<env> profile show` (each env).
 - Guard smoke: confirm the deployment-flow rule refuses a push on `<org>-test` /
   `<org>-prod` (the `workato-deployment-flow` rule, always-on) — the read-only role makes
   this physical, the profile-name check keeps it legible.

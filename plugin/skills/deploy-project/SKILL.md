@@ -65,7 +65,7 @@ items — **generate the actual list** the human must act on, per
       reference vs the target env —
 
       ```bash
-      workato --profile <org>-dev properties list   # native CLI; the helper has no properties subcommand
+      workato properties list --profile <org>-dev   # native CLI (flag after the subcommand); the helper has no properties subcommand
       ```
 
       Present name / dev value / a blank for the target value. The agent cannot

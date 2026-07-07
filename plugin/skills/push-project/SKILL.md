@@ -226,6 +226,7 @@ authoritative until it is factored into a shared reference:
 | **MCP server / Genie** | ask the user to call the tool from the AI client | human |
 | **Data Table / Lookup Table trigger** | create/update a test record in the table (S5-4 below); for New/updated triggers, updating an existing row too | agent (dev; rows API permitting) |
 | **API endpoint** (API Platform) | `curl` the endpoint with a client token | agent (human provides token) |
+| **other** (Event Streams consume, Recipe Function invocation, …) | fire from the upstream recipe that publishes / calls it | depends (fire the caller; exact mechanism is a real-workspace open question) |
 
 When a step needs the user (form, polling seed, tool call), give a copy-pasteable
 instruction with concrete values, then wait for their signal before checking jobs.

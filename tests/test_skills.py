@@ -522,9 +522,21 @@ def test_profile_flag_precedes_subcommand_everywhere():
             words = after_helper.strip().split()
             if not words or words[0] != "--profile":
                 offenders.append(f"{p.relative_to(PLUGIN)}:{i}: {line.strip()}")
+                continue
+            # --profile takes one value; a real subcommand must follow it, else the
+            # command is a no-op (the mechanical reorder once left the subcommand
+            # outside the backtick span). words = ['--profile', '<value>', <sub>, ...]
+            tail = words[2:]
+            # ignore lines that are just the flag with a trailing prose marker
+            if tail and tail[0].startswith("`"):
+                tail = []
+            if len(words) < 3 or not tail:
+                offenders.append(
+                    f"{p.relative_to(PLUGIN)}:{i}: --profile with no subcommand: {line.strip()}"
+                )
     assert not offenders, (
-        "--profile placed after the subcommand (argparse rejects it):\n"
-        + "\n".join(offenders)
+        "--profile placement/no-subcommand issues (argparse rejects misplacement; "
+        "a bare --profile verifies nothing):\n" + "\n".join(offenders)
     )
 
 
@@ -586,6 +598,9 @@ def test_push_project_has_trigger_injection_matrix():
     for token in ("webhook", "polling", "schedule", "Workflow App",
                   "Data Table", "API endpoint"):
         assert re.search(token, text, re.IGNORECASE), f"injection matrix lacks {token!r}"
+    # the spec's 8th row: upstream-fired triggers must not be silently dropped
+    assert re.search(r"Event Streams|Recipe Function", text), \
+        "injection matrix lacks the 'other' row (Event Streams / Recipe Function)"
     assert "/diagnose-jobs" in text, "failures route to the diagnose loop"
 
 
