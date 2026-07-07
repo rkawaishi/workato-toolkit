@@ -31,6 +31,8 @@ Proceed in the order `/spec` → `/implement` along the spec-driven workflow.
                   (Adjust pick_list etc. in the UI)
                   /pull-project                  → Pull adjustments back locally
                      ↓
+[Operations]      /run-recipes            → Start/stop/restart recipes and view run state (mutations dev-only)
+                     ↓
 [Promotion]       /deploy-project         → Promote dev→test→prod via Deploy manifests (approvals stay human)
                      ↓
 [Learning]        /learn-recipe           → Enrich org/docs/ from the adjusted recipe
@@ -98,6 +100,7 @@ A list of "when each skill is invoked, what it reads, and what it writes."
 | `/validate-recipe` | Before push, after editing JSON | The project's JSON files, the always-on rules | None (validation report only) |
 | `/push-project` | Before deploy | The project's assets | Workato remote (does not modify local) |
 | `/pull-project` | After UI adjustments, at handover time | Workato remote | Assets under `projects/<name>/` (overwritten) |
+| `/run-recipes` | Run-state checks; start/stop/restart without a push | Recipe run state (helper `recipes list`) | Recipe running state (dev only; test/prod → UI guidance) |
 | `/deploy-project` | Releasing to test/prod (after dev verification) | `platform/environments.md` (via `workato_docs_lookup`), the org promotion policy record | Deploy manifests (remote; approvals stay human) |
 
 ### Learning phase
