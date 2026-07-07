@@ -12,7 +12,8 @@ status: draft
   r2.2: 同じく「LLM が書ききれず人間が UI で直し、それを pull で取り込む流れが無い」を
   受け S7-4 を追加。r2.3: 「環境ごとの接続先切り替えに properties を使う設定が無い」を
   受け S8-5 を追加。r2.4: 「Data Table 依存レシピのテストデータ登録・編集・削除が無い」を
-  受け S5-4 / S8-6 を追加し、Developer API の提供面から全ストーリーを総点検（§6 に反映））
+  受け S5-4 / S8-6 を追加し、Developer API の提供面から全ストーリーを総点検（§6 に反映）。
+  r2.5: 網羅性を主張でなく監査可能にするため、ストーリー ⇄ スキルの全対応表を §9 に追加）
 - 状態: **draft — ユーザレビュー待ち**（承認まで status を上げない）
 - 背景: ユーザ指摘「レシピのスタート、ジョブログ取得などが不足。開発して本番に乗せる
   までのユーザストーリーを描いたか」。既存ストーリー（前 spec
@@ -655,3 +656,49 @@ Slack に通知する」レシピ 1 本**。トリガーはポーリング型（
    （S5-1 マトリクスと S8-5/S8-6 のリスト生成は実装可。poll-now / webhook URL / rerun /
    rollback / **Data Table rows API（S5-4 のテーブル操作とヘルパー `data-tables rows`）** /
    activity log の各分岐は §6 の実機回答後に確定）
+
+## 9. トレーサビリティ（ストーリー ⇄ スキル 全対応表）
+
+網羅性の担保方法（証明はできないため、探索の打ち切り条件を明示する）:
+(1) §2 の通しウォークスルー起点でフェーズの空白を潰す、(2) 依存リソース lens
+（コネクション / properties / テーブル / 外部 SaaS / カスタムコネクタ / Recipe Function /
+Event Streams / OPA）、(3) Developer API surface lens（使う・OQ・明示の見送り、のいずれかに
+全 API 領域を割り付け — §4）、(4) 独立レビュー 4 巡。残る未知は §6 の OQ 12 件と
+実機検証（issue #32 Phase A）に集約されている。
+
+### 9.1 フェーズ → ストーリー → スキル
+
+●=新設（本 spec）/ ◆=本 spec で変更 / 無印=既存のまま。S0〜S4 は前 spec
+`2026-07-06-workato-integration-skills-design.md` の番号。
+
+| フェーズ | ストーリー | 担うスキル / 部品 |
+|---|---|---|
+| 0 準備 | S0-1〜S0-4 | setup-workspace / ◆issue-api-keys（S5-4/S8-6 対応の権限マトリクス改修）/ onboard |
+| 1 仕様〜ビルド | 前 spec Phase 1（充足） | spec / plan / tasks / analyze / implement / ◆workato-create（S8-5 ハードコード禁止規約）/ validate-recipe |
+| 2 同期（dev） | S2-1〜S2-6 | pull-project / ◆push-project / sync-connectors / auto-learn / validate-recipe + hook #10 |
+| 2.5 テスト実行（dev） | S5-1〜S5-4 | ◆push-project --test（投入マトリクス・S5-4 シード→掃除）/ ●diagnose-jobs（S5-2 照合）/ ヘルパー（jobs・tables 系） |
+| 4.5 稼働操作（dev） | S6-1〜S6-4 | ●run-recipes / ●diagnose-jobs（S6-4 起動エラー入口） |
+| 障害対応（dev） | S7-1〜S7-4 | ●diagnose-jobs / pull-project（S7-4 取り込み — 変更なしで使う）/ learn-recipe（S7-4 知見化） |
+| 昇格 | S3-1〜S3-5 + S8-5/S8-6 | ◆deploy-project（rollback・シードリスト・依存検知）/ ◆issue-api-keys |
+| 昇格後・本番 | S8-1〜S8-4 | ●inspect-env / ◆deploy-project（S8-4 hotfix 注記） |
+| 学習 | 前 spec Phase 5（充足） | learn-recipe / learn-pattern / catalog（統合の見直しは issue #19 — 別トラック） |
+| ユーティリティ | —（プラグイン自体の疎通確認） | ping |
+
+### 9.2 逆引き（スキル → ストーリー）の突合結果
+
+- 既存 19 スキル + 新設 3（run-recipes / diagnose-jobs / inspect-env）= **22 スキル全てが
+  §9.1 のどこかに紐づく。宙に浮くスキルは無い**（ping はストーリーでなくプラグイン運用の
+  ユーティリティ、と明示）。
+- ストーリー側も S0〜S8 の全てに担い手がある。ただし**担い手が「人間 + エージェントの案内」**
+  のものは境界ストーリーとして明示済み（S5-3 テストデータ、S6-3 prod 停止、S7-4 UI 修正、
+  S8-3/S8-6 の test/prod 側作業、prod 承認）。
+- 新スキルは 3 つで打ち止め、が本 spec の結論（§4 のとおり、properties・テーブル・監査は
+  既存スキルへの織り込みで賄い、members/roles・tags・API Platform 運用・OPA 管理は理由つき
+  見送り）。
+
+### 9.3 粒度の非対称（既知の残課題）
+
+S5〜S8 は本 spec の r2 粒度（前提・AC・失敗系つき）だが、**S0〜S4 は前 spec の一行粒度の
+まま**（実装済み・status: done のため書き直していない。通しウォークスルー §2 では検証済み）。
+実機検証（issue #32 Phase A）で該当フェーズを歩く際に、同粒度の AC を前 spec へ追記するのが
+推奨。
