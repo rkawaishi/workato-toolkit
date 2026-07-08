@@ -11,7 +11,7 @@ Provider: `slack`
 
 | Name | Internal name | Batch | Description |
 |---|---|---|---|
-| Button click | `button_action` | - |  |
+| Button click | `button_action` | - | Button click event |
 | New event | `new_event` | - |  |
 
 ## Actions
@@ -27,8 +27,8 @@ Provider: `slack`
 | Invite users to channel | `invite_user_to_channel` | - |  [deprecated] |
 | Invite users to conversation | `invite_user_to_conversation` | - |  |
 | Invite users to group | `invite_user_to_group` | - |  [deprecated] |
-| Respond to button click | `post_button_action_reply` | - |  |
-| Post message | `post_message_to_channel` | - |  |
+| Respond to button click | `post_button_action_reply` | - | Response message to button click |
+| Post message | `post_message_to_channel` | - | Post message to channel/DM |
 | Set channel purpose | `set_channel_purpose` | - |  [deprecated] |
 | Set channel topic | `set_channel_topic` | - |  [deprecated] |
 | Set conversation purpose | `set_conversation_purpose` | - |  |
@@ -36,18 +36,7 @@ Provider: `slack`
 | Unarchive channel | `unarchive_channel` | - |  [deprecated] |
 | Unarchive conversation | `unarchive_conversation` | - |  |
 
-### Triggers
-| Name | Description |
-|---|---|
-| New button click | Button click event |
-
-### Actions
-| Name | Description |
-|---|---|
-| Post message | Post message to channel/DM |
-| Respond to button | Response message to button click |
-
-### Notes
+## Notes
 - Uses Slack Web API v1
 - Supports both Slack for teams and Enterprise Grid
 - Not available in CN data center

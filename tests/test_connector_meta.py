@@ -87,3 +87,41 @@ def test_leading_hr_is_not_frontmatter():
     meta, body = strip_frontmatter("---\nSome intro prose.\n---\n# Title\n")
     assert meta == []
     assert body.startswith("---")
+
+
+# ---- duplicate-section detection (issue #12, Phase 2) ----
+# The bulk generator emits `## Triggers` / `## Actions` (H2). Some docs also
+# carried older hand-written `### Triggers` / `### Actions` tables nested under
+# the generated section — the same connector's triggers/actions documented
+# twice (a merge artifact, e.g. the old slack.md). Guard against recurrence:
+# a `### Triggers|Actions` must not sit under a `## Triggers|Actions|Field
+# details` scope. A sub-connector's own `### Triggers` (under a distinctly
+# named `##`, e.g. "Workbot for Slack") is legitimate and passes.
+
+_HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
+_DUP_PARENTS = {"triggers", "actions", "field details"}
+
+
+def _duplicate_section_offenders(text: str):
+    cur_h2 = None
+    bad = []
+    for lvl, title in _HEADING.findall(text):
+        t = title.strip().lower()
+        if len(lvl) == 2:
+            cur_h2 = t
+        elif len(lvl) == 3 and t in ("triggers", "actions"):
+            if cur_h2 in _DUP_PARENTS:
+                bad.append(f"### {title} under ## {cur_h2}")
+    return bad
+
+
+def test_no_duplicated_trigger_action_sections():
+    offenders = []
+    for p in _connector_docs():
+        for hit in _duplicate_section_offenders(p.read_text(encoding="utf-8")):
+            offenders.append(f"{p.name}: {hit}")
+    assert not offenders, (
+        "duplicated Triggers/Actions sections (generated H2 + legacy H3 — "
+        "consolidate into the H2 tables, keep hand notes as their own section):\n"
+        + "\n".join(offenders)
+    )
