@@ -23,19 +23,33 @@ VALID_SOURCES = ("api", "manual", "learned")
 VALID_TIERS = ("A", "B", "C")
 
 
+_KV = re.compile(r"^\s*[A-Za-z_][\w-]*\s*:\s*.*$")
+
+
+def _looks_like_frontmatter(inner) -> bool:
+    """A leading `---`…`---` block is frontmatter only if every non-blank inner
+    line is a `key: value` pair. This keeps a document that opens with a `---`
+    horizontal rule (prose between two rules) from being eaten as metadata."""
+    non_blank = [ln for ln in inner if ln.strip()]
+    return bool(non_blank) and all(_KV.match(ln) for ln in non_blank)
+
+
 def strip_frontmatter(text: str):
     """Return (meta_lines, body). meta_lines is the raw YAML block WITHOUT the
     fences (empty list if no frontmatter). A frontmatter block is a leading
-    '---' line, YAML lines, and a closing '---'."""
+    '---' line, `key: value` lines, and a closing '---'."""
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return [], text
     for i in range(1, len(lines)):
         if lines[i].strip() == "---":
+            inner = lines[1:i]
+            if not _looks_like_frontmatter(inner):
+                return [], text  # a '---' horizontal rule, not frontmatter
             body = "\n".join(lines[i + 1:])
             if text.endswith("\n"):
                 body += "\n"
-            return lines[1:i], body.lstrip("\n")
+            return inner, body.lstrip("\n")
     # no closing fence — treat as no frontmatter (don't eat the whole file)
     return [], text
 
@@ -65,23 +79,37 @@ def _has_hand_prose(body: str) -> bool:
     )
 
 
+def _cells(row: str):
+    return [c.strip() for c in row.strip().strip("|").split("|")]
+
+
+def _is_sep_row(s: str) -> bool:
+    return s.startswith("|--") or set(s) <= {"|", "-", " ", ":"}
+
+
 def _description_cells_filled(body: str) -> bool:
-    """True if any Triggers/Actions table row has a non-empty final (Description)
-    cell. Table rows look like `| Name | internal | batch | desc |` — the header
-    and separator rows are skipped."""
+    """True if a table that HAS a Description column has any data row with a
+    non-empty Description cell. Header-aware: we only judge a table once we've
+    seen a header row whose last column is 'Description' — this avoids treating
+    a 3-column table's Batch column, or an em/en-dash placeholder, as a
+    description (which would over-count tier B for future re-synced docs)."""
+    desc_col = None  # index of the Description column in the current table
     for ln in body.splitlines():
         s = ln.strip()
-        if not s.startswith("|") or s.startswith("|--") or set(s) <= {"|", "-", " ", ":"}:
+        if not s.startswith("|"):
+            desc_col = None  # table ended
             continue
-        cells = [c.strip() for c in s.strip("|").split("|")]
-        if len(cells) < 2:
+        if _is_sep_row(s):
             continue
-        header_like = cells[0].lower() in ("name",) or "internal name" in " ".join(cells).lower()
-        if header_like:
+        cells = _cells(s)
+        low = [c.lower() for c in cells]
+        if "description" in low:  # header row
+            desc_col = low.index("description")
             continue
-        # the description is the last cell; ignore bracket-only markers like [deprecated]
-        desc = cells[-1]
-        desc_clean = re.sub(r"\[[^\]]*\]", "", desc).strip()
+        if desc_col is None or desc_col >= len(cells):
+            continue
+        # strip bracket markers ([deprecated]) and dash placeholders (- – —)
+        desc_clean = re.sub(r"\[[^\]]*\]", "", cells[desc_col]).strip(" -–—")
         if desc_clean:
             return True
     return False

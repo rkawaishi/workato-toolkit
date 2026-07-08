@@ -2,8 +2,11 @@
 
 No FastMCP / env dependency — callers pass resolved directories.
 """
+import re
 from pathlib import Path
 from typing import Optional
+
+_FM_KV = re.compile(r"^\s*[A-Za-z_][\w-]*\s*:\s*.*$")
 
 
 def _norm(rel: str) -> Optional[str]:
@@ -28,15 +31,22 @@ def _read(base: Optional[Path], rel: str) -> Optional[str]:
 
 def _split_frontmatter(text: str):
     """Return (meta, body). meta is a {key: value} dict from a leading YAML
-    `---` block (empty if none); body is the doc without it. Kept deliberately
-    tiny — the connector frontmatter is flat `key: value` lines only."""
+    `---` block (empty if none); body is the doc without it. A leading
+    `---`…`---` block counts as frontmatter only when every non-blank inner
+    line is a `key: value` pair — so a document opening with a `---` horizontal
+    rule (prose between two rules) is NOT mistaken for metadata. Kept
+    deliberately tiny — the connector frontmatter is flat `key: value` only."""
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return {}, text
     for i in range(1, len(lines)):
         if lines[i].strip() == "---":
+            inner = lines[1:i]
+            non_blank = [ln for ln in inner if ln.strip()]
+            if not non_blank or not all(_FM_KV.match(ln) for ln in non_blank):
+                return {}, text  # a '---' horizontal rule, not frontmatter
             meta = {}
-            for ln in lines[1:i]:
+            for ln in inner:
                 if ":" in ln:
                     k, _, v = ln.partition(":")
                     meta[k.strip()] = v.strip()
@@ -144,12 +154,12 @@ def resolve_doc(
         if org_sec is not None and kit_sec is None and kit_text is not None:
             return (
                 f"# {norm} § {section} (org overlay only — the kit doc has no "
-                f"matching section)\n\n{org_sec}\n"
+                f"matching section)\n\n{banner}{org_sec}\n"
             )
         if kit_sec is not None and org_sec is None and org_text is not None:
             return (
                 f"# {norm} § {section} (kit only — the org overlay has no "
-                f"matching section)\n\n{kit_sec}\n"
+                f"matching section)\n\n{banner}{kit_sec}\n"
             )
         kit_text, org_text = kit_sec, org_sec
 

@@ -59,3 +59,31 @@ def test_tier_and_source_match_derivation():
         if meta.get("source") != derived["source"]:
             offenders.append(f"{p.name}: source recorded={meta.get('source')} derived={derived['source']}")
     assert not offenders, "frontmatter drifted from content:\n" + "\n".join(offenders[:20])
+
+
+# ---- derivation hardening (review of #12 Phase 1) ----
+
+from connector_doc_meta import _description_cells_filled, strip_frontmatter  # noqa: E402
+
+
+def test_description_detection_is_header_aware():
+    # a real Description column with content → filled
+    assert _description_cells_filled(
+        "| Name | Description |\n|---|---|\n| A | does a thing |"
+    )
+    # em/en-dash placeholder in the Description column → not filled
+    assert not _description_cells_filled(
+        "| Name | Description |\n|---|---|\n| A | — |"
+    )
+    # a 3-column table with a Batch (not Description) last column → not filled
+    assert not _description_cells_filled(
+        "| Name | Internal | Batch |\n|---|---|---|\n| A | a | Yes |"
+    )
+
+
+def test_leading_hr_is_not_frontmatter():
+    # a doc that opens with a '---' horizontal rule (prose between rules) must
+    # not be eaten as frontmatter
+    meta, body = strip_frontmatter("---\nSome intro prose.\n---\n# Title\n")
+    assert meta == []
+    assert body.startswith("---")

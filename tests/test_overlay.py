@@ -218,3 +218,14 @@ def test_org_provenance_used_when_kit_absent(tmp_path):
     out = overlay.resolve_doc(kit, org, "connectors/internal.md")
     assert "source=learned" in out and "tier=B" in out
     assert "---\nsource" not in out
+
+
+def test_leading_horizontal_rule_not_treated_as_frontmatter(tmp_path):
+    kit, org = _setup(tmp_path)
+    # a doc opening with a '---' rule (prose between two rules), not YAML
+    (kit / "connectors" / "hr.md").write_text(
+        "---\nJust some intro prose.\n---\n# HR\n\nbody\n", encoding="utf-8"
+    )
+    out = overlay.resolve_doc(kit, org, "connectors/hr.md")
+    assert "Just some intro prose." in out, "content between '---' rules must survive"
+    assert "provenance" not in out, "a horizontal rule must not produce a banner"
