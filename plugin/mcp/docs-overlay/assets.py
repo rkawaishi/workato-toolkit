@@ -28,6 +28,9 @@ ASSETS = {
     "rules/workato-agentic-format.md": "rules/workato-agentic-format.md",
     "rules/workato-connector-sdk.md": "rules/workato-connector-sdk.md",
     "rules/workato-project-structure.md": "rules/workato-project-structure.md",
+    # lcap_page.json has its OWN format spec (agentic-format covers lcap_app /
+    # workato_db_table only) — the workflow-app page lane needs it too (#22).
+    "rules/workato-page-components.md": "rules/workato-page-components.md",
 }
 
 

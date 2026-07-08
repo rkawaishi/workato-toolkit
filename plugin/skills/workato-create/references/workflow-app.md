@@ -91,6 +91,13 @@ File layout follows the project-structure spec — `workato_asset_path("rules/wo
 
 ### 2. Pages/lcap_page.json (page definitions)
 
+The page format spec is its own rule — fetch it via
+`workato_asset_path("rules/workato-page-components.md")` and Read it (always-on
+in the main session; the subagent has none, and `workato-agentic-format` covers
+`lcap_app` / `workato_db_table` but **not** `lcap_page`). It carries the layout
+row/colSpan structure, per-component shapes, validations/handlers, and the
+conditional-expression syntax.
+
 Generate four pages:
 
 **Submission form** (`Pages/submit_<name>.lcap_page.json`):

@@ -64,7 +64,8 @@ invent a schema.
 1. Read the generation procedure for the asset type (`workato_asset_path` table
    above) **and the format spec(s) it names** — the reference tells you which
    `workato_asset_path("rules/<rule>.md")` to fetch (recipe-format,
-   agentic-format, connector-sdk, project-structure). Fetch those the same way:
+   agentic-format, connector-sdk, project-structure, and page-components for
+   `lcap_page.json`). Fetch those the same way:
    you are a subagent, so the always-on rules are not in your context — the
    asset-path tool is how you reach the same source-of-truth files. Then read
    the relevant connector docs.

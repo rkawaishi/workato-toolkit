@@ -43,6 +43,7 @@ FORMAT_RULE_ASSETS = (
     "rules/workato-agentic-format.md",
     "rules/workato-connector-sdk.md",
     "rules/workato-project-structure.md",
+    "rules/workato-page-components.md",
 )
 
 
