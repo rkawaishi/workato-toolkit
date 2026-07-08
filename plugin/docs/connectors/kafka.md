@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Apache Kafka connector
 
 Provider: `kafka`

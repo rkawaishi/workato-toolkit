@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Gmail connector
 
 Provider: `gmail`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Scheduler by Workato connector
 
 Provider: `clock`

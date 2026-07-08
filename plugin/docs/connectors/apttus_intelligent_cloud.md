@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Apttus Intelligent Cloud connector
 
 Provider: `apttus_intelligent_cloud`

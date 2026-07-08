@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workato Event Streams connector
 
 Provider: `workato_pub_sub`

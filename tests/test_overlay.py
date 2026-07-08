@@ -173,3 +173,59 @@ def test_search_cap_cannot_starve_org_hits(tmp_path):
     assert any("org/docs/connectors/ours.md" in h for h in hits), (
         "org (authoritative) hits must survive the result cap"
     )
+
+
+# ---- frontmatter handling (issue #12 Phase 1) ----
+
+def test_frontmatter_stripped_and_provenance_banner(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "acme.md").write_text(
+        "---\nsource: api\nsynced_at: unknown\ntier: C\n---\n# Acme\n\nBody line\n",
+        encoding="utf-8",
+    )
+    out = overlay.resolve_doc(kit, org, "connectors/acme.md")
+    assert "# Acme" in out and "Body line" in out
+    assert "---\nsource" not in out, "raw YAML frontmatter must not be served"
+    assert "provenance" in out and "source=api" in out and "tier=C" in out
+
+
+def test_frontmatter_stripped_before_section_extraction(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "acme.md").write_text(
+        "---\ntier: C\n---\n# Acme\n\n## Actions\n\nact body\n\n## Triggers\n\ntrig\n",
+        encoding="utf-8",
+    )
+    out = overlay.resolve_doc(kit, org, "connectors/acme.md", section="Actions")
+    assert "act body" in out
+    assert "trig" not in out
+
+
+def test_search_skips_frontmatter_lines(tmp_path):
+    kit, org = _setup(tmp_path)
+    (kit / "connectors" / "acme.md").write_text(
+        "---\nsource: api\nsynced_at: unknown\ntier: C\n---\n# Acme\n\nreal content\n",
+        encoding="utf-8",
+    )
+    assert overlay.search_docs(kit, org, "synced_at", prefix="connectors/") == []
+    assert overlay.search_docs(kit, org, "real content", prefix="connectors/")
+
+
+def test_org_provenance_used_when_kit_absent(tmp_path):
+    kit, org = _setup(tmp_path)
+    (org / "connectors" / "internal.md").write_text(
+        "---\nsource: learned\ntier: B\n---\n# Internal\n", encoding="utf-8"
+    )
+    out = overlay.resolve_doc(kit, org, "connectors/internal.md")
+    assert "source=learned" in out and "tier=B" in out
+    assert "---\nsource" not in out
+
+
+def test_leading_horizontal_rule_not_treated_as_frontmatter(tmp_path):
+    kit, org = _setup(tmp_path)
+    # a doc opening with a '---' rule (prose between two rules), not YAML
+    (kit / "connectors" / "hr.md").write_text(
+        "---\nJust some intro prose.\n---\n# HR\n\nbody\n", encoding="utf-8"
+    )
+    out = overlay.resolve_doc(kit, org, "connectors/hr.md")
+    assert "Just some intro prose." in out, "content between '---' rules must survive"
+    assert "provenance" not in out, "a horizontal rule must not produce a banner"

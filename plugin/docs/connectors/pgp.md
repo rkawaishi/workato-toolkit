@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # PGP tools by Workato connector
 
 Provider: `pgp`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # WooCommerce connector
 
 Provider: `woocommerce`

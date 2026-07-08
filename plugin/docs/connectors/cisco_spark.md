@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Cisco Webex Teams connector
 
 Provider: `cisco_spark`

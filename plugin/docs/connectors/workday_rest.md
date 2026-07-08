@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workday REST connector
 
 Provider: `workday_rest`

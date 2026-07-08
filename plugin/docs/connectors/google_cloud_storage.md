@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Google Cloud Storage connector
 
 Provider: `google_cloud_storage`

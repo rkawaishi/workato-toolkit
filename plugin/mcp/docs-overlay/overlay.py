@@ -2,8 +2,11 @@
 
 No FastMCP / env dependency — callers pass resolved directories.
 """
+import re
 from pathlib import Path
 from typing import Optional
+
+_FM_KV = re.compile(r"^\s*[A-Za-z_][\w-]*\s*:\s*.*$")
 
 
 def _norm(rel: str) -> Optional[str]:
@@ -24,6 +27,48 @@ def _read(base: Optional[Path], rel: str) -> Optional[str]:
     if p.is_file():
         return p.read_text(encoding="utf-8")
     return None
+
+
+def _split_frontmatter(text: str):
+    """Return (meta, body). meta is a {key: value} dict from a leading YAML
+    `---` block (empty if none); body is the doc without it. A leading
+    `---`…`---` block counts as frontmatter only when every non-blank inner
+    line is a `key: value` pair — so a document opening with a `---` horizontal
+    rule (prose between two rules) is NOT mistaken for metadata. Kept
+    deliberately tiny — the connector frontmatter is flat `key: value` only."""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, text
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            inner = lines[1:i]
+            non_blank = [ln for ln in inner if ln.strip()]
+            if not non_blank or not all(_FM_KV.match(ln) for ln in non_blank):
+                return {}, text  # a '---' horizontal rule, not frontmatter
+            meta = {}
+            for ln in inner:
+                if ":" in ln:
+                    k, _, v = ln.partition(":")
+                    meta[k.strip()] = v.strip()
+            body = "\n".join(lines[i + 1:]).lstrip("\n")
+            if text.endswith("\n") and not body.endswith("\n"):
+                body += "\n"
+            return meta, body
+    return {}, text  # unterminated — treat as no frontmatter
+
+
+def _provenance_note(meta: dict) -> str:
+    """One-line freshness/quality banner from frontmatter, or '' if none."""
+    if not meta:
+        return ""
+    bits = []
+    if meta.get("source"):
+        bits.append(f"source={meta['source']}")
+    if meta.get("synced_at"):
+        bits.append(f"synced={meta['synced_at']}")
+    if meta.get("tier"):
+        bits.append(f"tier={meta['tier']}")
+    return f"> _provenance: {', '.join(bits)}_\n\n" if bits else ""
 
 
 def _heading_lines(text: str) -> list:
@@ -82,11 +127,18 @@ def resolve_doc(
     if norm is None:
         return f"INVALID PATH: {rel!r} (path traversal is not allowed)"
 
-    kit_text = _read(kit_dir, norm)
-    org_text = _read(org_dir, norm)
+    kit_raw = _read(kit_dir, norm)
+    org_raw = _read(org_dir, norm)
 
-    if kit_text is None and org_text is None:
+    if kit_raw is None and org_raw is None:
         return f"NOT FOUND: {norm} (checked kit docs and org/docs)"
+
+    # Strip frontmatter from the served body (readers get prose, not raw YAML);
+    # keep the provenance as a one-line banner. Prefer kit provenance (the
+    # canonical baseline); fall back to org's when kit is absent.
+    kit_meta, kit_text = _split_frontmatter(kit_raw) if kit_raw is not None else ({}, None)
+    org_meta, org_text = _split_frontmatter(org_raw) if org_raw is not None else ({}, None)
+    banner = _provenance_note(kit_meta or org_meta)
 
     if section:
         kit_sec = _extract_section(kit_text, section) if kit_text else None
@@ -102,26 +154,27 @@ def resolve_doc(
         if org_sec is not None and kit_sec is None and kit_text is not None:
             return (
                 f"# {norm} § {section} (org overlay only — the kit doc has no "
-                f"matching section)\n\n{org_sec}\n"
+                f"matching section)\n\n{banner}{org_sec}\n"
             )
         if kit_sec is not None and org_sec is None and org_text is not None:
             return (
                 f"# {norm} § {section} (kit only — the org overlay has no "
-                f"matching section)\n\n{kit_sec}\n"
+                f"matching section)\n\n{banner}{kit_sec}\n"
             )
         kit_text, org_text = kit_sec, org_sec
 
     if org_text is not None and kit_text is not None:
         return (
             f"# {norm} (org overlay applied — the org version overrides the kit on conflict)\n\n"
+            f"{banner}"
             f"## Organization (authoritative — org/docs/{norm})\n\n{org_text}\n\n"
             f"## Kit baseline (docs/{norm})\n\n{kit_text}\n"
         )
 
     if org_text is not None:
-        return f"# {norm} (org-only — no kit baseline)\n\n{org_text}\n"
+        return f"# {norm} (org-only — no kit baseline)\n\n{banner}{org_text}\n"
 
-    return kit_text
+    return f"{banner}{kit_text}" if banner else kit_text
 
 
 def list_docs(kit_dir: Path, org_dir: Optional[Path], prefix: str = "") -> list:
@@ -163,7 +216,17 @@ def search_docs(
                 lines = p.read_text(encoding="utf-8").splitlines()
             except (OSError, UnicodeError):
                 continue
+            # frontmatter is metadata, not content — don't return its lines as
+            # search hits (line numbers below stay 1-based over the whole file).
+            fm_end = 0
+            if lines and lines[0].strip() == "---":
+                for j in range(1, len(lines)):
+                    if lines[j].strip() == "---":
+                        fm_end = j + 1
+                        break
             for i, ln in enumerate(lines, 1):
+                if i <= fm_end:
+                    continue
                 if q in ln.lower():
                     hits.append(f"{label}{rel}:{i}: {ln.strip()}")
                     if len(hits) >= SEARCH_MAX_RESULTS:

@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Salesforce connector
 
 Provider: `salesforce`

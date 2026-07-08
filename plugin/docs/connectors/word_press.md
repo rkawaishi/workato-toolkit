@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # WordPress.com connector
 
 Provider: `word_press`

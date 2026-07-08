@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Google Text to Speech connector
 
 Provider: `google_text_to_speech`

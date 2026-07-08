@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Google BigQuery connector
 
 Provider: `google_big_query`

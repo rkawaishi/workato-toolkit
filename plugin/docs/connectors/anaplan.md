@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Anaplan connector
 
 Provider: `anaplan`

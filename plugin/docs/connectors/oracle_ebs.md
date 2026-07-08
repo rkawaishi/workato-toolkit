@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Oracle E-Business Suite connector
 
 Provider: `oracle_ebs`

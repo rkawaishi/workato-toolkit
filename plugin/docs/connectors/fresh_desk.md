@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Freshdesk connector
 
 Provider: `fresh_desk`

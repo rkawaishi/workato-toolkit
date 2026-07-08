@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # JSON Transformations by Workato connector
 
 Provider: `workato_json_transformations`

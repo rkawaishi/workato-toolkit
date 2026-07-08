@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # 4me connector
 
 Provider: `connector_4me`

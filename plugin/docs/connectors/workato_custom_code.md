@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Ruby snippets by Workato connector
 
 Provider: `workato_custom_code`

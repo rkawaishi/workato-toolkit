@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Basecamp 2 connector
 
 Provider: `basecamp`

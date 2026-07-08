@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # RegOnline® by Lanyon connector
 
 Provider: `active_reg_online`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # DocuSign secondary connector
 
 Provider: `docusign_secondary`

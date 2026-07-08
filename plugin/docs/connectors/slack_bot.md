@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Workbot for Slack connector
 
 Provider: `slack_bot`

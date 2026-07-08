@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # SAP RFC secondary connector
 
 Provider: `sap_secondary`

@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Confluence secondary connector
 
 Provider: `confluence_secondary`

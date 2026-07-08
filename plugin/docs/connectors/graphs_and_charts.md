@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Charts by Workato connector
 
 Provider: `graphs_and_charts`

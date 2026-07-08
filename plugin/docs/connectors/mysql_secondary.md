@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # MySQL secondary connector
 
 Provider: `mysql_secondary`

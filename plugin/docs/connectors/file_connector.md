@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # File tools by Workato connector
 
 Provider: `file_connector`

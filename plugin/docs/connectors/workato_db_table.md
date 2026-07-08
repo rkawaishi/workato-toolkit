@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workato Data Tables connector
 
 Provider: `workato_db_table`

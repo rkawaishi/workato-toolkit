@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # On-prem files secondary connector
 
 Provider: `onprem_files_secondary`

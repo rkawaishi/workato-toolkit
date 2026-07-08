@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Azure Monitor connector
 
 Provider: `azure_monitor`

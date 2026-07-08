@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # SQL Server secondary connector
 
 Provider: `mssql_secondary`

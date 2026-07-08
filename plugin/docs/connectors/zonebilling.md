@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # ZoneBilling for NetSuite connector
 
 Provider: `zonebilling`

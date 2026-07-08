@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Azure OpenAI connector
 
 Provider: `azure_open_ai`

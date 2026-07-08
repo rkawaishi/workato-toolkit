@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Azure Key Vault connector
 
 Provider: `azure_key_vault`

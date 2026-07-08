@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Wrike secondary connector
 
 Provider: `wrike_secondary`

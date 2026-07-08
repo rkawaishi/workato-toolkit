@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Active Directory connector
 
 Provider: `active_directory`

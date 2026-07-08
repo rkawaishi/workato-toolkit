@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Jenkins connector
 
 Provider: `jenkins`

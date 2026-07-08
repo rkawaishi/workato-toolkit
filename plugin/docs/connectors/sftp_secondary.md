@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # SFTP secondary connector
 
 Provider: `sftp_secondary`

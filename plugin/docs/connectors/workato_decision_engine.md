@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Decision Models by Workato connector
 
 Provider: `workato_decision_engine`

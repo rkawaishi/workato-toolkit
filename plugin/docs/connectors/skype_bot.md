@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workbot for Microsoft Teams Old connector
 
 Provider: `skype_bot`

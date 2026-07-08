@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # HTTP (OAuth2) connector
 
 Provider: `rest_oauth`

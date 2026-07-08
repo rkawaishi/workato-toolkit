@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Workflow apps by Workato connector
 
 Provider: `workato_workflow_task`

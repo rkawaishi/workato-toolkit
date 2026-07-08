@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # Zuora for Salesforce connector
 
 Provider: `zuora_forcecom`

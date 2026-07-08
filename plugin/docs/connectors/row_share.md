@@ -1,3 +1,8 @@
+---
+source: api
+synced_at: unknown
+tier: C
+---
 # RowShare connector
 
 Provider: `row_share`

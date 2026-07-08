@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Google Drive connector
 
 Provider: `google_drive`

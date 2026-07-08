@@ -1,3 +1,8 @@
+---
+source: manual
+synced_at: unknown
+tier: A
+---
 # Google Sheets connector
 
 Provider: `google_sheets`
