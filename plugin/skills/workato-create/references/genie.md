@@ -29,17 +29,17 @@ Covers the Genie itself and its skills. For MCP exposure (alone or in addition),
    - **MCP exposure**: also expose as an MCP server? (default: No.)
    - **VUA**: is Verified User Access needed (API calls using the end user's credentials)?
 
-2. Read the references:
-   - the `workato-agentic-format` rule (always-on)
-   - the `workato-recipe-format` rule (always-on)
-   - the `workato-project-structure` rule (always-on)
+2. Read the references (fetch each format spec via `workato_asset_path(...)`, then Read the returned path — always-on rules in the main session, but the builder subagent has none):
+   - `workato_asset_path("rules/workato-agentic-format.md")`
+   - `workato_asset_path("rules/workato-recipe-format.md")`
+   - `workato_asset_path("rules/workato-project-structure.md")`
    - Call `workato_docs_lookup` with path `connectors/_index.md`, then look up each relevant connector with `workato_docs_lookup` (path `connectors/<connector>.md`)
    - Call `workato_docs_lookup` with path `platform/agent-studio.md`
    - Call `workato_docs_lookup` with path `platform/mcp.md`
 
 3. If an existing Genie is available, reference its structure.
 
-4. Generate the Genie configuration files (following the `workato-project-structure` rule, always-on):
+4. Generate the Genie configuration files (following the project-structure spec fetched in step 2):
    - `<project>/Agents/<name>.agentic_genie.json` — the Genie itself.
    - For each skill:
      - `<project>/Agents/<skill_name>.agentic_skill.json` — skill definition.

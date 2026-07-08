@@ -84,10 +84,14 @@ def test_no_claude_rules_path_refs():
     assert not offenders, "remaining @.claude/ refs:\n" + "\n".join(offenders)
 
 
-def test_rules_referenced_by_name():
+def test_recipe_reference_fetches_format_spec_self_resolving():
+    """The recipe reference must reach the recipe-format spec through the
+    asset-path tool (self-resolving in both main + subagent contexts), not by
+    naming an always-on rule the subagent cannot load (issue #22, was #18's
+    name-reference before the builder-dependency fix)."""
     text = (SKILLS / "workato-create" / "references" / "recipe.md").read_text(encoding="utf-8")
-    assert "`workato-recipe-format`" in text
-    assert "always-on" in text
+    assert 'workato_asset_path("rules/workato-recipe-format.md")' in text
+    assert 'workato_asset_path("rules/workato-project-structure.md")' in text
 
 
 # ---- P4: learning-WRITE redesign ----
@@ -229,6 +233,50 @@ def test_builder_resolves_references_via_asset_path():
     assert "workato_asset_path" in agent, (
         "builder must resolve references/<type>.md via workato_asset_path"
     )
+
+
+# Format-spec rules the generation references depend on. A subagent cannot load
+# always-on rules, so a reference must not tell it to "read the `X` rule
+# (always-on)" — it must fetch the spec via workato_asset_path (issue #22).
+_FORMAT_RULES = (
+    "workato-recipe-format",
+    "workato-agentic-format",
+    "workato-connector-sdk",
+    "workato-project-structure",
+)
+_CREATE_REFS = SKILLS / "workato-create" / "references"
+_ALWAYS_ON_READ = re.compile(
+    r"`(workato-[a-z-]+)` rule \(always[- ]on\)"
+)
+
+
+def test_references_do_not_depend_on_always_on_rules():
+    """No generation reference may point the builder at a format-spec rule via
+    an '(always-on)' name — that dependency does not resolve in a subagent."""
+    offenders = []
+    for p in sorted(_CREATE_REFS.glob("*.md")):
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            m = _ALWAYS_ON_READ.search(line)
+            if m and m.group(1) in _FORMAT_RULES:
+                offenders.append(f"{p.name}:{i}: {line.strip()}")
+    assert not offenders, (
+        "references still route the subagent at an always-on rule (fetch via "
+        "workato_asset_path(\"rules/<rule>.md\") instead):\n" + "\n".join(offenders)
+    )
+
+
+def test_references_fetch_format_rules_via_asset_path():
+    """Every format rule a reference names must be reachable via the asset-path
+    tool — the reference must give the workato_asset_path(\"rules/...\") call."""
+    joined = "\n".join(
+        p.read_text(encoding="utf-8") for p in sorted(_CREATE_REFS.glob("*.md"))
+    )
+    for rule in _FORMAT_RULES:
+        if rule in joined:  # a reference depends on this rule
+            assert f'workato_asset_path("rules/{rule}.md")' in joined, (
+                f"references name {rule} but never fetch it via "
+                f'workato_asset_path("rules/{rule}.md")'
+            )
 
 
 # --- Knowledge-convention single-sourcing (issue #21) ---

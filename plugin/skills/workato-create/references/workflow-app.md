@@ -13,7 +13,7 @@ invokes it).
 
 - Call `workato_docs_lookup` with path `platform/workflow-apps.md` — construction patterns, providers, actions
 - Call `workato_docs_lookup` with path `patterns/deployment-guide.md` — deployment steps and common errors
-- the `workato-agentic-format` rule (always-on) — JSON structure for lcap_app / workato_db_table / lcap_page
+- The agentic format spec (JSON structure for lcap_app / workato_db_table / lcap_page): `workato_asset_path("rules/workato-agentic-format.md")`, then Read the returned path (always-on rule in the main session; the builder subagent fetches it here).
 
 ## Phase 0: pull context from plan.md
 
@@ -66,7 +66,7 @@ Let me know once you're done.
 
 ## Phase 2: generate every component as JSON, then push
 
-File layout follows the `workato-project-structure` rule (always-on).
+File layout follows the project-structure spec — `workato_asset_path("rules/workato-project-structure.md")`, then Read it (always-on rule in the main session; the subagent fetches it here).
 
 > **Dispatch the generation.** Phase 2 produces large JSON (Data Tables, pages, the app definition). Hand it to the **`workato-builder` subagent** per the router's pipeline step 5 (asset type `workflow-app`). Pass the design fixed in Phase 1, this Phase 2 procedure's targets, and the file paths. The subagent generates + validates + writes the files and returns a short summary, keeping the JSON out of the main context. Recipes (section 4 below) are delegated separately. (Only if subagent dispatch is unavailable, perform Phase 2 inline.)
 

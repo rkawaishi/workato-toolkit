@@ -94,7 +94,14 @@ cat <<'CHECKLIST'
   [ ] workato_docs_lookup("connectors/clearbit.md") returns kit content
   [ ] a skill's allowed-tools does not block the MCP tools (record which)
   [ ] credential guard fires inside the session (ask to cat master.key)
-  [ ] workato-builder subagent can see rules / generation refs (issue #22)
+  [ ] workato-builder subagent dependency resolves (issue #22): dispatch
+      /workato-create recipe -> workato-builder, then confirm IN THE SUBAGENT
+      TRANSCRIPT that it (a) CALLS workato_asset_path (MCP tools reachable from a
+      subagent at all?), (b) gets a real path for
+      workato_asset_path("rules/workato-recipe-format.md") and Reads it,
+      (c) does NOT rely on always-on rules (they are absent in the subagent).
+      If (a) fails, MCP tools are unavailable to subagents -> the fix must move
+      to inline-passing the spec from the dispatching skill; record the finding.
   -> record results in dev/verifications/YYYY-MM-DD-<topic>.md
 CHECKLIST
 

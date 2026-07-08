@@ -79,6 +79,15 @@ see issue #10 / P6 Phase A).
   repo) contains a `pyproject.toml` — `uv run` tried to adopt it as the
   project. Both `.mcp.json` launch definitions now pass `--no-project`.
   (Found by the self-install smoke, #28.)
+- workato-builder subagent dependency (#22): the generation references pointed
+  the builder at format-spec rules by naming them "(always-on)", which a
+  subagent cannot load. The four format rules (`workato-recipe-format`,
+  `workato-agentic-format`, `workato-connector-sdk`,
+  `workato-project-structure`) are now reachable via
+  `workato_asset_path("rules/<rule>.md")` — the same self-resolving mechanism
+  the builder already uses for its generation references, keeping `rules/` the
+  single source of truth. The runtime check (can a subagent call MCP tools at
+  all?) is added to the self-install smoke's manual checklist for #32 Phase A.
 
 ### Notes
 - Claude Code is the only supported editor; Cursor / Codex / Gemini assets

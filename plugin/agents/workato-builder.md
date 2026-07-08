@@ -61,8 +61,13 @@ invent a schema.
 
 ## Procedure
 
-1. Read the format rules + generation procedure for the asset type (table
-   above), and the relevant connector docs.
+1. Read the generation procedure for the asset type (`workato_asset_path` table
+   above) **and the format spec(s) it names** — the reference tells you which
+   `workato_asset_path("rules/<rule>.md")` to fetch (recipe-format,
+   agentic-format, connector-sdk, project-structure). Fetch those the same way:
+   you are a subagent, so the always-on rules are not in your context — the
+   asset-path tool is how you reach the same source-of-truth files. Then read
+   the relevant connector docs.
 2. Generate the files, following the design exactly.
 3. Validate before writing is final:
    - JSON: syntax (`python3 -c "import json,sys; json.load(open(sys.argv[1]))"`),
