@@ -84,10 +84,14 @@ def test_no_claude_rules_path_refs():
     assert not offenders, "remaining @.claude/ refs:\n" + "\n".join(offenders)
 
 
-def test_rules_referenced_by_name():
+def test_recipe_reference_fetches_format_spec_self_resolving():
+    """The recipe reference must reach the recipe-format spec through the
+    asset-path tool (self-resolving in both main + subagent contexts), not by
+    naming an always-on rule the subagent cannot load (issue #22, was #18's
+    name-reference before the builder-dependency fix)."""
     text = (SKILLS / "workato-create" / "references" / "recipe.md").read_text(encoding="utf-8")
-    assert "`workato-recipe-format`" in text
-    assert "always-on" in text
+    assert 'workato_asset_path("rules/workato-recipe-format.md")' in text
+    assert 'workato_asset_path("rules/workato-project-structure.md")' in text
 
 
 # ---- P4: learning-WRITE redesign ----
@@ -229,6 +233,90 @@ def test_builder_resolves_references_via_asset_path():
     assert "workato_asset_path" in agent, (
         "builder must resolve references/<type>.md via workato_asset_path"
     )
+
+
+_CREATE_REFS = SKILLS / "workato-create" / "references"
+_RULES_DIR = SKILLS.parent / "rules"
+# JSON/Ruby asset extensions the builder generates — a rule scoped to one of
+# these in its frontmatter is a per-asset FORMAT SCHEMA the subagent needs.
+_ASSET_EXT = (
+    ".recipe.json", ".connection.json", ".agentic_genie.json", ".agentic_skill.json",
+    ".mcp_server.json", ".lcap_app.json", ".lcap_page.json", ".workato_db_table.json",
+    ".rb",
+)
+_ALWAYS_ON_READ = re.compile(r"`(workato-[a-z-]+)` rule[ ,]")
+
+
+def _format_rules():
+    """Format-spec rules the builder depends on, DERIVED (not hardcoded) so a
+    new per-asset-type rule (e.g. page-components for lcap_page) is caught
+    automatically — the blind spot that hid the page lane before. = every rule
+    whose frontmatter paths target a generated asset extension, plus the
+    layout rule project-structure (its scope is `projects/**`, not one ext)."""
+    out = {"workato-project-structure"}
+    for p in _RULES_DIR.glob("*.md"):
+        m = re.match(r"^---\n(.*?)\n---", p.read_text(encoding="utf-8"), re.DOTALL)
+        fm = m.group(1) if m else ""
+        if any(ext in fm for ext in _ASSET_EXT):
+            out.add(p.stem)
+    return out
+
+
+def test_references_do_not_depend_on_always_on_rules():
+    """No generation reference may point the builder at a format-spec rule via
+    an '(always-on)' name — that dependency does not resolve in a subagent.
+    Checked per file against the DERIVED format-rule set (issue #22)."""
+    fmt = _format_rules()
+    offenders = []
+    for p in sorted(_CREATE_REFS.glob("*.md")):
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if "always-on" not in line and "always on" not in line:
+                continue
+            for m in _ALWAYS_ON_READ.finditer(line):
+                # a bare "the `X` rule ..." pointer (no asset_path fetch on the
+                # same line) to a format rule is the unresolvable dependency
+                if m.group(1) in fmt and "workato_asset_path" not in line:
+                    offenders.append(f"{p.name}:{i}: {line.strip()}")
+    assert not offenders, (
+        "references still route the subagent at an always-on rule (fetch via "
+        "workato_asset_path(\"rules/<rule>.md\") instead):\n" + "\n".join(offenders)
+    )
+
+
+def test_references_fetch_named_format_rules_via_asset_path():
+    """Per FILE: if a reference names a derived format rule, THAT file must also
+    fetch it via workato_asset_path (not merely some other reference — the
+    joined-blob check let the page lane slip)."""
+    fmt = _format_rules()
+    offenders = []
+    for p in sorted(_CREATE_REFS.glob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        for rule in fmt:
+            names_it = f"`{rule}`" in text or f"rules/{rule}.md" in text
+            if names_it and f'workato_asset_path("rules/{rule}.md")' not in text:
+                offenders.append(f"{p.name}: names {rule} but no asset_path fetch")
+    assert not offenders, "format rule named without an in-file fetch:\n" + "\n".join(offenders)
+
+
+def test_every_rule_asset_path_call_resolves():
+    """Every workato_asset_path(\"rules/X.md\") the references or builder issue
+    must be an allowlisted, resolving asset (catches a typo or a rule fetched
+    but never added to the allowlist)."""
+    import sys
+    sys.path.insert(0, str(SKILLS.parent / "mcp" / "docs-overlay"))
+    import assets  # noqa: E402
+    from conftest import PLUGIN  # noqa: E402
+    sources = list(_CREATE_REFS.glob("*.md")) + [SKILLS.parent / "agents" / "workato-builder.md"]
+    call = re.compile(r'workato_asset_path\("(rules/[^"]+)"\)')
+    offenders = []
+    for p in sources:
+        for name in call.findall(p.read_text(encoding="utf-8")):
+            if "<" in name or ">" in name:
+                continue  # illustrative placeholder like rules/<rule>.md
+            resolved = assets.asset_path(PLUGIN, name)
+            if resolved.startswith("UNKNOWN ASSET") or not __import__("pathlib").Path(resolved).is_file():
+                offenders.append(f"{p.name}: {name} -> {resolved}")
+    assert not offenders, "unresolvable rule asset_path calls:\n" + "\n".join(offenders)
 
 
 # --- Knowledge-convention single-sourcing (issue #21) ---

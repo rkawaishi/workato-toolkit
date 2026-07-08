@@ -34,3 +34,22 @@ def test_resolved_assets_stay_under_plugin_root():
     for name in assets.ASSETS:
         p = Path(assets.asset_path(root, name))
         assert p.is_relative_to(root), f"{name} escapes the plugin root: {p}"
+
+
+# Format-spec rules the builder / references depend on. A subagent cannot load
+# always-on rules, so it must reach these through the asset-path tool (issue #22).
+FORMAT_RULE_ASSETS = (
+    "rules/workato-recipe-format.md",
+    "rules/workato-agentic-format.md",
+    "rules/workato-connector-sdk.md",
+    "rules/workato-project-structure.md",
+    "rules/workato-page-components.md",
+)
+
+
+def test_format_rule_assets_resolve_to_existing_files():
+    for name in FORMAT_RULE_ASSETS:
+        p = assets.asset_path(PLUGIN, name)
+        assert not p.startswith("UNKNOWN ASSET"), p
+        assert Path(p).is_file(), f"{name} -> {p}"
+        assert Path(p).is_absolute()

@@ -19,7 +19,7 @@ Invoked as `/workato-create connector [<api-name>]`.
 2. Read the references:
    - Call `workato_docs_lookup` with path `connector-sdk/overview.md` — SDK overview and setup pitfalls.
    - Call `workato_docs_lookup` with path `connector-sdk/connector-rb.md` — connector.rb reference (HTTP method return types, `base_uri` conventions, normalization helper templates).
-   - the `workato-connector-sdk` rule (always-on) — format rules.
+   - The connector-SDK format spec: `workato_asset_path("rules/workato-connector-sdk.md")`, then Read the returned path (always-on rule in the main session; the builder subagent fetches it here).
 
 3. If the API docs are provided:
    - Use WebFetch to learn the auth method, endpoints, and request/response shapes.

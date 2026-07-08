@@ -19,6 +19,18 @@ ASSETS = {
     "workato-create/references/mcp-server.md": "skills/workato-create/references/mcp-server.md",
     "workato-create/references/workflow-app.md": "skills/workato-create/references/workflow-app.md",
     "workato-create/references/connector.md": "skills/workato-create/references/connector.md",
+    # Format-spec rules the builder needs to generate valid JSON / Ruby. These
+    # are always-on rules for the main session, but a subagent gets no always-on
+    # injection — it fetches the same source-of-truth files through this tool
+    # (issue #22). asset_path (not docs_lookup) on purpose: format specs are
+    # kit-canonical and must not be silently altered by an org overlay.
+    "rules/workato-recipe-format.md": "rules/workato-recipe-format.md",
+    "rules/workato-agentic-format.md": "rules/workato-agentic-format.md",
+    "rules/workato-connector-sdk.md": "rules/workato-connector-sdk.md",
+    "rules/workato-project-structure.md": "rules/workato-project-structure.md",
+    # lcap_page.json has its OWN format spec (agentic-format covers lcap_app /
+    # workato_db_table only) — the workflow-app page lane needs it too (#22).
+    "rules/workato-page-components.md": "rules/workato-page-components.md",
 }
 
 
